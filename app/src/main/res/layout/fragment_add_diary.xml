@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <!-- Title -->
+            <EditText
+                android:id="@+id/editTextTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Title"
+                android:inputType="textCapSentences"
+                android:maxLines="1"
+                android:layout_marginHorizontal="16dp" />
+
+            <!-- Note -->
+            <EditText
+                android:id="@+id/editTextNote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Note"
+                android:inputType="textMultiLine"
+                android:minLines="2"
+                android:layout_marginHorizontal="16dp" />
+
+            <!-- show day specific notes -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="55dp"
+                android:background="@drawable/circular_corners"
+                android:padding="16dp"
+                android:layout_marginHorizontal="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Notes on today's tasks"
+                    android:drawableEnd="@drawable/ic_info"
+                    android:gravity="center_vertical"
+                    android:drawablePadding="8dp"
+                    android:textColor="@color/black"
+                    android:textFontWeight="@integer/material_motion_duration_long_1" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/taskNoteRv"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    tools:itemCount="5"
+                    tools:listitem="@layout/rv_specific_day_note_layout"
+                    />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <Button
+        android:id="@+id/buttonSave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:text="Save"
+        android:textColor="@color/white"
+        android:backgroundTint="@color/brand_blue"
+        />
+</LinearLayout>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="mainColorText">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/main_text_color</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAppearance">?attr/textAppearanceSubtitle1</item>
+    </style>
+
+    <style name="CategoryColorCircle" >
+        <item name="android:layout_width">27dp</item>
+        <item name="android:layout_height">27dp</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:background">@drawable/circular</item>
+        <item name="android:contentDescription">@string/none</item>
+        <item name="android:tint">@color/white</item>
+    </style>
+
+    <style name="CategoryStrokeCircle">
+        <item name="android:layout_width">28dp</item>
+        <item name="android:layout_height">28dp</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:background">@drawable/stroke_circular_dark</item>
+    </style>
+
+
+</resources>

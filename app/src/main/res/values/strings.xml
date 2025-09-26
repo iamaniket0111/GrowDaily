@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">ScoreMyDay</string>
+
+    <string name="menu_home">Home</string>
+    <string name="menu_add_task">Add Task</string>
+    <string name="none">none</string>
+    <string name="task_weight_prefix">%1$d/4</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="st1">Don’t just live the day, score it. Add a task</string>
+    <string name="st2">and boost your</string>
+    <string name="st3">\tScore My Day</string>
+    <string name="menu_diary">Diary</string>
+    <string name="menu_add_diary">Add Diary</string>
+    <string name="today">Today</string>
+    <string name="tomorrow">Tomorrow</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="mood_history">Mood History</string>
+    <string name="time">9:26 AM</string>
+    <string name="date">27/8/2002</string>
+    <string name="holiday">Holiday</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="condition_message1">Select the tasks you don’t need to complete under this condition.\nIf you update the data later, please reapply this condition to reflect the changes.</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="condition1">Work Day</string>
+
+</resources>

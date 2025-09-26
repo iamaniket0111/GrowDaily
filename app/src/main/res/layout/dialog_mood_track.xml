@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/customDialogLayout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/circular_corners_more"
+    android:gravity="center_horizontal">
+
+    <TextView
+        android:id="@+id/tvMoodHistoryTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select The Mood"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+      />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/moodTrackerRv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        />
+</LinearLayout>

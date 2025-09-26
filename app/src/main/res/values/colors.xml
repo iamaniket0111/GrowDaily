@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Neutral Colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="gray">#808080</color>
+    <color name="default_text_color">#747474</color>
+    <color name="main_text_color">#782115</color>
+    <color name="off_text_color">#A6A6A7</color>
+
+    <!-- Backgrounds -->
+    <color name="background_color">#F0F0F0</color>
+    <color name="background_color2">#E0E0E0</color>
+    <color name="high_light_dark">#6C6A6D</color>
+    <color name="light_surface">#F1F1F3</color>
+
+    <!-- Brand / Accent Colors -->
+    <color name="brand_blue">#708CFF</color>
+
+    <!-- Categories -->
+    <color name="category_red">#FF6B6B</color>
+    <color name="category_orange">#FF9F40</color>
+    <color name="category_yellow">#FFD93D</color>
+    <color name="category_green">#4ADE80</color>
+    <color name="category_teal">#2DD4BF</color>
+    <color name="category_blue">#38BDF8</color>
+    <color name="category_purple">#C084FC</color>
+    <color name="category_dark_blue">@color/brand_blue</color>
+
+    <!-- Opacity Variants -->
+    <color name="category_dark_blue_25">#40708CFF</color>
+    <color name="category_dark_blue_10">#1A708CFF</color>
+</resources>

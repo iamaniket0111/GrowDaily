@@ -1,0 +1,35 @@
+<resources>
+    <!-- Base application theme -->
+    <style name="Theme.ScoreMyDay" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <!-- Primary brand color -->
+        <item name="colorPrimary">@color/light_surface</item>
+        <item name="colorPrimaryVariant">@color/light_surface</item>
+        <item name="colorOnPrimary">@color/black</item>
+
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">@color/brand_blue</item>
+        <item name="colorSecondaryVariant">@color/brand_blue</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <!-- Status bar -->
+        <item name="android:statusBarColor">@color/light_surface</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <style name="Theme.ScoreMyDay.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.ScoreMyDay.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="MyToolbarStyle" parent="Widget.AppCompat.Toolbar">
+        <item name="navigationIconTint">@color/black</item>
+        <item name="titleTextColor">@color/black</item>
+    </style>
+
+    <style name="Theme.ScoreMyDay.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="toolbarStyle">@style/MyToolbarStyle</item>
+        <item name="android:textColorPrimary">@color/black</item>
+    </style>
+</resources>
