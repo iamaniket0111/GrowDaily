@@ -1,6 +1,7 @@
 package com.anitech.scoremyday
 
 import com.anitech.scoremyday.data_class.DailyTask
+import com.anitech.scoremyday.data_class.DateItemEntity
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -9,7 +10,7 @@ import java.util.Locale
 
 class CommonMethods {
     companion object {
-        private const val DATE_FORMATE:String ="yyyy-MM-dd"
+        private const val DATE_FORMATE: String = "yyyy-MM-dd"
 
         fun getTodayDate(): String {
             return SimpleDateFormat(DATE_FORMATE, Locale.getDefault()).format(Date())
@@ -51,6 +52,7 @@ class CommonMethods {
             val today = LocalDate.now()
             return date.isEqual(today)
         }
+
         fun isYesterdayDate(currentDate: String): Boolean {
             val sdf = DateTimeFormatter.ofPattern(DATE_FORMATE)
             val date = LocalDate.parse(currentDate, sdf)
@@ -66,14 +68,14 @@ class CommonMethods {
         }
 
 
-
         fun isFutureDate(currentDate: String): Boolean {
             val sdf = DateTimeFormatter.ofPattern(DATE_FORMATE)
             val date = LocalDate.parse(currentDate, sdf)
             val today = LocalDate.now()
             return date.isAfter(today)
         }
-         fun filterTasks(tasks: List<DailyTask>, date: String): List<DailyTask> {
+
+        fun filterTasks(tasks: List<DailyTask>, date: String): List<DailyTask> {
             return tasks.filter { task ->
                 if (task.isDaily) {
                     task.taskAddedDate <= date &&
@@ -84,6 +86,28 @@ class CommonMethods {
             }
         }
 
+        fun filterTasksByCondition(
+            tasks: List<DailyTask>,
+            date: String,
+            dateItemEntity: DateItemEntity
+        ): List<DailyTask> {
+            // Get all unique itemIds from all dateData
+            val excludedIds = dateItemEntity.data
+                .flatMap { it.itemIds }
+                .toSet()
+
+            return tasks.filter { task ->
+                if (task.isDaily) {
+                    task.taskAddedDate <= date &&
+                            (task.taskRemovedDate == null || task.taskRemovedDate > date) &&
+                            !excludedIds.contains(task.id) // exclude tasks whose id is in the set
+                } else {
+                    task.taskAddedDate == date
+                }
+            }
+        }
+
+
     }
-    
+
 }

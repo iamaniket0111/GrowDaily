@@ -19,6 +19,6 @@
 
     <item
         android:id="@+id/menu_condition"
-        android:title="Manage Conditions"
+        android:title="Manage Exclude"
         app:showAsAction="never" />
 </menu>

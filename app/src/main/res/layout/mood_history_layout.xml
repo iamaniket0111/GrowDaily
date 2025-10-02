@@ -16,6 +16,7 @@
         android:textColor="@android:color/black"
         android:textSize="16sp"
         android:paddingBottom="6dp"
+        android:fontFamily="sans-serif-medium"
         />
 
     <!-- Emoji Days Row -->

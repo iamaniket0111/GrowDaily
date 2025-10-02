@@ -107,7 +107,7 @@
 
                     <include
                         android:id="@+id/conditionReorderLayout"
-                        layout="@layout/reorder_condition_layout"/>
+                        layout="@layout/reorder_condition_layout" />
                 </FrameLayout>
 
 
@@ -126,7 +126,25 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
 
-                <include layout="@layout/empty_space_layout" />
+                <FrameLayout
+                    android:id="@+id/noDayTaskLayoutContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingVertical="48dp"
+                    >
+
+                    <include layout="@layout/no_day_task_layout" />
+                </FrameLayout>
+
+
+                <FrameLayout
+                    android:id="@+id/emptySpaceLayoutContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <include layout="@layout/empty_space_layout" />
+                </FrameLayout>
+
             </LinearLayout>
 
         </androidx.core.widget.NestedScrollView>

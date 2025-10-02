@@ -20,7 +20,11 @@
     <string name="holiday">Holiday</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="condition_message1">Select the tasks you don’t need to complete under this condition.\nIf you update the data later, please reapply this condition to reflect the changes.</string>
+    <string name="condition_message">
+    Select the tasks you want to exclude as they are irrelevant under %1$s.\n
+    If you update the data later, please reapply this condition to reflect the changes.
+</string>
+
     <string name="save_changes">Save Changes</string>
     <string name="condition1">Work Day</string>
 

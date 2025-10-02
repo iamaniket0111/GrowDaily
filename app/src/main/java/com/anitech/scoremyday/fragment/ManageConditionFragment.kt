@@ -8,16 +8,20 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.anitech.scoremyday.R
 import com.anitech.scoremyday.adapter.TaskForConditionAdapter
 import com.anitech.scoremyday.data_class.DailyTask
 import com.anitech.scoremyday.database.AppViewModel
 import com.anitech.scoremyday.databinding.FragmentManageConditionBinding
+import kotlin.getValue
 
 class ManageConditionFragment : Fragment() {
     private var _binding: FragmentManageConditionBinding? = null
     private val binding get() = _binding!!
     private val viewModel: AppViewModel by activityViewModels()
+    private val args: ManageConditionFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -30,17 +34,16 @@ class ManageConditionFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val conditionItemId = arguments?.getInt("conditionItemId") ?: -1
+        val argCondition = args.ConditionEntity
+        val conditionName = argCondition.conditionTitle
+        binding.defName.text = conditionName
+        val message = getString(R.string.condition_message, conditionName)
+        binding.infoText.text = message
 
-        if (conditionItemId == -1) {
-            Toast.makeText(requireContext(), "Condition ID missing!", Toast.LENGTH_SHORT).show()
-            findNavController().popBackStack()
-            return
-        }
 
         val taskForConditionAdapter = TaskForConditionAdapter(
             emptyList(),
-            conditionId = conditionItemId,
+            conditionId = argCondition.id,
             listener = object : TaskForConditionAdapter.OnItemClickListener {
                 override fun onTaskCompleteClick(task: DailyTask) {
                     viewModel.updateTask(task)
@@ -56,7 +59,7 @@ class ManageConditionFragment : Fragment() {
         viewModel.getAllDailyTasks().observe(viewLifecycleOwner) { tasks ->
             taskForConditionAdapter.updateList(tasks)
         }
-        viewModel.getTasksByCondition(conditionItemId).observe(viewLifecycleOwner) { tasks ->
+        viewModel.getTasksByCondition(argCondition.id).observe(viewLifecycleOwner) { tasks ->
             taskForConditionAdapter.updateConditionList(tasks)
         }
     }

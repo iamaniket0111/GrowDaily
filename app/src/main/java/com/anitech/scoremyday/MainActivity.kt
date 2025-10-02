@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toDrawable
+import androidx.core.os.bundleOf
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -59,7 +60,6 @@ class MainActivity : AppCompatActivity() {
                 supportActionBar?.setDisplayShowTitleEnabled(true)
                 supportActionBar?.title = destination.label
             }
-
 
             invalidateOptionsMenu() // 👈 menu refresh
         }
@@ -159,9 +159,7 @@ class MainActivity : AppCompatActivity() {
             emptyList(),
             object : ConditionListAdapter.OnItemClickListener {
                 override fun onItemClick(conditionItem: ConditionEntity) {
-                    val bundle = Bundle().apply {
-                        putInt("conditionItemId", conditionItem.id)
-                    }
+                    val bundle = bundleOf("ConditionEntity" to conditionItem)
                     navController.navigate(R.id.manageCondition,bundle)
                     dialog.dismiss()
                 }

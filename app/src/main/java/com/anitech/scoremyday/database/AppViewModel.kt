@@ -12,7 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.lifecycle.switchMap
-
+import com.anitech.scoremyday.CommonMethods.Companion.filterTasksByCondition
 
 
 class AppViewModel(private val repository: AppRepository) : ViewModel() {
@@ -41,20 +41,51 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
 
     private val selectedDate = MutableLiveData<String>()
 
-    val filteredTasks: LiveData<List<DailyTask>> = MediatorLiveData<List<DailyTask>>().apply {
-        addSource(allTasks) { tasks ->
-            val date = selectedDate.value
-            value = if (date != null) filterTasks(tasks, date) else emptyList()
-        }
-        addSource(selectedDate) { date ->
-            value =
-                if (date != null) filterTasks(allTasks.value ?: emptyList(), date) else emptyList()
+    val filteredTasks: LiveData<List<DailyTask>> = selectedDate.switchMap { date ->
+        if (date == null) {
+            MutableLiveData(emptyList())
+        } else {
+            allTasks.map { tasks -> filterTasks(tasks, date) }
         }
     }
+
+    val filteredTasksByCondition = MediatorLiveData<List<DailyTask>>().apply {
+        var currentTasks: List<DailyTask>? = null
+        var currentDate: String? = null
+
+        fun update() {
+            val tasks = currentTasks ?: return
+            val date = currentDate ?: return
+            viewModelScope.launch {
+                val dateItem = repository.getDateItem(date)
+                val filtered = if (dateItem != null) {
+                    filterTasksByCondition(tasks, date, dateItem)
+                } else {
+                    filterTasks(tasks, date)
+                }
+                postValue(filtered)
+            }
+        }
+
+        addSource(allTasks) { tasks: List<DailyTask>? ->
+            currentTasks = tasks
+            update()
+        }
+
+        addSource(selectedDate) { date: String? ->
+            currentDate = date
+            update()
+        }
+    }
+
 
     fun setDate(date: String) {
         selectedDate.value = date
     }
+    //date and task item
+
+
+
 
     //deletion work
     fun updateTasks(tasks: List<DailyTask>) = viewModelScope.launch {
@@ -164,14 +195,12 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
     }
 
 
-
     //condition
     fun getAllConditions(): LiveData<List<ConditionEntity>> {
         return repository.getAll()
     }
 
     val allConditionsLiv: LiveData<List<ConditionEntity>> = repository.getAllConditions()
-
 
     fun insertAll(conditions: List<ConditionEntity>) {
         viewModelScope.launch {
@@ -199,9 +228,7 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
     }
 
     suspend fun getDateItem(date: String): DateItemEntity? {
-        return withContext(Dispatchers.IO) {
-            repository.getDateItem(date)
-        }
+        return repository.getDateItem(date)
     }
 
     fun deleteDateItem(date: String) {
@@ -229,6 +256,5 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
             repository.getDateItemObs(date) // <- LiveData<DateItemEntity?>
         }
     }
-
 
 }

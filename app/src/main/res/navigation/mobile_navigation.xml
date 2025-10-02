@@ -69,6 +69,11 @@
         android:id="@+id/manageCondition"
         android:name="com.anitech.scoremyday.fragment.ManageConditionFragment"
         android:label="Manage Condition"
-        tools:layout="@layout/fragment_manage_condition" />
+        tools:layout="@layout/fragment_manage_condition" >
+        <argument
+            android:name="ConditionEntity"
+            app:argType="com.anitech.scoremyday.data_class.ConditionEntity"
+            />
+    </fragment>
 
 </navigation>

@@ -47,7 +47,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:lineSpacingExtra="2dp"
-            android:text="@string/condition_message1"
+            android:text="@string/condition_message"
             android:textSize="14sp"
             android:textStyle="bold"
             android:layout_marginHorizontal="16dp"/>

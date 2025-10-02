@@ -149,11 +149,11 @@ class HomeFragment : Fragment() {
 
                     val reorderAdapter: ConditionReorderAdapter =
                         ConditionReorderAdapter(mutableListOf(), object :
-                        TouchHelperProvider {
-                        override fun startDrag(viewHolder: RecyclerView.ViewHolder) {
-                            touchHelper.startDrag(viewHolder)
-                        }
-                    })
+                            TouchHelperProvider {
+                            override fun startDrag(viewHolder: RecyclerView.ViewHolder) {
+                                touchHelper.startDrag(viewHolder)
+                            }
+                        })
 
                     val callback = ReorderTouchHelperCallback(reorderAdapter)
                     touchHelper = ItemTouchHelper(callback)
@@ -214,7 +214,15 @@ class HomeFragment : Fragment() {
             }
         }
 
-        viewModel.filteredTasks.observe(viewLifecycleOwner) { tasks ->
+        viewModel.filteredTasksByCondition.observe(viewLifecycleOwner) { tasks ->
+            if (tasks.isEmpty()) {
+                binding.noDayTaskLayoutContainer.visibility = View.VISIBLE
+                binding.emptySpaceLayoutContainer.visibility = View.GONE
+            } else {
+                binding.noDayTaskLayoutContainer.visibility = View.GONE
+                binding.emptySpaceLayoutContainer.visibility = View.VISIBLE
+            }
+
             adapter.updateList(tasks.reversed(), currentTodoDate)
             updateScoreUI(tasks, binding.scoreLayout.doneWeight, binding.scoreLayout.cpi)
         }
@@ -266,7 +274,7 @@ class HomeFragment : Fragment() {
                 binding.dateTv.text = dateTextWork(currentTodoDate)
                 viewModel.setDate(currentTodoDate)
                 updateDayText(score.date)
-              //  conditionWork()
+                //  conditionWork()
             }
         }
 
@@ -283,12 +291,16 @@ class HomeFragment : Fragment() {
                 override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
                 override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
             })
+
+            val todayIndex = 500-4
+           scrollToPosition(todayIndex)
         }
 
         viewModel.allTasks.observe(viewLifecycleOwner) { taskList ->
             val scores = calculateDailyScoresThisWeek(taskList)
-            barAdapter.updateData(scores)
+            barAdapter.updateData(taskList)
             binding.barGraph2.scoreBackground.setData(scores)
+
 
             // 📅 WEEK
             val today = LocalDate.now()
@@ -471,7 +483,7 @@ class HomeFragment : Fragment() {
             val weekDay = currentDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
 
             // Pass both dateString and weekDay
-            dailyScores.add(DailyScore(dateString, weekDay, score, taskCount = tasksUpToDate.size))
+            dailyScores.add(DailyScore(dateString, weekDay, "",score, taskCount = tasksUpToDate.size))
 
             currentDate = currentDate.plusDays(1)
         }
