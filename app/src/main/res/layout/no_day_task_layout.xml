@@ -1,9 +1,32 @@
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="16dp"
-    android:text="No tasks for this day. Tap + to add one!"
-    android:textColor="@android:color/darker_gray"
-    android:textSize="16sp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
     android:gravity="center"
-    android:textStyle="italic" />
+    >
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:src="@drawable/add_task_ic"
+       android:scaleType="fitCenter"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No tasks for this\n day"
+        android:textColor="@color/black"
+        android:textAlignment="center"
+        android:textSize="24dp"
+        android:fontFamily="sans-serif-medium"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="8dp"
+        android:text="Tap + to add one!"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        android:textStyle="italic" />
+</LinearLayout>

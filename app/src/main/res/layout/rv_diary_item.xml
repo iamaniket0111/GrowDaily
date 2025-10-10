@@ -29,6 +29,17 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <TextView
+            android:id="@+id/dayMood"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="😒"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="@+id/tvDate"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/tvDate" />
+
         <!-- Title -->
         <TextView
             android:id="@+id/tvTitle"
@@ -63,9 +74,96 @@ Text styling — title aur date alag visual hierarchy me hone chahiye (title bol
 Ripple effect missing — item click feel ke liye Material ripple chahiye.
 
 Background ke liye MaterialCardView ka elevation + rounded corners use karna zyada modern lagega."
+            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            android:orientation="horizontal"
+            android:weightSum="3"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvContent">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/circular_corners_less"
+                    android:backgroundTint="#404ADE80"
+                    android:paddingHorizontal="4dp"
+                    android:text="Done"
+                    android:textColor="@color/category_green" />
+
+                <TextView
+                    android:id="@+id/countTaskDone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="8dp"
+                    android:text="0" />
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/circular_corners_less"
+                    android:backgroundTint="#40FF6B6B"
+                    android:paddingHorizontal="4dp"
+                    android:text="Pending"
+                    android:textColor="@color/category_red" />
+
+                <TextView
+                    android:id="@+id/countTaskPending"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="8dp"
+                    android:text="0" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/circular_corners_less"
+                    android:backgroundTint="#40708CFF"
+                    android:paddingHorizontal="4dp"
+                    android:text="Progress"
+                    android:textColor="@color/brand_blue" />
+
+                <TextView
+                    android:id="@+id/dayProgress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="8dp"
+                    android:text="0" />
+            </LinearLayout>
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -5,7 +5,6 @@
     android:orientation="horizontal"
     >
         <HorizontalScrollView
-            android:id="@+id/horizontalScrollView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -15,15 +14,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
 
-                <com.anitech.scoremyday.RoundedBarChartView
-                    android:id="@+id/barChart"
+                <com.anitech.growdaily.RoundedBarChartView
                     android:layout_width="wrap_content"
                     android:layout_height="150dp" />
             </FrameLayout>
         </HorizontalScrollView>
 
         <TextView
-            android:id="@+id/maxLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="10"

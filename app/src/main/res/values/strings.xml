@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ScoreMyDay</string>
+    <string name="app_name">Grow Daily</string>
 
     <string name="menu_home">Home</string>
     <string name="menu_add_task">Add Task</string>
@@ -10,7 +10,7 @@
     <string name="st2">and boost your</string>
     <string name="st3">\tScore My Day</string>
     <string name="menu_diary">Diary</string>
-    <string name="menu_add_diary">Add Diary</string>
+    <string name="menu_day_log">Day Log</string>
     <string name="today">Today</string>
     <string name="tomorrow">Tomorrow</string>
     <string name="yesterday">Yesterday</string>

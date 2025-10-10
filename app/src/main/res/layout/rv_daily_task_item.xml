@@ -71,20 +71,6 @@
             />
     </LinearLayout>
 
-    <ImageButton
-        android:id="@+id/specificNoteBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:contentDescription="@string/none"
-        android:src="@drawable/ic_pencil"
-        app:tint="@color/category_dark_blue"
-        android:background="@drawable/circular"
-        android:backgroundTint="@color/white"
-        android:padding="6dp"
-        android:focusable="true"
-        android:clickable="true"
-        android:visibility="gone"
-        />
 
     <FrameLayout
         android:id="@+id/doneContainer"

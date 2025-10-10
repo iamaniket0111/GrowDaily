@@ -8,7 +8,7 @@
     >
 
     <!-- Background lines -->
-    <com.anitech.scoremyday.ScoreBarBackground
+    <com.anitech.growdaily.ScoreBarBackground
         android:id="@+id/scoreBackground"
         android:layout_width="match_parent"
         android:layout_height="60dp"
@@ -26,4 +26,20 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/goToTodayButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="18dp"
+        android:padding="8dp"
+        android:contentDescription="@string/none"
+        android:src="@drawable/ic_close"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="@drawable/circular"
+        android:backgroundTint="@color/white"
+        android:visibility="invisible"
+        app:tint="@color/black"
+        />
 </androidx.constraintlayout.widget.ConstraintLayout>

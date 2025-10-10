@@ -8,7 +8,6 @@
     tools:context=".fragment.ImageProviderFragment">
 
     <LinearLayout
-        android:id="@+id/linearLayout2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="18dp"
@@ -18,7 +17,6 @@
         android:visibility="visible">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/optionsContainer"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:layout_gravity="bottom"
@@ -183,7 +181,6 @@
         </LinearLayout>
 
         <View
-            android:id="@+id/divider4"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="?android:attr/listDivider" />

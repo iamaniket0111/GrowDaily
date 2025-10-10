@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.anitech.scoremyday"
+    namespace = "com.anitech.growdaily"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.anitech.scoremyday"
+        applicationId = "com.anitech.growdaily"
         minSdk = 29
         //noinspection OldTargetApi
         targetSdk = 35

@@ -36,7 +36,6 @@
                     app:tint="@color/white" />
 
                 <ImageView
-                    android:id="@+id/camera_icon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom|end"
@@ -75,15 +74,6 @@
                 android:hint="Note (Optional)"
                 android:inputType="textMultiLine"
                 android:minLines="2" />
-
-            <!-- Note -->
-            <EditText
-                android:id="@+id/editTextDayNote"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:hint="Note On Day (Optional, useful for diary)"
-                android:inputType="textMultiLine" />
 
 
             <!-- Score Weight -->
@@ -140,7 +130,7 @@
                 />
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_check_Condition"
+                android:id="@+id/rvCheckCondition"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 />
@@ -181,7 +171,6 @@
                         app:drawableEndCompat="@drawable/ic_calender" />
 
                     <View
-                        android:id="@+id/divider"
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:layout_marginHorizontal="12dp"
@@ -212,7 +201,6 @@
                         app:drawableEndCompat="@drawable/clock" />
 
                     <View
-                        android:id="@+id/divider2"
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:layout_marginHorizontal="12dp"

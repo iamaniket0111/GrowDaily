@@ -30,6 +30,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
+            <FrameLayout
+                android:id="@+id/noDayTaskLayoutContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingVertical="48dp"
+                >
+                <include layout="@layout/no_report_layout" />
+            </FrameLayout>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="80dp"/>
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

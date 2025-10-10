@@ -9,7 +9,7 @@
     android:background="@drawable/circular_corners_stroke">
 
     <!-- Bar -->
-    <com.anitech.scoremyday.BarView
+    <com.anitech.growdaily.BarView
         android:id="@+id/barView"
         android:layout_width="10dp"
         android:layout_height="60dp" />

@@ -11,7 +11,6 @@
     android:elevation="8dp">
 
     <TextView
-        android:id="@+id/dialog_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Daily Task Detected"
@@ -44,7 +43,6 @@
         android:paddingBottom="20dp">
 
         <RadioButton
-            android:id="@+id/radio_disable"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="No need to use further"

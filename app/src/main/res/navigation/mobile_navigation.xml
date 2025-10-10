@@ -7,19 +7,19 @@
 
     <fragment
         android:id="@+id/nav_diary"
-        android:name="com.anitech.scoremyday.fragment.DiaryFragment"
+        android:name="com.anitech.growdaily.fragment.DiaryFragment"
         android:label="@string/menu_diary"
         tools:layout="@layout/fragment_diary" />
 
     <fragment
         android:id="@+id/nav_main"
-        android:name="com.anitech.scoremyday.fragment.MainFragment"
+        android:name="com.anitech.growdaily.fragment.MainFragment"
         tools:layout="@layout/fragment_main" />
 
 
     <fragment
         android:id="@+id/nav_home"
-        android:name="com.anitech.scoremyday.fragment.HomeFragment"
+        android:name="com.anitech.growdaily.fragment.HomeFragment"
         android:label="@string/menu_home"
         tools:layout="@layout/fragment_home">
 
@@ -27,13 +27,13 @@
 
     <fragment
         android:id="@+id/nav_add_task"
-        android:name="com.anitech.scoremyday.fragment.AddTaskFragment"
+        android:name="com.anitech.growdaily.fragment.AddTaskFragment"
         android:label="@string/menu_add_task"
         tools:layout="@layout/fragment_add_task">
 
         <argument
             android:name="task"
-            app:argType="com.anitech.scoremyday.data_class.DailyTask"
+            app:argType="com.anitech.growdaily.data_class.DailyTask"
             app:nullable="true"
             android:defaultValue="@null"
             />
@@ -41,13 +41,13 @@
 
     <fragment
         android:id="@+id/nav_add_diary"
-        android:name="com.anitech.scoremyday.fragment.AddDiaryFragment"
-        android:label="@string/menu_add_diary"
+        android:name="com.anitech.growdaily.fragment.AddDiaryFragment"
+        android:label="@string/menu_day_log"
         tools:layout="@layout/fragment_add_diary"
         >
         <argument
             android:name="diary"
-            app:argType="com.anitech.scoremyday.data_class.DiaryEntry"
+            app:argType="com.anitech.growdaily.data_class.DayLogEntity"
             app:nullable="true"
             android:defaultValue="@null"
             />
@@ -61,18 +61,18 @@
 
     <fragment
         android:id="@+id/imageProviderFragment"
-        android:name="com.anitech.scoremyday.fragment.ImageProviderFragment"
+        android:name="com.anitech.growdaily.fragment.ImageProviderFragment"
         android:label="Select Logo"
         tools:layout="@layout/fragment_image_provider" />
 
     <fragment
         android:id="@+id/manageCondition"
-        android:name="com.anitech.scoremyday.fragment.ManageConditionFragment"
+        android:name="com.anitech.growdaily.fragment.ManageConditionFragment"
         android:label="Manage Condition"
         tools:layout="@layout/fragment_manage_condition" >
         <argument
             android:name="ConditionEntity"
-            app:argType="com.anitech.scoremyday.data_class.ConditionEntity"
+            app:argType="com.anitech.growdaily.data_class.ConditionEntity"
             />
     </fragment>
 

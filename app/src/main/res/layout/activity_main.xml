@@ -7,11 +7,10 @@
     android:background="?attr/colorPrimary">
     <!-- AppBar / Toolbar -->
     <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/action_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:elevation="0dp"
-        android:theme="@style/Theme.ScoreMyDay.AppBarOverlay"
+        android:theme="@style/Theme.GrowDaily.AppBarOverlay"
         android:stateListAnimator="@null">
 
         <androidx.appcompat.widget.Toolbar
@@ -20,13 +19,11 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             style="@style/MyToolbarStyle"
-            app:popupTheme="@style/Theme.ScoreMyDay.PopupOverlay" />
+            app:popupTheme="@style/Theme.GrowDaily.PopupOverlay" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <include
-        android:id="@+id/contentMain"
-        layout="@layout/content_main"
+    <include layout="@layout/content_main"
         />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
