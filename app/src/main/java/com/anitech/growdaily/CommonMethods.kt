@@ -2,6 +2,7 @@ package com.anitech.growdaily
 
 import com.anitech.growdaily.data_class.DailyTask
 import com.anitech.growdaily.data_class.DateItemEntity
+import com.anitech.growdaily.enum_class.TaskType
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -80,13 +81,36 @@ class CommonMethods {
             return date.isAfter(today)
         }
 
+//        fun filterTasks(tasks: List<DailyTask>, date: String): List<DailyTask> {
+//            return tasks.filter { task ->
+//                if (task.isDaily) {
+//                    task.taskAddedDate <= date &&
+//                            (task.taskRemovedDate == null || task.taskRemovedDate > date)
+//                } else {
+//                    task.taskAddedDate == date
+//                }
+//            }
+//        }
+
         fun filterTasks(tasks: List<DailyTask>, date: String): List<DailyTask> {
             return tasks.filter { task ->
-                if (task.isDaily) {
-                    task.taskAddedDate <= date &&
-                            (task.taskRemovedDate == null || task.taskRemovedDate > date)
-                } else {
-                    task.taskAddedDate == date
+                when (task.taskType) {
+                    TaskType.DAILY -> {
+                        task.taskAddedDate <= date &&
+                                (task.taskRemovedDate == null || task.taskRemovedDate >= date)
+                    }
+                    TaskType.DAY -> {
+                        task.taskAddedDate == date
+                    }
+                    TaskType.UNTIL_COMPLETE -> {
+                        val lastCompletedDate = task.completedDates.maxOrNull()
+                        // Agar complete ho gaya hai aur date uske baad hai → hide
+                        val isAfterCompletion = lastCompletedDate != null && date > lastCompletedDate
+
+                        !isAfterCompletion &&
+                                task.taskAddedDate <= date &&
+                                (task.taskRemovedDate == null || task.taskRemovedDate >= date)
+                    }
                 }
             }
         }
@@ -96,21 +120,64 @@ class CommonMethods {
             date: String,
             dateItemEntity: DateItemEntity
         ): List<DailyTask> {
+
+            // FIXME: not tested yet 
             // Get all unique itemIds from all dateData
             val excludedIds = dateItemEntity.data
                 .flatMap { it.itemIds }
                 .toSet()
 
             return tasks.filter { task ->
-                if (task.isDaily) {
-                    task.taskAddedDate <= date &&
-                            (task.taskRemovedDate == null || task.taskRemovedDate > date) &&
-                            !excludedIds.contains(task.id) // exclude tasks whose id is in the set
-                } else {
-                    task.taskAddedDate == date
+                // Check latest completion date (if any)
+                val lastCompletedDate = task.completedDates.maxOrNull()
+                val isAfterCompletion = lastCompletedDate != null && date > lastCompletedDate
+
+                if (isAfterCompletion) return@filter false
+
+                when (task.taskType) {
+                    TaskType.DAILY -> {
+                        task.taskAddedDate <= date &&
+                                (task.taskRemovedDate == null || task.taskRemovedDate >= date) &&
+                                !excludedIds.contains(task.id)
+                    }
+                    TaskType.DAY -> {
+                        task.taskAddedDate == date &&
+                                !excludedIds.contains(task.id)
+                    }
+                    TaskType.UNTIL_COMPLETE -> {
+                        task.taskAddedDate <= date &&
+                                !isAfterCompletion && // hide after last completed date
+                                (task.taskRemovedDate == null || task.taskRemovedDate >= date) &&
+                                !excludedIds.contains(task.id)
+                    }
                 }
             }
         }
+
+
+
+
+
+//        fun filterTasksByCondition(
+//            tasks: List<DailyTask>,
+//            date: String,
+//            dateItemEntity: DateItemEntity
+//        ): List<DailyTask> {
+//            // Get all unique itemIds from all dateData
+//            val excludedIds = dateItemEntity.data
+//                .flatMap { it.itemIds }
+//                .toSet()
+//
+//            return tasks.filter { task ->
+//                if (task.isDaily) {
+//                    task.taskAddedDate <= date &&
+//                            (task.taskRemovedDate == null || task.taskRemovedDate > date) &&
+//                            !excludedIds.contains(task.id) // exclude tasks whose id is in the set
+//                } else {
+//                    task.taskAddedDate == date
+//                }
+//            }
+//        }
 
 
         fun calculateDailyScoreForDate(tasks: List<DailyTask>, date: String): String {//pass only filtered task or fix here instead

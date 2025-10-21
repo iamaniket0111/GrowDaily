@@ -19,11 +19,11 @@ import com.anitech.growdaily.CommonMethods
 import com.anitech.growdaily.R
 import com.anitech.growdaily.adapter.ConditionCheckAdapter
 import com.anitech.growdaily.data_class.DailyTask
-import com.anitech.growdaily.data_class.DayNoteEntity
 import com.anitech.growdaily.database.AppViewModel
 import com.anitech.growdaily.databinding.FragmentAddTaskBinding
 import com.anitech.growdaily.enum_class.TaskColor
 import com.anitech.growdaily.enum_class.TaskIcon
+import com.anitech.growdaily.enum_class.TaskType
 import com.anitech.growdaily.enum_class.TaskWeight
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -68,22 +68,53 @@ class AddTaskFragment : Fragment() {
             selectedDrawableResId = argTask.iconResId
             selectedBackgroundColor = argTask.colorCode
 
-            if (argTask.isDaily) {
-                binding.isDaily.isChecked = true
-                binding.isDaily.isEnabled = false
-            } else {
-                binding.isDaily.isChecked = false
-            }// FIXME: should we make it editable if its added today??taki previous datapar vaise bhi kuchh farak nhi pdega
+            when (argTask.taskType) {
+                TaskType.DAILY -> binding.radioGroupType.check(R.id.radioDailyTask)
+                TaskType.DAY -> binding.radioGroupType.check(R.id.radioDayTask)
+                TaskType.UNTIL_COMPLETE -> binding.radioGroupType.check(R.id.radioUntilComplete)
+            }
+            // FIXME: have to work on making it enable or not
+
+            when (argTask.taskType) {
+                TaskType.DAILY, TaskType.UNTIL_COMPLETE -> {
+                    // Radio buttons disabled
+                    for (i in 0 until binding.radioGroupType.childCount) {
+                        binding.radioGroupType.getChildAt(i).isEnabled = false
+                    }
+                }
+                TaskType.DAY -> {
+                    // Radio buttons enabled
+                    for (i in 0 until binding.radioGroupType.childCount) {
+                        binding.radioGroupType.getChildAt(i).isEnabled = true
+                    }
+                }
+            }
+//            if (argTask.isDaily) {
+//                binding.isDaily.isChecked = true
+//                binding.isDaily.isEnabled = false
+//            } else {
+//                binding.isDaily.isChecked = false
+//            }// FIXME: should we make it editable if its added today??taki previous datapar vaise bhi kuchh farak nhi pdega
 
             val taskId = argTask.id
             val date = CommonMethods.Companion.getTodayDate()
             viewModel.getNoteForDate(taskId, date)
         }
 
+
+        // Adapter initialization
+        val initialTaskType = argTask?.taskType ?: TaskType.DAILY
         val conditionCheckAdapter =
-            ConditionCheckAdapter(emptyList(), argTask?.isDaily ?: true) { id, isChecked ->
+            ConditionCheckAdapter(emptyList(), initialTaskType == TaskType.DAILY) { id, isChecked ->
                 Log.d("Condition", "Condition $id selected = $isChecked")
             }
+
+// Enable/disable checkboxes based on selected task type
+        binding.radioGroupType.setOnCheckedChangeListener { _, _ ->
+            val selectedTaskType = getSelectedTaskType()
+            conditionCheckAdapter.setCheckBoxEnabled(selectedTaskType == TaskType.DAILY)
+        }
+
 
         binding.rvCheckCondition.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -143,6 +174,7 @@ class AddTaskFragment : Fragment() {
 
             val iconEnum = TaskIcon.valueOf(selectedDrawableResId)
             val colorEnum = TaskColor.valueOf(selectedBackgroundColor)
+            val taskType = getSelectedTaskType()
             if (argTask == null) {
                 val task = DailyTask(
                     id = taskId,
@@ -159,7 +191,7 @@ class AddTaskFragment : Fragment() {
                     conditionIds = selectedConditionIds,
                     iconResId = selectedDrawableResId,
                     colorCode = selectedBackgroundColor,
-                    isDaily
+                    taskType = taskType
                 )
 
                 viewModel.insertTask(task)
@@ -182,7 +214,7 @@ class AddTaskFragment : Fragment() {
                     conditionIds = selectedConditionIds,
                     iconResId = selectedDrawableResId,
                     colorCode = selectedBackgroundColor,
-                    isDaily
+                    taskType = taskType
                 )
 
                 viewModel.updateTask(task)
@@ -295,4 +327,14 @@ class AddTaskFragment : Fragment() {
             TaskWeight.VERY_HIGH -> binding.radioGroupScore.check(R.id.radioVeryHigh)
         }
     }
+
+    private fun getSelectedTaskType(): TaskType {
+        return when (binding.radioGroupType.checkedRadioButtonId) {
+            R.id.radioDailyTask -> TaskType.DAILY
+            R.id.radioDayTask -> TaskType.DAY
+            R.id.radioUntilComplete -> TaskType.UNTIL_COMPLETE
+            else -> TaskType.DAILY
+        }
+    }
+
 }

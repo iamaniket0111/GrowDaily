@@ -129,6 +129,7 @@ class MainActivity : AppCompatActivity() {
             R.id.menu_analyse -> {
                 // Handle analyse
                 viewModel.clearAllDiaryData()
+                viewModel.clearAllMood()
                 Toast.makeText(this, "Diary data cleared", Toast.LENGTH_SHORT).show()
                 true
             }
@@ -144,6 +145,7 @@ class MainActivity : AppCompatActivity() {
                 showConditionDialog()
                 true
             }
+
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -160,7 +162,7 @@ class MainActivity : AppCompatActivity() {
             object : ConditionListAdapter.OnItemClickListener {
                 override fun onItemClick(conditionItem: ConditionEntity) {
                     val bundle = bundleOf("ConditionEntity" to conditionItem)
-                    navController.navigate(R.id.manageCondition,bundle)
+                    navController.navigate(R.id.manageCondition, bundle)
                     dialog.dismiss()
                 }
             })

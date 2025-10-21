@@ -29,4 +29,8 @@ interface MoodHistoryDao {
 
     @Query("SELECT * FROM mood_entries ORDER BY date DESC")
     fun getAllMoodsFlow(): Flow<List<MoodHistoryItem>>
+
+    @Query("SELECT * FROM mood_entries WHERE date = :todayDate LIMIT 1")
+    fun getMoodByDateLive(todayDate: String): LiveData<MoodHistoryItem?>
+
 }

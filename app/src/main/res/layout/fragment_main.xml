@@ -13,6 +13,38 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        >
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/moodFabBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|bottom"
+            android:layout_margin="16dp"
+            android:contentDescription="@string/none"
+            android:src="@drawable/emoji_neutral"
+            app:backgroundTint="@color/white"
+            app:fabSize="mini"
+            app:tint="@color/brand_blue"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/view"
+            android:visibility="gone"
+            />
+        <Space
+            android:id="@+id/view"
+            android:layout_width="0dp"
+            android:layout_height="?actionBarSize"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
     <!-- Floating Action Button -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
@@ -22,12 +54,11 @@
         android:layout_margin="16dp"
         android:contentDescription="@string/none"
         android:src="@drawable/ic_add"
-        app:tint="@color/white"
         app:backgroundTint="@color/brand_blue"
+        app:elevation="0dp"
         app:layout_anchor="@id/bottom_app_bar"
         app:layout_anchorGravity="center"
-        app:elevation="0dp"
-        />
+        app:tint="@color/white" />
 
     <!-- BottomAppBar with cutout -->
     <com.google.android.material.bottomappbar.BottomAppBar
@@ -35,26 +66,27 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        android:backgroundTint="@color/white"
+        app:elevation="4dp"
         app:fabAlignmentMode="center"
         app:fabCradleMargin="20dp"
-        android:backgroundTint="@color/white"
         app:fabCradleRoundedCornerRadius="20dp"
-        app:fabCradleVerticalOffset="10dp"
-        app:elevation="4dp"
-       />
+        app:fabCradleVerticalOffset="10dp" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
         android:background="@android:color/transparent"
         app:backgroundTint="@android:color/transparent"
         app:elevation="0dp"
+        android:layout_gravity="bottom"
+        app:itemBackground="@drawable/nav_item_background"
         app:itemIconTint="@color/nav_item_color"
         app:itemRippleColor="@android:color/transparent"
         app:labelVisibilityMode="unlabeled"
-        app:menu="@menu/bottom_nav_menu"
-        app:itemBackground="@drawable/nav_item_background"
-        />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:menu="@menu/bottom_nav_menu" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

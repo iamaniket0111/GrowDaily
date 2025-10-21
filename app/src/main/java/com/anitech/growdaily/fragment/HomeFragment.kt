@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.CommonMethods
 import com.anitech.growdaily.CommonMethods.Companion.filterTasks
+import com.anitech.growdaily.CommonMethods.Companion.isFutureDate
 import com.anitech.growdaily.CommonMethods.Companion.isTodayDate
 import com.anitech.growdaily.CommonMethods.Companion.isTomorrowDate
 import com.anitech.growdaily.CommonMethods.Companion.isYesterdayDate
@@ -43,6 +44,7 @@ import com.anitech.growdaily.data_class.DateDataEntity
 import com.anitech.growdaily.data_class.DateItemEntity
 import com.anitech.growdaily.database.AppViewModel
 import com.anitech.growdaily.databinding.FragmentHomeBinding
+import com.anitech.growdaily.enum_class.TaskType
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -63,6 +65,7 @@ class HomeFragment : Fragment() {
     lateinit var adapter: TaskAdapter
     var currentTodoDate: String = CommonMethods.Companion.getTodayDate()
     lateinit var conditionAdapter: ConditionAdapter
+    lateinit var barAdapter: BarAdapter
 
     // private lateinit var backPressedCallback: OnBackPressedCallback
     val fragmentTag = "HomeFragmentTag"
@@ -85,9 +88,10 @@ class HomeFragment : Fragment() {
                 val isSelectionMode = count > 0
                 (activity as? MainActivity)?.setSelectionMode(isSelectionMode)
 
-                // FIXME:  this part of code is not working cause of the  onFutureDateChangeBg is overriding
-//                if (!isSelectionMode) binding.container.setBackgroundColor(Color.TRANSPARENT)
-//                else binding.container.setBackgroundResource(R.color.background_color2)
+                if (!isSelectionMode) binding.container.setBackgroundColor(Color.TRANSPARENT)
+                else binding.container.setBackgroundResource(R.color.background_color2)
+                barAdapter.isSelectingMode = isSelectionMode
+                conditionAdapter.isSelectingMode = isSelectionMode
 
                 val title = if (count > 0) "$count selected" else getString(R.string.app_name)
                 (activity as? AppCompatActivity)?.supportActionBar?.title = title
@@ -97,10 +101,10 @@ class HomeFragment : Fragment() {
                 viewModel.updateTask(task)
             }
 
-            override fun onFutureDateChangeBg(isFuture: Boolean) {
-                if (!isFuture) binding.container.setBackgroundColor(Color.TRANSPARENT)
-                else binding.container.setBackgroundResource(R.color.background_color2)
-            }
+//            override fun onFutureDateChangeBg(isFuture: Boolean) {
+//                if (!isFuture) binding.container.setBackgroundColor(Color.TRANSPARENT)
+//                else binding.container.setBackgroundResource(R.color.background_color2)
+//            }
         })
 
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -149,7 +153,7 @@ class HomeFragment : Fragment() {
                     // Step 1: late init variables
                     lateinit var touchHelper: ItemTouchHelper
 
-                    val reorderAdapter: ConditionReorderAdapter =
+                    val reorderAdapter =
                         ConditionReorderAdapter(mutableListOf(), object :
                             TouchHelperProvider {
                             override fun startDrag(viewHolder: RecyclerView.ViewHolder) {
@@ -270,13 +274,14 @@ class HomeFragment : Fragment() {
         binding.scoreLayout.cpiMonth.setProgress(progress, true)
 
         //have to filter score by condition
-        val barAdapter = BarAdapter(emptyList(), object : BarAdapter.OnBarInteractionListener {
+        barAdapter = BarAdapter(emptyList(), object : BarAdapter.OnBarInteractionListener {
             override fun onBarSelected(score: DailyScore) {
                 if (currentTodoDate != score.date) {
                     currentTodoDate = score.date
                     binding.dateTv.text = dateTextWork(currentTodoDate)
                     viewModel.setDate(currentTodoDate)
                     updateDayText(score.date)
+                    adapter.isFutureDate = isFutureDate(currentTodoDate)
                     //  conditionWork()
                 }
             }
@@ -324,7 +329,7 @@ class HomeFragment : Fragment() {
 
             //FIXME: how  we are filtering by condition or any other condition
             barAdapter.updateData(taskList)
-            binding.barGraph2.scoreBackground.setData(scores)
+            binding.barGraph2.scoreBackground.setData(scores)//fixme its used only for the background
 
             // 📅 WEEK
             val today = LocalDate.now()
@@ -384,6 +389,11 @@ class HomeFragment : Fragment() {
 //        }
 //    }
 
+    private fun disableAdapter(recyclerView: RecyclerView, isTrue: Boolean) {
+        recyclerView.isEnabled = isTrue
+        recyclerView.isClickable = isTrue
+    }
+
     private fun updateDayText(date: String) {
         val text = when {
             isTodayDate(date) -> getString(R.string.today)
@@ -414,8 +424,12 @@ class HomeFragment : Fragment() {
         }
     }
 
+//    fun getDailyTaskMap(selectedItems: Set<DailyTask>): Map<Boolean, List<DailyTask>> {
+//        return selectedItems.groupBy { it.isDaily }
+//    }
+
     fun getDailyTaskMap(selectedItems: Set<DailyTask>): Map<Boolean, List<DailyTask>> {
-        return selectedItems.groupBy { it.isDaily }
+        return selectedItems.groupBy { it.taskType == TaskType.DAILY }
     }
 
     private fun dateTextWork(currentTodoDate: String): String {
@@ -539,24 +553,6 @@ class HomeFragment : Fragment() {
         return dailyScores
     }
 
-    fun getTasksForThisMonth(tasks: List<DailyTask>): List<DailyTask> {
-        val today = LocalDate.now()
-        val firstDay = today.withDayOfMonth(1)
-        val lastDay = today.withDayOfMonth(today.lengthOfMonth())
-
-        // ✅ Ensure loop ends at today (not after)
-        val endDate = if (today.isBefore(lastDay)) today else lastDay
-
-        val monthTasks = mutableSetOf<DailyTask>()
-        var currentDate = firstDay
-        while (!currentDate.isAfter(endDate)) {
-            monthTasks.addAll(filterTasks(tasks, currentDate.toString()))
-            currentDate = currentDate.plusDays(1)
-        }
-
-        return monthTasks.toList()
-    }
-
     private fun calculateScoreForDate(tasks: List<DailyTask>, date: String): Float {
         if (tasks.isEmpty()) return 0f
 
@@ -564,22 +560,25 @@ class HomeFragment : Fragment() {
         var completedWeight = 0
 
         for (task in tasks) {
+            // ✅ Skip UNTIL_COMPLETE tasks completely
+            if (task.taskType == TaskType.UNTIL_COMPLETE) continue
+
             totalWeight += task.weight.weight
-            if (task.isDaily) {
-                if (task.completedDates.contains(date)) {
-                    completedWeight += task.weight.weight
-                }
-            } else {
-                if (task.completedDates.contains(date)) {
-                    completedWeight += task.weight.weight
-                }
+
+            // Check if task is considered completed for this date
+            val isCompletedForDate = task.completedDates.contains(date)
+
+            if (isCompletedForDate) {
+                completedWeight += task.weight.weight
             }
         }
 
         if (totalWeight == 0) return 0f
+
         val rawScore = (completedWeight.toFloat() / totalWeight.toFloat()) * 10f
         return ((rawScore * 10).roundToInt()) / 10f
     }
+
 
     private fun calculateAggregateScore(
         tasks: List<DailyTask>,
@@ -590,10 +589,14 @@ class HomeFragment : Fragment() {
         var currentDate = startDate
         while (!currentDate.isAfter(endDate)) {
             val dateStr = currentDate.toString()
+
+            // ✅ Ignore UNTIL_COMPLETE tasks here directly
             val filteredTasks = filterTasks(tasks, dateStr)
+                .filter { it.taskType != TaskType.UNTIL_COMPLETE }
+
             val score = calculateScoreForDate(filteredTasks, dateStr)
 
-            // ✅ Zero score ko ignore karna hai (jaise tumne bola tha)
+            // ✅ Zero score ko ignore karna hai
             if (score > 0f) {
                 dailyScores.add(score)
             }

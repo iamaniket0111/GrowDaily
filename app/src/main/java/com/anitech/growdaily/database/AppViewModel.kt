@@ -196,6 +196,14 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
         repository.delete(mood)
     }
 
+    fun clearAllMood()=viewModelScope.launch {
+        repository.clearAllMood()
+    }
+
+    fun getTodaysMoodLive(todayDate: String): LiveData<MoodHistoryItem?> {
+        return repository.getMoodByDateLive(todayDate)
+    }
+
 
     //condition
     fun getAllConditions(): LiveData<List<ConditionEntity>> {

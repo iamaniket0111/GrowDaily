@@ -40,18 +40,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-
             <TextView
-                android:id="@+id/taskTitle"
+                android:id="@+id/taskType"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:ellipsize="end"
-                android:maxLines="2"
-                android:minLines="1"
-                android:text="Start the Day"
-                android:textColor="@color/black"
-                android:textSize="16sp" />
+                android:text="Day Task"
+                android:textColor="@color/brand_blue"
+
+                />
 
             <TextView
                 android:id="@+id/taskWeight"
@@ -59,6 +56,17 @@
                 android:layout_height="wrap_content"
                 android:text="1/4" />
         </LinearLayout>
+        <TextView
+            android:id="@+id/taskTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:minLines="1"
+            android:text="Start the Day"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
 
         <TextView
             android:id="@+id/taskNote"
@@ -67,7 +75,6 @@
             android:ellipsize="end"
             android:maxLines="5"
             android:text="be ready for the day"
-
             />
     </LinearLayout>
 

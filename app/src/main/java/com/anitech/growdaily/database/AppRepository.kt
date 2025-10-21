@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
 import com.anitech.growdaily.CommonMethods.Companion.filterTasks
 import com.anitech.growdaily.CommonMethods.Companion.calculateDailyScoreForDate
+import com.anitech.growdaily.CommonMethods.Companion.filterTasks
 
 import com.anitech.growdaily.DailyTaskDao
 import com.anitech.growdaily.data_class.ConditionEntity
@@ -13,8 +14,10 @@ import com.anitech.growdaily.data_class.DayLogEntity
 import com.anitech.growdaily.data_class.DayNoteEntity
 import com.anitech.growdaily.data_class.DiaryEntry
 import com.anitech.growdaily.data_class.MoodHistoryItem
+import com.anitech.growdaily.enum_class.TaskType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlin.collections.filter
 
 class AppRepository(
     private val dao: DailyTaskDao,
@@ -116,7 +119,11 @@ class AppRepository(
         moodDao.deleteMood(mood)
     }
 
-    suspend fun clear() {
+    fun getMoodByDateLive(todayDate: String): LiveData<MoodHistoryItem?> {
+        return moodDao.getMoodByDateLive(todayDate)
+    }
+
+    suspend fun clearAllMood() {
         moodDao.clearAll()
     }
 
@@ -226,8 +233,10 @@ class AppRepository(
                 val mood = moods.find { it.date == date }
 
                 // Use your existing reusable score function
-                val dayScore = calculateDailyScoreForDate(tasks, date)
-
+                val tasksForDate = filterTasks(validTasks, date)
+                .filter { it.taskType != TaskType.UNTIL_COMPLETE }
+                val dayScore = calculateDailyScoreForDate(tasksForDate, date)
+// FIXME: this method is also required in the bar adapter but their we are using diffraint one, try to use one of them 
                 result.add(
                     DayLogEntity(
                         date = date,

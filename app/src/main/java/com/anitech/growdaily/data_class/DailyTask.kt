@@ -3,6 +3,7 @@ package com.anitech.growdaily.data_class
 import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.anitech.growdaily.enum_class.TaskType
 import com.anitech.growdaily.enum_class.TaskWeight
 import kotlinx.parcelize.Parcelize
 
@@ -23,5 +24,5 @@ data class DailyTask(
     var conditionIds: List<Int>,
     val iconResId: String,
     val colorCode: String,
-    val isDaily: Boolean
+    val taskType: TaskType
 ): Parcelable

@@ -54,7 +54,44 @@
                 android:layout_gravity="end"
                 android:layout_marginTop="16dp"
                 android:checked="true"
-                android:text="Repeat Daily" />
+                android:text="Repeat Daily"
+                android:visibility="gone" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="Select Task Type"
+                android:textStyle="bold" />
+
+            <RadioGroup
+                android:id="@+id/radioGroupType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/radioDailyTask"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="Daily Task" />
+
+                <RadioButton
+                    android:id="@+id/radioDayTask"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Today Task" />
+
+                <RadioButton
+                    android:id="@+id/radioUntilComplete"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Until Complete" />
+
+            </RadioGroup>
+
             <!-- Title -->
             <EditText
                 android:id="@+id/editTextTitle"
@@ -82,8 +119,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:text="Select Task Weight"
-                android:textStyle="bold"
-                />
+                android:textStyle="bold" />
 
             <RadioGroup
                 android:id="@+id/radioGroupScore"
@@ -126,14 +162,12 @@
                 android:layout_marginTop="12dp"
                 android:text="Select condition in which you are not being able to perform daily task"
                 android:textAlignment="center"
-                android:textStyle="bold"
-                />
+                android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvCheckCondition"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                />
+                android:layout_height="wrap_content" />
 
             <!-- Scheduled Time, date -->
 

@@ -1,21 +1,28 @@
 package com.anitech.growdaily.fragment
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import androidx.activity.OnBackPressedCallback
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.widget.ViewPager2
+import com.anitech.growdaily.CommonMethods
+import com.anitech.growdaily.MoodDialog
 import com.anitech.growdaily.R
 import com.anitech.growdaily.adapter.ViewPagerAdapter
+import com.anitech.growdaily.data_class.MoodHistoryItem
+import com.anitech.growdaily.database.AppViewModel
 import com.anitech.growdaily.databinding.FragmentMainBinding
 
 class MainFragment : Fragment() {
     private var _binding: FragmentMainBinding? = null
     private val binding get() = _binding!!
+    private val viewModel: AppViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -37,10 +44,12 @@ class MainFragment : Fragment() {
                     binding.viewPager.currentItem = 0
                     true
                 }
+
                 R.id.diaryFragment -> {
                     binding.viewPager.currentItem = 1
                     true
                 }
+
                 R.id.empty_space -> false
                 else -> false
             }
@@ -78,6 +87,7 @@ class MainFragment : Fragment() {
                             findNavController().navigate(R.id.nav_add_task)
                         }
                     }
+
                     1 -> {
                         binding.bottomNav.selectedItemId = R.id.diaryFragment
                         binding.fab.setImageResource(R.drawable.ic_write_diary)
@@ -94,7 +104,39 @@ class MainFragment : Fragment() {
             backPressedCallback
         )
 
+
+        val today = CommonMethods.getTodayDate()
+         //val today ="2025-10-09"
+
+        viewModel.getTodaysMoodLive(today).observe(viewLifecycleOwner) { mood ->
+            if (mood != null) {
+                binding.moodFabBtn.visibility = View.GONE
+                binding.moodFabBtn.isClickable = false
+            } else {
+                binding.moodFabBtn.visibility = View.VISIBLE
+                binding.moodFabBtn.isClickable = true
+                val rotate = AnimationUtils.loadAnimation(requireContext(), R.anim.rotate_fab)
+                binding.moodFabBtn.startAnimation(rotate)
+                binding.moodFabBtn.setOnClickListener {
+                    val moodHistoryItem = MoodHistoryItem(
+                        id = 0,
+                        emoji = "😐",
+                        date = today
+                    )
+                    MoodDialog(
+                        requireContext(),
+                        moodHistoryItem,
+                        object : MoodDialog.OnMoodSelectedListener {
+                            override fun onMoodSelected(updatedMood: MoodHistoryItem) {
+                                viewModel.insertMood(updatedMood)
+                            }
+                        }).show()
+                }
+            }
+        }
+
     }
+
 
     private val backPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {

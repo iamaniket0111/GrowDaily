@@ -17,13 +17,13 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.anitech.growdaily.MoodDialog
 import com.anitech.growdaily.R
 import com.anitech.growdaily.adapter.DateAdapter
 import com.anitech.growdaily.adapter.DiaryAdapter
 import com.anitech.growdaily.adapter.MoodAdapter
 import com.anitech.growdaily.adapter.WeekMoodAdapter
 import com.anitech.growdaily.data_class.DayLogEntity
-import com.anitech.growdaily.data_class.DiaryEntry
 import com.anitech.growdaily.data_class.MoodHistoryItem
 import com.anitech.growdaily.data_class.MoodItem
 import com.anitech.growdaily.database.AppViewModel
@@ -120,7 +120,6 @@ class DiaryFragment : Fragment() {
             Log.d("DiaryFragment", "DayLogs size: ${entries.size}, Dates: ${uniqueDates.size}")
         }
 
-
         //mood
         val moodAdapter =
             WeekMoodAdapter(emptyList(), object : WeekMoodAdapter.OnItemClickListener {
@@ -129,9 +128,23 @@ class DiaryFragment : Fragment() {
                         "WeekMoodAdapter",
                         "onMoodItemClick: ${moodHistoryItem.date} : ${moodHistoryItem.emoji}"
                     )
-                    showMoodDialog(moodHistoryItem)
+
+                    MoodDialog(
+                        requireContext(),
+                        moodHistoryItem,
+                        object : MoodDialog.OnMoodSelectedListener {
+                            override fun onMoodSelected(updatedMood: MoodHistoryItem) {
+                                if (updatedMood.id == 0) {
+                                    viewModel.insertMood(updatedMood)
+                                } else {
+                                    viewModel.updateMood(updatedMood)
+                                }
+                            }
+                        }).show()
+
                 }
             })
+
         viewModel.allMoods.observe(viewLifecycleOwner) { moodData ->
             moodAdapter.updateData(moodData)
         }
@@ -150,10 +163,6 @@ class DiaryFragment : Fragment() {
                 override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
             })
         }
-    }
-
-    fun extractUniqueDates(entries: List<DiaryEntry>): List<String> {
-        return entries.map { it.date }.distinct()
     }
 
 
@@ -214,6 +223,8 @@ class DiaryFragment : Fragment() {
 
         val moodAdapter = MoodAdapter(moodList, object : MoodAdapter.OnItemClickListener {
             override fun onMoodItemClick(moodItem: MoodItem) {
+
+                Log.d("MoodAdapterLol", "onMoodItemClick: ${moodItem.emoji}")
                 if (moodHistoryItem.id == 0) {
                     val newItem = moodHistoryItem.copy(
                         emoji = moodItem.emoji
@@ -225,11 +236,10 @@ class DiaryFragment : Fragment() {
                     )
                     viewModel.updateMood(updatedItem)
                 }
-
                 dialog.dismiss()
             }
-
         })
+
         recyclerView.layoutManager = GridLayoutManager(requireContext(), 4)
         recyclerView.adapter = moodAdapter
 

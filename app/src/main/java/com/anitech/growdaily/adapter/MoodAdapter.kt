@@ -23,6 +23,7 @@ class MoodAdapter(
         val emoji: TextView = itemView.findViewById(R.id.moodEmoji)
         val title: TextView = itemView.findViewById(R.id.moodTitle)
     }
+
     interface OnItemClickListener {
         fun onMoodItemClick(moodItem: MoodItem)
     }

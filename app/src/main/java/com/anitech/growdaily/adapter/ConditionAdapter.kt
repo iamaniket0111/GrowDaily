@@ -17,6 +17,7 @@ class ConditionAdapter(
 ) : RecyclerView.Adapter<ConditionAdapter.ConditionViewHolder>() {
 
     private var conditionDataItemList: List<DateDataEntity> = emptyList()
+    var isSelectingMode = false
 
     interface OnItemClickListener {
         fun onItemClick(conditionItem: ConditionEntity, isSelected: Boolean)
@@ -39,7 +40,7 @@ class ConditionAdapter(
         holder.itemView.backgroundTintList =
             ContextCompat.getColorStateList(context, R.color.white)
 
-        Log.d("ConditionAdapterTag","data changed")
+        Log.d("ConditionAdapterTag", "data changed")
 
         if (position == 0) {
             // "None" item
@@ -67,12 +68,17 @@ class ConditionAdapter(
             }
 
             holder.itemView.setOnClickListener {
-                listener.onItemClick(item, isSelected)
+                if (!isSelectingMode) {
+                    listener.onItemClick(item, isSelected)
+                }
             }
 
             holder.itemView.setOnLongClickListener {
-                listener.onLongPress(conditionList)
-                true
+                if (!isSelectingMode){
+                    listener.onLongPress(conditionList)
+                    true
+                }else false
+
             }
         }
     }
@@ -82,7 +88,7 @@ class ConditionAdapter(
     fun setData(newList: List<ConditionEntity>) {
         conditionList = newList
         notifyDataSetChanged()
-        Log.d("ConditionAdapterTag","new data set")
+        Log.d("ConditionAdapterTag", "new data set")
     }
 
     fun updateDate(newList: List<DateDataEntity>) {

@@ -53,13 +53,13 @@ interface DailyTaskDao {
     //condition work
     @Query(
         """
-        SELECT * FROM daily_tasks 
-        WHERE isDaily = 1 
-        AND (conditionIds = :id 
-             OR conditionIds LIKE :idWithCommaPrefix 
-             OR conditionIds LIKE :idWithCommaSuffix 
-             OR conditionIds LIKE :idWithCommaBoth)
-    """
+    SELECT * FROM daily_tasks 
+    WHERE taskType = 'DAILY' 
+    AND (conditionIds = :id 
+         OR conditionIds LIKE :idWithCommaPrefix 
+         OR conditionIds LIKE :idWithCommaSuffix 
+         OR conditionIds LIKE :idWithCommaBoth)
+"""
     )
     fun getDailyTasksByCondition(
         id: String,
@@ -68,24 +68,25 @@ interface DailyTaskDao {
         idWithCommaBoth: String
     ): LiveData<List<DailyTask>>
 
-     @Query(
+
+    @Query(
         """
-        SELECT * FROM daily_tasks 
-        WHERE isDaily = 1 
-        AND (conditionIds = :id 
-             OR conditionIds LIKE :idWithCommaPrefix 
-             OR conditionIds LIKE :idWithCommaSuffix 
-             OR conditionIds LIKE :idWithCommaBoth)
-    """
+    SELECT * FROM daily_tasks 
+    WHERE taskType = 'DAILY' 
+    AND (conditionIds = :id 
+         OR conditionIds LIKE :idWithCommaPrefix 
+         OR conditionIds LIKE :idWithCommaSuffix 
+         OR conditionIds LIKE :idWithCommaBoth)
+"""
     )
-    fun getDailyTasksByConditionDirect( id: String,
-                                        idWithCommaPrefix: String,
-                                        idWithCommaSuffix: String,
-                                        idWithCommaBoth: String
-     ): List<DailyTask>
+    fun getDailyTasksByConditionDirect(
+        id: String,
+        idWithCommaPrefix: String,
+        idWithCommaSuffix: String,
+        idWithCommaBoth: String
+    ): List<DailyTask>
 
-
-    @Query("SELECT * FROM daily_tasks WHERE isDaily = 1")//daily task fetch karke condition waale task se compare karke containe or not decide karene
+    @Query("SELECT * FROM daily_tasks WHERE taskType = 'DAILY'")//daily task fetch karke condition waale task se compare karke containe or not decide karene
     fun getAllDailyTasks(): LiveData<List<DailyTask>>
 
     //to get combined data
