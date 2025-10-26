@@ -1,0 +1,17 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- outer stroke -->
+    <item>
+        <shape android:shape="oval">
+            <size android:width="16dp" android:height="16dp"/>
+            <solid android:color="@android:color/transparent"/>
+            <stroke android:width="2dp" android:color="@color/brand_blue"/>
+        </shape>
+    </item>
+    <!-- inner filled circle -->
+    <item android:gravity="center">
+        <shape android:shape="oval">
+            <size android:width="6dp" android:height="6dp"/>
+            <solid android:color="@color/brand_blue"/>
+        </shape>
+    </item>
+</layer-list>

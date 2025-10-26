@@ -14,6 +14,7 @@ import com.anitech.growdaily.data_class.DayLogEntity
 import com.anitech.growdaily.data_class.DayNoteEntity
 import com.anitech.growdaily.data_class.DiaryEntry
 import com.anitech.growdaily.data_class.MoodHistoryItem
+import com.anitech.growdaily.data_class.TaskOrderChangeLog
 import com.anitech.growdaily.enum_class.TaskType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -24,7 +25,8 @@ class AppRepository(
     private val diaryEntryDao: DiaryEntryDao,
     private val moodDao: MoodHistoryDao,
     private val conditionDao: ConditionDao,
-    private val dateItemDao: DateItemDao
+    private val dateItemDao: DateItemDao,
+    private val orderLogDao: OrderLogDao
 ) {
     //day score
     suspend fun insertTask(task: DailyTask) = dao.insertTask(task)
@@ -255,6 +257,25 @@ class AppRepository(
         }
     }
 
+
+    //reorder
+    suspend fun getLatestLogForDate(requestedDate: String): TaskOrderChangeLog? {
+        return orderLogDao.getLatestLogForDate(requestedDate)
+    }
+
+    suspend fun logReorder(dateOfChange: String, effectiveFromDate: String, taskIds: List<String>) {
+        val existingLog = orderLogDao.getLogByEffectiveDate(effectiveFromDate)
+        val newLog = existingLog?.copy(
+            dateOfChange = dateOfChange,
+            taskIds = taskIds
+        )
+            ?: TaskOrderChangeLog(
+                dateOfChange = dateOfChange,
+                effectiveFromDate = effectiveFromDate,
+                taskIds = taskIds
+            )
+        orderLogDao.upsertLog(newLog)
+    }
 
 
 }

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Dialog
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -56,6 +57,9 @@ import java.time.format.TextStyle
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
+import java.util.Timer
+import java.util.TimerTask
+import java.util.logging.Handler
 import kotlin.math.roundToInt
 
 class HomeFragment : Fragment() {
@@ -111,6 +115,7 @@ class HomeFragment : Fragment() {
         binding.recyclerView.isNestedScrollingEnabled = false
         binding.recyclerView.adapter = adapter
         viewModel.setDate(currentTodoDate)
+        startTimeRefresh()
 
         conditionAdapter =
             ConditionAdapter(emptyList(), object : ConditionAdapter.OnItemClickListener {
@@ -229,7 +234,7 @@ class HomeFragment : Fragment() {
                 binding.emptySpaceLayoutContainer.visibility = View.VISIBLE
             }
 
-            adapter.updateList(tasks.reversed(), currentTodoDate)
+            adapter.updateList(tasks, currentTodoDate)
             updateScoreUI(tasks, binding.scoreLayout.doneWeight, binding.scoreLayout.cpi)
         }
         return binding.root
@@ -684,6 +689,26 @@ class HomeFragment : Fragment() {
     }
 
 
+    private val uiHandler = android.os.Handler(Looper.getMainLooper())  // Main thread handler
+    private val timer = Timer()
+
+    private fun startTimeRefresh() {
+//        timer.schedule(object : TimerTask() {
+//            override fun run() {
+//                // Background mein sirf compute kar, UI update ko post kar main thread pe
+//                uiHandler.post {
+//                    // Safe ab - main thread pe chalega
+//                    adapter.notifyDataSetChanged()
+//                }
+//            }
+//        }, 0, 60000)  // Har 60 seconds
+    }
+
+    // onDestroyView mein cancel karna mat bhool
+    override fun onDestroyView() {
+        super.onDestroyView()
+        //timer.cancel()
+    }
 }
 
 

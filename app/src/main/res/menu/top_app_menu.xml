@@ -21,4 +21,9 @@
         android:id="@+id/menu_condition"
         android:title="Manage Exclude"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_reorder_task"
+        android:title="Reorder Task"
+        app:showAsAction="never" />
 </menu>

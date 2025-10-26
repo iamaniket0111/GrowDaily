@@ -24,5 +24,6 @@ data class DailyTask(
     var conditionIds: List<Int>,
     val iconResId: String,
     val colorCode: String,
-    val taskType: TaskType
+    val taskType: TaskType,
+    val isScheduled: Boolean = false
 ): Parcelable

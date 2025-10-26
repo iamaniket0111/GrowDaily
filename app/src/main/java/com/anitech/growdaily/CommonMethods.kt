@@ -207,6 +207,37 @@ class CommonMethods {
 
     }
 
+    /*
+        private fun showDatePickerDialog() {
+        val calendar = Calendar.getInstance()
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH)
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+        val datePickerDialog = DatePickerDialog(
+            requireContext(), // agar Fragment me ho
+            { _, selectedYear, selectedMonth, selectedDay ->
+                val date = "$selectedDay/${selectedMonth + 1}/$selectedYear"
+                val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+                val cal = Calendar.getInstance()
+                cal.set(selectedYear, selectedMonth, selectedDay)
+                // binding.txtDate.text = sdf.format(cal.time)
+            },
+            year, month, day
+        )
+
+        datePickerDialog.setOnShowListener {
+            val positive = datePickerDialog.getButton(DatePickerDialog.BUTTON_POSITIVE)
+            val negative = datePickerDialog.getButton(DatePickerDialog.BUTTON_NEGATIVE)
+            val color = ContextCompat.getColor(requireContext(), R.color.brand_blue)
+            positive?.setTextColor(color)
+            negative?.setTextColor(color)
+        }
+        datePickerDialog.show()
+    }
+
+    */
+
 
 
 }

@@ -146,6 +146,12 @@ class MainActivity : AppCompatActivity() {
                 true
             }
 
+            R.id.menu_reorder_task -> {
+                navController.navigate(R.id.reorderDailyTaskFragment)
+
+                true
+            }
+
             else -> super.onOptionsItemSelected(item)
         }
     }

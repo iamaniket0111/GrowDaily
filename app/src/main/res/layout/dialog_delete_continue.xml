@@ -25,7 +25,6 @@
         />
 
     <TextView
-        android:id="@+id/dialogMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Your selection contains daily tasks. Please choose one of the options below:"

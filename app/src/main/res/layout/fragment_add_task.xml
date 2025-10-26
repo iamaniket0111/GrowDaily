@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -164,94 +163,82 @@
                 android:textAlignment="center"
                 android:textStyle="bold" />
 
+            <!-- Scheduled Time, date -->
+
+
+            <!-- Reminder Switch -->
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvCheckCondition"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <!-- Scheduled Time, date -->
-
-            <TextView
+            <Space
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Select Date, Time"
-                android:textStyle="bold" />
+                android:layout_height="16dp" />
 
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:baselineAligned="false"
-                android:orientation="horizontal"
-                android:weightSum="2">
+                android:layout_height="wrap_content">
 
                 <LinearLayout
-                    android:id="@+id/dateBtn"
-                    android:layout_width="0dp"
+                    android:id="@+id/timeWorkContainer"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/txtDate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="8dp"
-                        android:layout_marginTop="16dp"
-                        android:text="@string/date"
-                        android:textAlignment="center"
-                        android:textColor="@color/black"
-                        android:textSize="16sp"
-                        app:drawableEndCompat="@drawable/ic_calender" />
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginHorizontal="12dp"
-                        android:layout_marginTop="4dp"
-                        android:background="@color/black" />
-                </LinearLayout>
-
-
-                <LinearLayout
-                    android:id="@+id/timeBtn"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-
-                    android:layout_weight="1"
                     android:orientation="vertical"
-                    tools:ignore="UselessParent">
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
 
-                    <TextView
-                        android:id="@+id/txtTime"
-                        android:layout_width="match_parent"
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchSchedule"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="8dp"
-                        android:layout_marginTop="16dp"
-                        android:text="@string/time"
-                        android:textAlignment="center"
-                        android:textColor="@color/black"
-                        android:textSize="16sp"
-                        app:drawableEndCompat="@drawable/clock" />
+                        android:text="Enable Schedule"
+                        />
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchReminder"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Enable Reminder" />
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginHorizontal="12dp"
-                        android:layout_marginTop="4dp"
-                        android:background="@color/black" />
+
                 </LinearLayout>
 
-            </LinearLayout>
+                <TextView
+                    android:id="@+id/dummyTxtTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/time"
+                    android:textSize="18sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/timeWorkContainer"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="8dp"
+                    android:visibility="invisible"
+                    />
 
+                <TextView
+                    android:id="@+id/txtTime"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:text="@string/time"
+                    android:textSize="18sp"
+                    android:textAlignment="center"
+                    android:background="@drawable/circular_corners_more"
+                    android:backgroundTint="@color/white"
+                    app:layout_constraintStart_toStartOf="@id/dummyTxtTime"
+                    app:layout_constraintBottom_toBottomOf="@id/dummyTxtTime"
+                    app:layout_constraintTop_toTopOf="@id/dummyTxtTime"
+                    app:layout_constraintEnd_toEndOf="@id/dummyTxtTime"
+                    android:textColor="@color/brand_blue"
+                    android:padding="8dp"
+                    android:textStyle="bold"
+                    />
 
-            <!-- Reminder Switch -->
-            <androidx.appcompat.widget.SwitchCompat
-                android:id="@+id/switchReminder"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Enable Reminder" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- Save Button -->
 
@@ -267,3 +254,5 @@
         android:text="Save Task"
         android:textColor="@color/white" />
 </LinearLayout>
+
+

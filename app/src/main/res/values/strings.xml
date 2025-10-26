@@ -15,11 +15,9 @@
     <string name="tomorrow">Tomorrow</string>
     <string name="yesterday">Yesterday</string>
     <string name="mood_history">Mood History</string>
-    <string name="time">9:26 AM</string>
-    <string name="date">27/8/2002</string>
+    <string name="time">10:26 AM</string>
     <string name="holiday">Holiday</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="condition_message">
     Select the tasks you want to exclude as they are irrelevant under %1$s.\n
     If you update the data later, please reapply this condition to reflect the changes.

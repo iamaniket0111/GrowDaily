@@ -26,12 +26,13 @@ class Converters {
 
     @TypeConverter
     fun fromStringList(value: List<String>): String {
-        return value.joinToString(",")
+        return gson.toJson(value)
     }
 
     @TypeConverter
     fun toStringList(value: String): List<String> {
-        return if (value.isEmpty()) emptyList() else value.split(",")
+        val type = object : TypeToken<List<String>>() {}.type
+        return gson.fromJson(value, type)
     }
 
     @TypeConverter

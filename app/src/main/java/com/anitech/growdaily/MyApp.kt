@@ -15,7 +15,8 @@ class MyApp : Application() {
             database.diaryEntryDao(),
             database.moodDao(),
             database.conditionDao(),
-            database.dateItemDao()
+            database.dateItemDao(),
+            database.orderLogDao()
         )
     }
 }

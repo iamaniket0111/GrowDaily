@@ -2,7 +2,6 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/mobile_navigation"
     app:startDestination="@id/nav_main">
 
     <fragment
@@ -75,5 +74,11 @@
             app:argType="com.anitech.growdaily.data_class.ConditionEntity"
             />
     </fragment>
+
+    <fragment
+        android:id="@+id/reorderDailyTaskFragment"
+        android:name="com.anitech.growdaily.fragment.ReorderTaskFragment"
+        android:label="Reorder Task"
+        tools:layout="@layout/fragment_reorder_task" />
 
 </navigation>

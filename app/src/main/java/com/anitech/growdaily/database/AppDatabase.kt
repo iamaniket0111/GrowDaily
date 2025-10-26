@@ -13,6 +13,7 @@ import com.anitech.growdaily.data_class.DateItemEntity
 import com.anitech.growdaily.data_class.DayNoteEntity
 import com.anitech.growdaily.data_class.DiaryEntry
 import com.anitech.growdaily.data_class.MoodHistoryItem
+import com.anitech.growdaily.data_class.TaskOrderChangeLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -24,7 +25,8 @@ import kotlinx.coroutines.launch
         DayNoteEntity::class,
         MoodHistoryItem::class,
         ConditionEntity::class,
-        DateItemEntity::class
+        DateItemEntity::class,
+        TaskOrderChangeLog::class
     ],
     version = 6,
 )
@@ -35,6 +37,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun moodDao(): MoodHistoryDao
     abstract fun conditionDao(): ConditionDao
     abstract fun dateItemDao(): DateItemDao
+    abstract fun orderLogDao(): OrderLogDao
+
 
     companion object {
         @Volatile

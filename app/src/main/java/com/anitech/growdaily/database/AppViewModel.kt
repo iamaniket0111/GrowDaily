@@ -1,5 +1,6 @@
 package com.anitech.growdaily.database
 
+import android.util.Log
 import androidx.lifecycle.*
 import com.anitech.growdaily.CommonMethods.Companion.filterTasks
 import com.anitech.growdaily.data_class.ConditionEntity
@@ -11,6 +12,7 @@ import com.anitech.growdaily.data_class.MoodHistoryItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.lifecycle.switchMap
+import com.anitech.growdaily.CommonMethods
 import com.anitech.growdaily.CommonMethods.Companion.filterTasksByCondition
 import com.anitech.growdaily.data_class.DayLogEntity
 
@@ -37,54 +39,109 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
         repository.getAllTasks()
     }
 
-    val allTasks: LiveData<List<DailyTask>> = repository.getAllTasks()
 
-    private val selectedDate = MutableLiveData<String>()
+//    val filteredTasks: LiveData<List<DailyTask>> = selectedDate.switchMap { date ->
+//        if (date == null) {
+//            MutableLiveData(emptyList())
+//        } else {
+//            allTasks.map { tasks -> filterTasks(tasks, date) }
+//        }
+//    }
 
-    val filteredTasks: LiveData<List<DailyTask>> = selectedDate.switchMap { date ->
-        if (date == null) {
-            MutableLiveData(emptyList())
-        } else {
-            allTasks.map { tasks -> filterTasks(tasks, date) }
-        }
-    }
 
+
+    val allTasks: LiveData<List<DailyTask>> = repository.getAllTasks()  // 👇 Ye LiveData<...> return karega
+
+    private val _selectedDate = MutableLiveData<String>()
+    val selectedDate: LiveData<String> = _selectedDate
+
+    // 👇 Mediator same, but ab allTasks source auto-trigger hoga (DB load pe)
     val filteredTasksByCondition = MediatorLiveData<List<DailyTask>>().apply {
         var currentTasks: List<DailyTask>? = null
         var currentDate: String? = null
 
         fun update() {
+            Log.d("ViewModelDebug", "Update called: tasks=${currentTasks?.size}, date=$currentDate")
             val tasks = currentTasks ?: return
             val date = currentDate ?: return
             viewModelScope.launch {
-                val dateItem = repository.getDateItem(date)
-                val filtered = if (dateItem != null) {
-                    filterTasksByCondition(tasks, date, dateItem)
-                } else {
-                    filterTasks(tasks, date)
+                try {
+                    Log.d("ViewModelDebug", "Fetching log for date: $date")
+                    val latestLog = repository.getLatestLogForDate(date)
+                    Log.d("ViewModelDebug", "Latest log: ${latestLog?.taskIds?.size ?: 0} ids")
+
+                    val orderedTasks = if (latestLog != null) {
+                        val orderedIds = latestLog.taskIds
+                        val sorted = tasks.sortedBy { task ->
+                            val index = orderedIds.indexOf(task.id)
+                            if (index >= 0) index else Int.MAX_VALUE
+                        }
+                        Log.d("ViewModelDebug", "Ordered tasks size: ${sorted.size}")
+                        sorted
+                    } else {
+                        Log.d("ViewModelDebug", "No log, using default sort")
+                        tasks.sortedBy { it.id }
+                    }
+
+                    val dateItem = repository.getDateItem(date)
+                    Log.d("ViewModelDebug", "DateItem: ${dateItem != null}")
+
+                    val filtered = if (dateItem != null) {
+                        val result = filterTasksByCondition(orderedTasks, date, dateItem)
+                        Log.d("ViewModelDebug", "Filtered by condition: ${result.size} tasks")
+                        result
+                    } else {
+                        val result = filterTasks(orderedTasks, date)
+                        Log.d("ViewModelDebug", "Filtered basic: ${result.size} tasks")
+                        result
+                    }
+
+                    postValue(filtered)
+                    Log.d("ViewModelDebug", "Posted filtered value: ${filtered.size}")
+                } catch (e: Exception) {
+                    Log.e("ViewModelDebug", "Error in update: ${e.message}", e)
                 }
-                postValue(filtered)
             }
         }
 
+        // Sources same – ab allTasks repo se LiveData hai, to initial emit pe "AllTasks source" log aayega
         addSource(allTasks) { tasks: List<DailyTask>? ->
+            Log.d("ViewModelDebug", "AllTasks source: ${tasks?.size} tasks")  // 👇 Ye ab fire hoga
             currentTasks = tasks
             update()
         }
 
         addSource(selectedDate) { date: String? ->
+            Log.d("ViewModelDebug", "SelectedDate source: $date")
             currentDate = date
             update()
         }
     }
 
+    suspend fun getTasksForDate(date: String): List<DailyTask> {
+        val all = allTasks.value ?: emptyList()
+        val latestLog = repository.getLatestLogForDate(date)
+        return if (latestLog != null) {
+            val orderedIds = latestLog.taskIds
+            all.sortedBy { orderedIds.indexOf(it.id).takeIf { it >= 0 } ?: Int.MAX_VALUE }
+        } else {
+            all
+        }
+    }
 
+    // Aur setDate me bhi log
     fun setDate(date: String) {
-        selectedDate.value = date
+        Log.d("ViewModelDebug", "setDate called with: $date")
+        _selectedDate.value = date
     }
     //date and task item
 
-
+    fun logTaskReorder(effectiveFromDate: String, taskIds: List<String>) {
+        viewModelScope.launch {
+            val today = CommonMethods.getTodayDate()
+            repository.logReorder(today, effectiveFromDate, taskIds)
+        }
+    }
     //deletion work
     fun updateTasks(tasks: List<DailyTask>) = viewModelScope.launch {
         repository.updateTasks(tasks)
