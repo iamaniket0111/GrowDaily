@@ -1,20 +1,28 @@
 package com.anitech.growdaily.database
 
 import android.util.Log
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.switchMap
+import androidx.lifecycle.viewModelScope
+import com.anitech.growdaily.CommonMethods
 import com.anitech.growdaily.CommonMethods.Companion.filterTasks
+import com.anitech.growdaily.CommonMethods.Companion.filterTasksByCondition
 import com.anitech.growdaily.data_class.ConditionEntity
 import com.anitech.growdaily.data_class.DailyTask
 import com.anitech.growdaily.data_class.DateItemEntity
+import com.anitech.growdaily.data_class.DayLogEntity
 import com.anitech.growdaily.data_class.DayNoteEntity
 import com.anitech.growdaily.data_class.DiaryEntry
 import com.anitech.growdaily.data_class.MoodHistoryItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import androidx.lifecycle.switchMap
-import com.anitech.growdaily.CommonMethods
-import com.anitech.growdaily.CommonMethods.Companion.filterTasksByCondition
-import com.anitech.growdaily.data_class.DayLogEntity
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 
 class AppViewModel(private val repository: AppRepository) : ViewModel() {
@@ -49,8 +57,8 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
 //    }
 
 
-
-    val allTasks: LiveData<List<DailyTask>> = repository.getAllTasks()  // 👇 Ye LiveData<...> return karega
+    val allTasks: LiveData<List<DailyTask>> =
+        repository.getAllTasks()  // 👇 Ye LiveData<...> return karega
 
     private val _selectedDate = MutableLiveData<String>()
     val selectedDate: LiveData<String> = _selectedDate
@@ -142,6 +150,7 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
             repository.logReorder(today, effectiveFromDate, taskIds)
         }
     }
+
     //deletion work
     fun updateTasks(tasks: List<DailyTask>) = viewModelScope.launch {
         repository.updateTasks(tasks)
@@ -253,7 +262,7 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
         repository.delete(mood)
     }
 
-    fun clearAllMood()=viewModelScope.launch {
+    fun clearAllMood() = viewModelScope.launch {
         repository.clearAllMood()
     }
 
@@ -328,4 +337,139 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
     val dayLogs: LiveData<List<DayLogEntity>> =
         repository.getCombinedData().asLiveData()
 
+    //reorder
+    // In AppViewModel.kt – add these imports if not present
+
+
+// Existing class AppViewModel me yeh function add kar:
+
+// Updated ViewModel Code (AppViewModel.kt) - Add these
+
+    // 👈 New: StateFlow/LiveData for result (use MutableLiveData for simplicity, import androidx.lifecycle.MutableLiveData)
+
+    sealed class SaveResult {
+        object Idle : SaveResult()
+        object Loading : SaveResult()
+        data class Success(val isNewTask: Boolean) : SaveResult()
+        data class Error(val message: String) : SaveResult()
+    }
+
+    private val _saveResult = MutableLiveData<SaveResult>(SaveResult.Idle)  // 👈 Init with Idle
+    val saveResult: LiveData<SaveResult> = _saveResult
+
+    // 👈 New: Public reset fun for fragment to call before save
+    fun resetSaveResult() {
+        _saveResult.value = SaveResult.Idle
+    }
+
+    fun saveOrUpdateTask(
+        task: DailyTask,
+        date: String,
+        isEdit: Boolean,
+        originalScheduledTime: String?
+    ) = viewModelScope.launch {
+        _saveResult.value = SaveResult.Idle  // Clear before start
+        _saveResult.value = SaveResult.Loading
+
+        try {
+            if (!isEdit) {
+                insertAndReorderTask(task, date, isEdit = false)
+                _saveResult.value = SaveResult.Success(isNewTask = true)
+            } else {
+                val timeChanged = originalScheduledTime != task.scheduledTime
+                updateTask(task)
+
+                if (timeChanged && task.scheduledTime != null) {
+                    Log.d("AddTaskDebug", "Time changed during edit, triggering reorder")
+                    insertAndReorderTask(task, date, isEdit = true)
+                } else {
+                    Log.d("AddTaskDebug", "Edit without time change, no reorder needed")
+                }
+                _saveResult.value = SaveResult.Success(isNewTask = false)
+            }
+        } catch (e: Exception) {
+            Log.e("AddTaskDebug", "SaveOrUpdate failed: ${e.message}", e)
+            _saveResult.value = SaveResult.Error(e.message ?: "Unknown error")
+        } finally {
+            _saveResult.value = SaveResult.Idle  // Reset always
+        }
+    }
+
+    private suspend fun insertAndReorderTask(task: DailyTask, date: String, isEdit: Boolean) {
+        val currentTasks = getTasksForDate(date)
+        Log.d("AddTaskDebug", "Reorder triggered. Edit mode: $isEdit, Current tasks: ${currentTasks.size}")
+
+        val nullPositions = mutableMapOf<Int, DailyTask>()
+        val timed = mutableListOf<DailyTask>()
+
+        currentTasks.forEachIndexed { index, item ->
+            if (item.scheduledTime == null) {
+                nullPositions[index] = item
+            } else {
+                timed.add(item)
+            }
+        }
+
+        val updatedTasks: List<DailyTask> = if (!task.scheduledTime.isNullOrBlank()) {
+            val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a")
+            try {
+                if (isEdit) {
+                    timed.removeAll { it.id == task.id }
+                    nullPositions.entries.removeIf { it.value.id == task.id }
+                }
+                timed.add(task)
+
+                timed.sortBy { LocalTime.parse(it.scheduledTime!!, timeFormatter) }
+                Log.d("AddTaskDebug", "Sorted timed times: ${timed.map { it.scheduledTime }}")
+
+                val newItems = mutableListOf<DailyTask>()
+                var timedIndex = 0
+                val totalSlots = if (isEdit) currentTasks.size else currentTasks.size + 1
+                for (i in 0 until totalSlots) {
+                    if (nullPositions.containsKey(i)) {
+                        newItems.add(nullPositions[i]!!)
+                    } else if (timedIndex < timed.size) {
+                        newItems.add(timed[timedIndex++])
+                    }
+                }
+                while (timedIndex < timed.size) {
+                    newItems.add(timed[timedIndex++])
+                }
+                newItems
+            } catch (e: DateTimeParseException) {
+                Log.e("AddTaskDebug", "Invalid time: ${task.scheduledTime}, fallback")
+                fallbackRebuild(currentTasks, task, isEdit)
+            }
+        } else {
+            Log.d("AddTaskDebug", "Null time task")
+            fallbackRebuild(currentTasks, task, isEdit)
+        }
+
+        if (!isEdit) {
+            insertTask(task)
+        }
+
+        val orderedIds = updatedTasks.map { it.id }
+        logTaskReorder(date, orderedIds)
+
+        val action = if (isEdit) "updated" else "added"
+        val pos = updatedTasks.indexOf(task)
+        Log.d("AddTaskDebug", "Task $action, final pos: $pos, total: ${updatedTasks.size}")
+    }
+
+
+    // 👈 Helper: Fallback rebuild for null/invalid time or simple append/replace
+    private fun fallbackRebuild(
+        currentTasks: List<DailyTask>,
+        task: DailyTask,
+        isEdit: Boolean
+    ): List<DailyTask> {
+        return if (isEdit) {
+            // Edit: Replace in place
+            currentTasks.map { if (it.id == task.id) task else it }
+        } else {
+            // New: Append at end
+            currentTasks.toMutableList().apply { add(task) }
+        }
+    }
 }

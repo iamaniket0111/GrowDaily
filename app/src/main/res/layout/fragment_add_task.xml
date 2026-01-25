@@ -1,15 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
     <ScrollView
+        android:id="@+id/scrollView2"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:paddingHorizontal="16dp">
+        android:paddingHorizontal="16dp"
+        app:layout_constraintBottom_toTopOf="@id/buttonSave"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -194,8 +199,8 @@
                         android:id="@+id/switchSchedule"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Enable Schedule"
-                        />
+                        android:text="Enable Schedule" />
+
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/switchReminder"
                         android:layout_width="wrap_content"
@@ -209,34 +214,32 @@
                     android:id="@+id/dummyTxtTime"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/time"
-                    android:textSize="18sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/timeWorkContainer"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="8dp"
+                    android:text="@string/time"
+                    android:textSize="18sp"
                     android:visibility="invisible"
-                    />
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/timeWorkContainer"
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
                     android:id="@+id/txtTime"
                     android:layout_width="0dp"
                     android:layout_height="0dp"
-                    android:text="@string/time"
-                    android:textSize="18sp"
-                    android:textAlignment="center"
                     android:background="@drawable/circular_corners_more"
                     android:backgroundTint="@color/white"
-                    app:layout_constraintStart_toStartOf="@id/dummyTxtTime"
-                    app:layout_constraintBottom_toBottomOf="@id/dummyTxtTime"
-                    app:layout_constraintTop_toTopOf="@id/dummyTxtTime"
-                    app:layout_constraintEnd_toEndOf="@id/dummyTxtTime"
-                    android:textColor="@color/brand_blue"
                     android:padding="8dp"
+                    android:text="--"
+                    android:textAlignment="center"
+                    android:textColor="@color/brand_blue"
+                    android:textSize="18sp"
                     android:textStyle="bold"
-                    />
+                    app:layout_constraintBottom_toBottomOf="@id/dummyTxtTime"
+                    app:layout_constraintEnd_toEndOf="@id/dummyTxtTime"
+                    app:layout_constraintStart_toStartOf="@id/dummyTxtTime"
+                    app:layout_constraintTop_toTopOf="@id/dummyTxtTime" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -244,15 +247,32 @@
 
         </LinearLayout>
     </ScrollView>
+    <!-- Add this inside your root layout, e.g., after buttonSave -->
+    <ProgressBar
+        android:id="@+id/progressBarSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/brand_blue"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/buttonSave"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
         android:backgroundTint="@color/brand_blue"
         android:text="Save Task"
-        android:textColor="@color/white" />
-</LinearLayout>
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>
 
 

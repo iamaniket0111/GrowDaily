@@ -151,7 +151,10 @@
                     android:layout_height="wrap_content"
                     android:src="@drawable/ic_check"
                     android:layout_gravity="center"
-                    app:tint="#8BC34A" />
+                    app:tint="@color/white"
+                    android:backgroundTint="@color/white"
+                    android:background="@drawable/circular"
+                    />
             </FrameLayout>
 
         </LinearLayout>

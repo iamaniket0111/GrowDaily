@@ -38,12 +38,15 @@ class DiaryAdapter(
             holder.tvTitle.visibility = View.GONE
         } else {
             holder.tvTitle.text = diaryEntry.title
-        }
+            holder.tvTitle.visibility = View.VISIBLE
+
+        } 
 
         if (diaryEntry.title == null) {
             holder.tvContent.visibility = View.GONE
         } else {
             holder.tvContent.text = diaryEntry.content
+            holder.tvContent.visibility = View.VISIBLE
         }
 
         holder.countTaskDone.text = diaryEntry.doneCount.toString()

@@ -1,6 +1,5 @@
 package com.anitech.growdaily.fragment
 
-import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.res.ColorStateList
 import android.os.Bundle
@@ -11,10 +10,11 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.OneShotPreDrawListener.add
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,16 +28,11 @@ import com.anitech.growdaily.enum_class.TaskColor
 import com.anitech.growdaily.enum_class.TaskIcon
 import com.anitech.growdaily.enum_class.TaskType
 import com.anitech.growdaily.enum_class.TaskWeight
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 import java.util.Calendar
 import java.util.Locale
 import java.util.UUID
+import kotlinx.coroutines.launch
 
 class AddTaskFragment : Fragment() {
     private var _binding: FragmentAddTaskBinding? = null
@@ -48,6 +43,7 @@ class AddTaskFragment : Fragment() {
 
     var selectedDrawableResId: String = "TROPHY"
     var selectedBackgroundColor: String = "DARK_BLUE"
+    private val TAG = "AddTaskFragment"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -62,6 +58,7 @@ class AddTaskFragment : Fragment() {
 
         val argTask = args.task
         if (argTask != null) {
+            // Edit mode setup
             binding.editTextTitle.setText(argTask.title)
             if (argTask.note != null) {
                 binding.editTextNote.setText(argTask.note)
@@ -69,6 +66,8 @@ class AddTaskFragment : Fragment() {
 
             if (argTask.scheduledTime != null) {
                 binding.txtTime.text = argTask.scheduledTime
+                binding.switchSchedule.isChecked = true
+                if (argTask.reminderEnabled) binding.switchReminder.isChecked = true
             }
             setSelectedTaskWeight(argTask.weight)
             val icon = TaskIcon.valueOf(argTask.iconResId)
@@ -86,48 +85,37 @@ class AddTaskFragment : Fragment() {
                 TaskType.DAY -> binding.radioGroupType.check(R.id.radioDayTask)
                 TaskType.UNTIL_COMPLETE -> binding.radioGroupType.check(R.id.radioUntilComplete)
             }
-            // FIXME: have to work on making it enable or not
+
+            // Proper radio enable/disable for edit mode
             when (argTask.taskType) {
                 TaskType.DAILY, TaskType.UNTIL_COMPLETE -> {
-                    // Radio buttons disabled
-                    for (i in 0 until binding.radioGroupType.childCount) {
-                        binding.radioGroupType.getChildAt(i).isEnabled = false
-                    }
+                    binding.radioDailyTask.isEnabled = false
+                    binding.radioDayTask.isEnabled = false
+                    binding.radioUntilComplete.isEnabled = false
                 }
-
                 TaskType.DAY -> {
-                    // Radio buttons enabled
-                    for (i in 0 until binding.radioGroupType.childCount) {
-                        binding.radioGroupType.getChildAt(i).isEnabled = true
-                    }
+                    binding.radioDailyTask.isEnabled = true
+                    binding.radioDayTask.isEnabled = true
+                    binding.radioUntilComplete.isEnabled = true
                 }
             }
-//            if (argTask.isDaily) {
-//                binding.isDaily.isChecked = true
-//                binding.isDaily.isEnabled = false
-//            } else {
-//                binding.isDaily.isChecked = false
-//            }// FIXME: should we make it editable if its added today??taki previous datapar vaise bhi kuchh farak nhi pdega
 
             val taskId = argTask.id
             val date = CommonMethods.Companion.getTodayDate()
             viewModel.getNoteForDate(taskId, date)
         }
 
-
         // Adapter initialization
         val initialTaskType = argTask?.taskType ?: TaskType.DAILY
         val conditionCheckAdapter =
             ConditionCheckAdapter(emptyList(), initialTaskType == TaskType.DAILY) { id, isChecked ->
-                Log.d("Condition", "Condition $id selected = $isChecked")
+                Log.d(TAG, "Condition $id selected = $isChecked")
             }
 
-// Enable/disable checkboxes based on selected task type
         binding.radioGroupType.setOnCheckedChangeListener { _, _ ->
             val selectedTaskType = getSelectedTaskType()
             conditionCheckAdapter.setCheckBoxEnabled(selectedTaskType == TaskType.DAILY)
         }
-
 
         binding.rvCheckCondition.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -142,225 +130,127 @@ class AddTaskFragment : Fragment() {
             }
         }
 
-
         binding.imageProfile.setOnClickListener {
             val bundle = Bundle().apply {
-                putString("selectedIcon", selectedDrawableResId)   // e.g. "GRADUATION_CAP"
-                putString("selectedColor", selectedBackgroundColor)  // e.g. "TEAL"
+                putString("selectedIcon", selectedDrawableResId)
+                putString("selectedColor", selectedBackgroundColor)
             }
-            findNavController().navigate(
-                R.id.imageProviderFragment,
-                bundle
-            )
+            findNavController().navigate(R.id.imageProviderFragment, bundle)
         }
-
-//        binding.dateBtn.setOnClickListener {
-//            showDatePickerDialog()
-//        }
 
         binding.switchSchedule.setOnCheckedChangeListener { _, isChecked ->
             setTimeText()
-            if (isChecked && !binding.switchReminder.isChecked) showTimePickerDialog( binding.switchSchedule)
+            if (isChecked && !binding.switchReminder.isChecked) showTimePickerDialog(binding.switchSchedule)
         }
 
         binding.switchReminder.setOnCheckedChangeListener { _, isChecked ->
             setTimeText()
-            if (isChecked && !binding.switchSchedule.isChecked) showTimePickerDialog( binding.switchReminder)
+            if (isChecked && !binding.switchSchedule.isChecked) showTimePickerDialog(binding.switchReminder)
         }
-
 
         binding.txtTime.setOnClickListener {
             showTimePickerDialog(null)
         }
 
-        binding.isDaily.setOnCheckedChangeListener { _, isChecked ->
-            conditionCheckAdapter.setCheckBoxEnabled(isChecked)
-        }
-
         binding.buttonSave.setOnClickListener {
-            val taskId = UUID.randomUUID().toString()
-            val title = binding.editTextTitle.text.toString().trim()
-            val note = binding.editTextNote.text.toString().trim()
-            var scheduledTime: String? = binding.txtTime.text.toString().trim()
-            val reminderOn = binding.switchReminder.isChecked
-            val isDaily = binding.isDaily.isChecked  // Note: Ye deprecated lag raha, taskType use kar
-            val todayDate = CommonMethods.Companion.getTodayDate()
-            val isScheduled = binding.switchSchedule.isChecked
-
-            // 👇 Tera check same rakh – null time handle
-            if (!binding.switchSchedule.isChecked && !binding.switchReminder.isChecked) {
-                scheduledTime = null
-            } else if (scheduledTime.isNullOrBlank()) {  // 👇 Naya: Blank bhi null bana de
-                Log.w("AddTaskDebug", "Time input blank, setting to null")
-                scheduledTime = null
-            }
-
-            val selectedConditionIds = conditionCheckAdapter.getSelectedIds()
-
-            // Validation same
-            if (title.isEmpty()) {
-                Toast.makeText(requireContext(), "Please enter a task title", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            val iconEnum = TaskIcon.valueOf(selectedDrawableResId)
-            val colorEnum = TaskColor.valueOf(selectedBackgroundColor)
-            val taskType = getSelectedTaskType()
-
-            if (argTask == null) {  // New task add
-                val newTask = DailyTask(
-                    id = taskId,
-                    title = title,
-                    note = note.ifEmpty { null },
-                    isCompleted = false,
-                    weight = getSelectedTaskWeight(),
-                    scheduledTime = scheduledTime,
-                    completedTime = null,
-                    taskAddedDate = todayDate,
-                    taskRemovedDate = null,  // 👇 Fix: null tha, explicit kar diya
-                    reminderEnabled = reminderOn,
-                    completedDates = emptyList(),
-                    conditionIds = selectedConditionIds,
-                    iconResId = selectedDrawableResId,
-                    colorCode = selectedBackgroundColor,
-                    taskType = taskType,
-                    isScheduled = isScheduled
-                )
-
-                // 👇 Naya: Smart insert + log logic (background me)
-// ... existing vars same, validation same, newTask create same
-
-                viewModel.viewModelScope.launch {
-                    try {
-                        // 1. Current ordered tasks fetch kar (ViewModel se)
-                        val currentTasks = viewModel.getTasksForDate(todayDate)
-                        Log.d("AddTaskDebug", "Current tasks: ${currentTasks.size}, sample times: ${currentTasks.take(3).map { it.scheduledTime }}")
-
-                        // 2. Smart rebuild: Mimic autoReorderByTime() – nulls fixed, timed (old + new) sorted in gaps
-                        val nullPositions = mutableMapOf<Int, DailyTask>()
-                        val timed = mutableListOf<DailyTask>()
-
-                        // Collect current nulls & timent from currentTasks
-                        currentTasks.forEachIndexed { index, item ->
-                            if (item.scheduledTime == null) {
-                                nullPositions[index] = item
-                            } else {
-                                timed.add(item)
-                            }
-                        }
-
-                        val updatedTasks: List<DailyTask> = if (!scheduledTime.isNullOrBlank()) {
-                            // Timed new task: Add to timed list, sort all timed ascending
-                            val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a")
-                            try {
-                                val newTime = LocalTime.parse(scheduledTime, timeFormatter)
-                                timed.add(newTask)  // New timed add kar timed pool me
-
-                                // Sort all timed (including new) by time
-                                timed.sortBy { LocalTime.parse(it.scheduledTime!!, timeFormatter) }
-                                Log.d("AddTaskDebug", "Sorted timed times: ${timed.map { it.scheduledTime }}")
-
-                                // Rebuild: Nulls fixed, sorted timed fill gaps
-                                val newItems = mutableListOf<DailyTask>()
-                                var timedIndex = 0
-                                val totalSlots = currentTasks.size + 1  // +1 for new task
-                                for (i in 0 until totalSlots) {
-                                    if (nullPositions.containsKey(i)) {
-                                        newItems.add(nullPositions[i]!!)
-                                    } else if (timedIndex < timed.size) {
-                                        newItems.add(timed[timedIndex++])
-                                    }
-                                }
-                                // If extra timed (more than gaps), add at end
-                                while (timedIndex < timed.size) {
-                                    newItems.add(timed[timedIndex++])
-                                }
-                                newItems
-                            } catch (e: DateTimeParseException) {
-                                Log.e("AddTaskDebug", "Invalid time format: $scheduledTime, fallback append")
-                                // Fallback: Treat as null, append at end
-                                val fallbackItems = currentTasks.toMutableList().apply { add(newTask) }
-                                fallbackItems
-                            }
-                        } else {
-                            // Null time new task: Append at end (simple, no sort needed)
-                            Log.d("AddTaskDebug", "Null time task, appending at end")
-                            currentTasks.toMutableList().apply { add(newTask) }
-                        }
-
-                        // 3. DB me sirf new task insert kar (order log me handle hoga)
-                        viewModel.insertTask(newTask)
-
-                        // 4. Nayi order ke liye ChangeLog log kar
-                        val orderedIds = updatedTasks.map { it.id }
-                        viewModel.logTaskReorder(todayDate, orderedIds)
-
-                        Log.d("AddTaskDebug", "New task added, final pos: ${updatedTasks.indexOf(newTask)}, total: ${updatedTasks.size}, timed: ${!scheduledTime.isNullOrBlank()}")
-
-                        // 5. UI success
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(requireContext(), "Task saved & auto-ordered!", Toast.LENGTH_SHORT).show()
-                            requireActivity().onBackPressedDispatcher.onBackPressed()
-                        }
-                    } catch (e: Exception) {
-                        Log.e("AddTaskDebug", "Add failed: ${e.message}", e)
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(requireContext(), "Save failed: ${e.message}", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
-            } else {  // Edit task – tera existing update logic same rakh (no smart insert needed for edit)
-                val task = DailyTask(
-                    id = argTask.id,
-                    title = title,
-                    note = note.ifEmpty { null },
-                    isCompleted = false,
-                    weight = getSelectedTaskWeight(),
-                    scheduledTime = null,  // 👇 Fix: Edit me bhi scheduledTime allow kar, null mat force
-                    completedTime = null,
-                    taskAddedDate = argTask.taskAddedDate,
-                    taskRemovedDate = argTask.taskRemovedDate,
-                    reminderEnabled = reminderOn,
-                    completedDates = emptyList(),
-                    conditionIds = selectedConditionIds,
-                    iconResId = selectedDrawableResId,
-                    colorCode = selectedBackgroundColor,
-                    taskType = taskType,
-                    isScheduled = isScheduled
-                )
-
-                viewModel.updateTask(task)
-                Toast.makeText(requireContext(), "Task Updated", Toast.LENGTH_SHORT).show()
-                requireActivity().onBackPressedDispatcher.onBackPressed()
-            }
+            handleSaveTask()
         }
+
         parentFragmentManager.setFragmentResultListener(
-            "iconPickerResult", viewLifecycleOwner
+            "iconPickerResult",
+            viewLifecycleOwner
         ) { _, bundle ->
             val iconName = bundle.getString("drawableResId")
             val colorName = bundle.getString("backgroundColor")
 
-            val selectedIcon = iconName?.let { TaskIcon.valueOf(it) }
-            val selectedColor = colorName?.let { TaskColor.valueOf(it) }
+            val selectedIcon = iconName?.let { TaskIcon.entries.find { enum -> enum.name == it } ?: TaskIcon.TROPHY }
+            val selectedColor = colorName?.let { TaskColor.entries.find { enum -> enum.name == it } ?: TaskColor.DARK_BLUE }
 
-            if (selectedIcon != null && selectedColor != null) {
-                binding.imageProfile.setImageResource(selectedIcon.resId)
-                binding.imageProfile.backgroundTintList = ColorStateList.valueOf(
-                    ContextCompat.getColor(
-                        requireContext(),
-                        selectedColor.resId
-                    )
-                )
+            selectedIcon?.let {
+                binding.imageProfile.setImageResource(it.resId)
                 selectedDrawableResId = iconName
-                selectedBackgroundColor = colorName
-                Log.d("AddTaskFragment", "Icon: $iconName \t Color: $colorName")
             }
+            selectedColor?.let {
+                binding.imageProfile.backgroundTintList = ColorStateList.valueOf(
+                    ContextCompat.getColor(requireContext(), it.resId)
+                )
+                selectedBackgroundColor = colorName
+            }
+            Log.d(TAG, "Icon: $iconName \t Color: $colorName")
+        }
+
+        observeViewModel()
+    }
+
+    private fun handleSaveTask() {
+        val title = binding.editTextTitle.text.toString().trim()
+        val note = binding.editTextNote.text.toString().trim()
+        var scheduledTime: String? = binding.txtTime.text.toString().trim()
+        val reminderOn = binding.switchReminder.isChecked
+        val todayDate = CommonMethods.Companion.getTodayDate()
+        val isScheduled = binding.switchSchedule.isChecked
+
+        if (!binding.switchSchedule.isChecked && !binding.switchReminder.isChecked) {
+            scheduledTime = null
+        } else if (scheduledTime.isNullOrBlank()) {
+            Log.w(TAG, "Time input blank, setting to null")
+            scheduledTime = null
+        }
+
+        val selectedConditionIds =
+            (binding.rvCheckCondition.adapter as? ConditionCheckAdapter)?.getSelectedIds() ?: emptyList()
+
+        val (isValid, errorMsg) = validateTask(title, scheduledTime)
+        if (!isValid) {
+            Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val taskType = getSelectedTaskType()
+
+        val task = DailyTask(
+            id = args.task?.id ?: UUID.randomUUID().toString(),
+            title = title,
+            note = note.ifEmpty { null },
+            isCompleted = args.task?.isCompleted ?: false,
+            weight = getSelectedTaskWeight(),
+            scheduledTime = scheduledTime,
+            completedTime = args.task?.completedTime,
+            taskAddedDate = args.task?.taskAddedDate ?: todayDate,
+            taskRemovedDate = args.task?.taskRemovedDate,
+            reminderEnabled = reminderOn,
+            completedDates = args.task?.completedDates ?: emptyList(),
+            conditionIds = selectedConditionIds,
+            iconResId = selectedDrawableResId,
+            colorCode = selectedBackgroundColor,
+            taskType = taskType,
+            isScheduled = isScheduled
+        )
+
+        binding.buttonSave.isEnabled = false
+        binding.progressBarSave.visibility = View.VISIBLE
+
+        // 👈 Safe reset call (public fun in ViewModel)
+        viewModel.resetSaveResult()
+
+        viewModel.saveOrUpdateTask(
+            task = task,
+            date = todayDate,
+            isEdit = args.task != null,
+            originalScheduledTime = args.task?.scheduledTime
+        )
+    }
+
+    private fun validateTask(title: String, scheduledTime: String?): Pair<Boolean, String?> {
+        return when {
+            title.isEmpty() -> false to "Please enter a task title"
+            scheduledTime.isNullOrBlank() && (binding.switchSchedule.isChecked || binding.switchReminder.isChecked) -> false to "Please select a time"
+            else -> true to null
         }
     }
 
     private fun showTimePickerDialog(triggerSwitch: SwitchCompat?) {
-        var hourOfDay = 0
-        var minute = 0
+        var hourOfDay: Int
+        var minute: Int
 
         val currentTimeText = binding.txtTime.text.toString().trim()
         if (currentTimeText != "--") {
@@ -390,22 +280,18 @@ class AddTaskFragment : Fragment() {
             requireContext(),
             { _, selectedHour, selectedMinute ->
                 isTimeSelected = true
-
                 val cal = Calendar.getInstance()
                 cal.set(Calendar.HOUR_OF_DAY, selectedHour)
                 cal.set(Calendar.MINUTE, selectedMinute)
-
                 val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
                 binding.txtTime.text = sdf.format(cal.time)
             },
             hourOfDay, minute, false
         )
 
-        // Allow user to cancel or touch outside
         timePickerDialog.setCancelable(true)
         timePickerDialog.setCanceledOnTouchOutside(true)
 
-        // If user cancels or closes dialog without pressing OK
         timePickerDialog.setOnCancelListener {
             if (triggerSwitch?.isChecked == true) triggerSwitch.isChecked = false
         }
@@ -416,7 +302,6 @@ class AddTaskFragment : Fragment() {
             }
         }
 
-        // Set dialog button colors
         timePickerDialog.setOnShowListener {
             val positive = timePickerDialog.getButton(TimePickerDialog.BUTTON_POSITIVE)
             val negative = timePickerDialog.getButton(TimePickerDialog.BUTTON_NEGATIVE)
@@ -427,7 +312,6 @@ class AddTaskFragment : Fragment() {
 
         timePickerDialog.show()
     }
-
 
     private fun getSelectedTaskWeight(): TaskWeight {
         return when (binding.radioGroupScore.checkedRadioButtonId) {
@@ -461,5 +345,40 @@ class AddTaskFragment : Fragment() {
         if (!binding.switchSchedule.isChecked && !binding.switchReminder.isChecked) {
             binding.txtTime.text = "--"
         }
+    }
+
+    private fun observeViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.saveResult.observe(viewLifecycleOwner) { result ->
+                    when (result) {
+                        is AppViewModel.SaveResult.Success -> {
+                            binding.buttonSave.isEnabled = true
+                            binding.progressBarSave.visibility = View.GONE
+                            val message = if (result.isNewTask) "Task saved & auto-ordered!" else "Task Updated"
+                            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+
+                            findNavController().popBackStack()
+                        }
+                        is AppViewModel.SaveResult.Error -> {
+                            binding.buttonSave.isEnabled = true
+                            binding.progressBarSave.visibility = View.GONE
+                            Toast.makeText(requireContext(), "Save failed: ${result.message}", Toast.LENGTH_SHORT).show()
+                        }
+                        is AppViewModel.SaveResult.Loading -> {
+                            // Handled in handleSaveTask
+                        }
+                        AppViewModel.SaveResult.Idle -> {
+                            // Ignore
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
