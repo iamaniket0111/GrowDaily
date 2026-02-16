@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/circular_corners_more"
+     >
+
+    <!-- Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Task Priority"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/brand_blue"
+        android:layout_marginTop="16dp"
+        android:layout_gravity="center"
+
+        />
+
+    <!-- Explanation -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Priority helps calculate your daily score. Higher priority tasks add more value and show how important this task is."
+        android:textColor="@android:color/darker_gray"
+        android:textSize="14sp" />
+
+    <!-- Priority Options -->
+    <RadioGroup
+        android:id="@+id/radioGroupPriority"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/radioVeryLow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Very Low (1 weight)" />
+
+        <RadioButton
+            android:id="@+id/radioLow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Low (2 weight)" />
+
+        <RadioButton
+            android:id="@+id/radioHigh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="High (3 weight)" />
+
+        <RadioButton
+            android:id="@+id/radioVeryHigh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Very High (4 weight)" />
+    </RadioGroup>
+
+</LinearLayout>

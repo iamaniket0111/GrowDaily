@@ -19,12 +19,12 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.adapter.ConditionListAdapter
-import com.anitech.growdaily.data_class.ConditionEntity
+import com.anitech.growdaily.data_class.ListEntity
 import com.anitech.growdaily.database.AppRepository
 import com.anitech.growdaily.database.AppViewModel
 import com.anitech.growdaily.databinding.ActivityMainBinding
-import com.anitech.growdaily.fragment.HomeFragment
 import com.anitech.growdaily.fragment.MainFragment
+import com.anitech.growdaily.fragment.TaskFragment
 
 class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
@@ -96,25 +96,25 @@ class MainActivity : AppCompatActivity() {
 
         val currentFragment = mainFragment?.getCurrentFragment()
 
-        if (isSelectionMode && currentFragment is HomeFragment) {
+        if (isSelectionMode && currentFragment is TaskFragment) {
             when (item.itemId) {
                 R.id.menu_select_all -> {
-                    currentFragment.adapter.selectAll()
+                    // currentFragment.adapter.selectAll()
                     return true
                 }
 
                 R.id.menu_clear_selection -> {
-                    currentFragment.adapter.clearSelection()
+                    //    currentFragment.adapter.clearSelection()
                     return true
                 }
 
                 R.id.menu_delete -> {
-                    currentFragment.handleDeleteSelected()
+                    //currentFragment.handleDeleteSelected()
                     return true
                 }
 
                 android.R.id.home -> {
-                    currentFragment.adapter.clearSelection()
+                    //  currentFragment.adapter.clearSelection()
                     return true
                 }
             }
@@ -128,15 +128,15 @@ class MainActivity : AppCompatActivity() {
 
             R.id.menu_analyse -> {
                 // Handle analyse
-                viewModel.clearAllDiaryData()
-                viewModel.clearAllMood()
-                Toast.makeText(this, "Diary data cleared", Toast.LENGTH_SHORT).show()
+                navController
+                    .navigate(R.id.nav_analysis_list)
+
                 true
             }
 
             R.id.menu_select_all -> {
-                if (currentFragment is HomeFragment) {
-                    currentFragment.adapter.selectAll()
+                if (currentFragment is TaskFragment) {
+                    //currentFragment.adapter.selectAll()
                 }
                 true
             }
@@ -166,7 +166,7 @@ class MainActivity : AppCompatActivity() {
             this,
             emptyList(),
             object : ConditionListAdapter.OnItemClickListener {
-                override fun onItemClick(conditionItem: ConditionEntity) {
+                override fun onItemClick(conditionItem: ListEntity) {
                     val bundle = bundleOf("ConditionEntity" to conditionItem)
                     navController.navigate(R.id.manageCondition, bundle)
                     dialog.dismiss()
@@ -176,10 +176,9 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = conditionListAdapter
 
-
-        viewModel.getAllConditions().observe(this) { conditions ->
-            conditionListAdapter.updateList(conditions)
-        }
+//        viewModel.allLists.observe(this) { lists ->
+//            conditionListAdapter.updateList(lists)
+//        }
 
         dialog.setContentView(condView)
         dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())

@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.R
-import com.anitech.growdaily.data_class.DailyTask
+import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.databinding.RvDailyTaskItemBinding
 import com.anitech.growdaily.enum_class.TaskColor
 import com.anitech.growdaily.enum_class.TaskIcon
@@ -19,7 +19,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Collections
 
 class TaskReorderAdapter(
-    private var taskList: MutableList<DailyTask>,
+    private var taskList: MutableList<TaskEntity>,
     private val dragStartListener: (RecyclerView.ViewHolder) -> Unit,
     private val reorderCompleteListener: OnReorderCompleteListener? = null
 ) : RecyclerView.Adapter<TaskReorderAdapter.ViewHolder>() {
@@ -52,7 +52,7 @@ class TaskReorderAdapter(
         private val binding: RvDailyTaskItemBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(task: DailyTask) {
+        fun bind(task: TaskEntity) {
             binding.taskTitle.text = task.title
             binding.taskNote.visibility = View.GONE
 
@@ -94,8 +94,8 @@ class TaskReorderAdapter(
 
     /** 👇 Updated: Keep nulls at exact positions, fill gaps with sorted timed items */
     fun autoReorderByTime() {
-        val nullPositions = mutableMapOf<Int, DailyTask>()
-        val timed = mutableListOf<DailyTask>()
+        val nullPositions = mutableMapOf<Int, TaskEntity>()
+        val timed = mutableListOf<TaskEntity>()
 
         // Collect current null positions and timed items
         taskList.forEachIndexed { index, item ->
@@ -116,7 +116,7 @@ class TaskReorderAdapter(
         }
 
         // Rebuild list: nulls stay fixed, timed fill the gaps in order
-        val newItems = mutableListOf<DailyTask>()
+        val newItems = mutableListOf<TaskEntity>()
         var timedIndex = 0
         for (i in 0 until taskList.size) {
             if (nullPositions.containsKey(i)) {
@@ -135,7 +135,7 @@ class TaskReorderAdapter(
         reorderCompleteListener?.onReorderComplete(orderedIds)
     }
 
-    fun updateList(newTaskData: List<DailyTask>) {
+    fun updateList(newTaskData: List<TaskEntity>) {
         Log.d("AdapterDebug", "updateList called with: ${newTaskData.size} tasks")
         taskList.clear()
         taskList.addAll(newTaskData)

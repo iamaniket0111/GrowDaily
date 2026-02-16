@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/conditionTv"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_margin="6dp"
+    android:background="@drawable/circular_corners"
+    android:backgroundTint="@color/white"
+    android:checked="true"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="6dp"
+    android:textSize="14sp"
+    android:src="@drawable/ic_manage_list"
+    android:tint="@color/black"
+    />
+

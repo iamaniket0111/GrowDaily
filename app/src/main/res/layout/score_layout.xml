@@ -18,7 +18,7 @@
         android:backgroundTint="@color/white"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingVertical="16dp">
 
         <!-- res/layout/progress_circle_with_text.xml -->
         <FrameLayout
@@ -49,13 +49,16 @@
                 android:textStyle="bold" />
         </FrameLayout>
 
+
         <TextView
             android:id="@+id/dayText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Today"
-            android:textColor="@color/black"
-            android:textFontWeight="@integer/material_motion_duration_long_1" />
+            android:text="Feb 3"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textColor="@color/black" />
 
     </LinearLayout>
 
@@ -69,7 +72,8 @@
         android:baselineAligned="false"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingVertical="16dp"
+        >
 
 
         <!-- res/layout/progress_circle_with_text.xml -->
@@ -102,11 +106,15 @@
         </FrameLayout>
 
         <TextView
+            android:id="@+id/weekText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Week"
-            android:textColor="@color/black"
-            android:textFontWeight="@integer/material_motion_duration_long_1" />
+            android:text="29 Jan–4 Feb"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textColor="@color/black" />
+
 
     </LinearLayout>
     <LinearLayout
@@ -119,7 +127,7 @@
         android:baselineAligned="false"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingVertical="16dp">
 
         <!-- res/layout/progress_circle_with_text.xml -->
         <FrameLayout
@@ -150,14 +158,29 @@
         </FrameLayout>
 
         <TextView
+            android:id="@+id/monthText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Month"
-            android:textColor="@color/black"
-            android:textFontWeight="@integer/material_motion_duration_long_1" />
+            android:text="January"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textColor="@color/black" />
 
     </LinearLayout>
 
 
 
 </LinearLayout>
+    <!--
+What can be improved
+A lot of repeated XML. This should ideally be a reusable layout using include or a custom view. Right now, it’s copy-paste heavy.
+singleLine="true" is deprecated. Use maxLines="1" only. You already have that.
+Hardcoded texts like 6.5, Feb 3, Month should be moved to string resources.
+foregroundGravity on FrameLayout isn’t doing anything here. You can remove it.
+Consider setting app:trackThickness and app:indicatorThickness for better visual balance.
+Accessibility could be better. Content descriptions are missing for progress indicators.
+-->
+
+
+

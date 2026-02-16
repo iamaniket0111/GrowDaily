@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.anitech.growdaily.CommonMethods
@@ -17,13 +18,18 @@ import com.anitech.growdaily.databinding.FragmentAddDiaryBinding
 import java.util.UUID
 
 class AddDiaryFragment : Fragment() {
+
     private var _binding: FragmentAddDiaryBinding? = null
     private val binding get() = _binding!!
+
     private val args: AddDiaryFragmentArgs by navArgs()
     private val viewModel: AppViewModel by activityViewModels()
 
+    private val todayDate = CommonMethods.getTodayDate()
+
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentAddDiaryBinding.inflate(inflater, container, false)
@@ -32,52 +38,72 @@ class AddDiaryFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val argTask = args.diary
-        val argDate = args.date
 
-        if (argTask != null) {
-            // Update case
-            binding.editTextTitle.setText(argTask.title)
-            binding.editTextNote.setText(argTask.content ?: "")
+        setupUi()
+        setupSaveClick()
+    }
 
-            viewModel.getNotesOnDate(CommonMethods.getTodayDate())
+    private fun setupUi() {
+        args.diary?.let { diary ->
+            binding.editTextTitle.setText(diary.title)
+            binding.editTextNote.setText(diary.content.orEmpty())
         }
+    }
 
+    private fun setupSaveClick() {
         binding.buttonSave.setOnClickListener {
+
             val title = binding.editTextTitle.text.toString().trim()
             val note = binding.editTextNote.text.toString().trim()
 
             if (title.isEmpty()) {
-                Toast.makeText(requireContext(), "Please enter a title", Toast.LENGTH_SHORT).show()
+                showToast("Please enter a title")
                 return@setOnClickListener
             }
 
-            if (argTask == null) {
-                // New diary
-                val diaryEntry = DiaryEntry(
-                    id = UUID.randomUUID().toString(),
-                    date = argDate ?: java.time.LocalDate.now()
-                        .toString(), // agar date null hai to aaj ka date
-                    title = title,
-                    content = note.ifEmpty { null }
-                )
+            val diaryEntry = createDiaryEntry(title, note)
+
+            if (args.diary == null) {
                 viewModel.insert(diaryEntry)
-                Toast.makeText(requireContext(), "Diary saved", Toast.LENGTH_SHORT).show()
+                showToast("Diary saved")
             } else {
-                // Update diary
-                val diaryId = argTask.diaryId
-                if (diaryId != null) {
-                    val diaryEntry = DiaryEntry(
-                        id = argTask.diaryId,
-                        date = argTask.date, // update case me date vhi rakhi
-                        title = title,
-                        content = note.ifEmpty { null }
-                    )
-                    viewModel.update(diaryEntry)
-                    Toast.makeText(requireContext(), "Diary updated", Toast.LENGTH_SHORT).show()
-                }
+                viewModel.update(diaryEntry)
+                showToast("Diary updated")
             }
+
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
     }
+
+    private fun createDiaryEntry(title: String, note: String): DiaryEntry {
+        val existingDiary = args.diary
+
+        return if (existingDiary == null) {
+            DiaryEntry(
+                id = UUID.randomUUID().toString(),
+                date = args.date ?: todayDate,
+                title = title,
+                content = note.ifEmpty { null }
+            )
+        } else {
+            DiaryEntry(
+                id = existingDiary.diaryId!!,
+                date = existingDiary.date,
+                title = title,
+                content = note.ifEmpty { null }
+            )
+
+
+        }
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }
+

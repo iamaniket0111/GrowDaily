@@ -1,11 +1,14 @@
 package com.anitech.growdaily
 
-import com.anitech.growdaily.data_class.DailyTask
-import com.anitech.growdaily.data_class.DateItemEntity
+import com.anitech.growdaily.data_class.DailyScore
+import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.enum_class.TaskType
 import java.text.SimpleDateFormat
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.time.temporal.TemporalAdjusters
 import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -13,10 +16,9 @@ import kotlin.math.roundToInt
 class CommonMethods {
     companion object {
         object CalculateDailyScoreForDate {
-
         }
 
-        private const val DATE_FORMATE: String = "yyyy-MM-dd"
+        const val DATE_FORMATE: String = "yyyy-MM-dd"
 
         fun getTodayDate(): String {
             return SimpleDateFormat(DATE_FORMATE, Locale.getDefault()).format(Date())
@@ -73,7 +75,6 @@ class CommonMethods {
             return date.isBefore(today)
         }
 
-
         fun isFutureDate(currentDate: String): Boolean {
             val sdf = DateTimeFormatter.ofPattern(DATE_FORMATE)
             val date = LocalDate.parse(currentDate, sdf)
@@ -81,163 +82,265 @@ class CommonMethods {
             return date.isAfter(today)
         }
 
-//        fun filterTasks(tasks: List<DailyTask>, date: String): List<DailyTask> {
-//            return tasks.filter { task ->
-//                if (task.isDaily) {
-//                    task.taskAddedDate <= date &&
-//                            (task.taskRemovedDate == null || task.taskRemovedDate > date)
-//                } else {
-//                    task.taskAddedDate == date
-//                }
-//            }
-//        }
 
-        fun filterTasks(tasks: List<DailyTask>, date: String): List<DailyTask> {
+        fun filterTasksForDate(
+            tasks: List<TaskEntity>,
+            dateString: String
+        ): List<TaskEntity> {
             return tasks.filter { task ->
                 when (task.taskType) {
-                    TaskType.DAILY -> {
+
+                    TaskType.DAILY ->
+                        task.taskAddedDate <= dateString &&
+                                (task.taskRemovedDate == null || task.taskRemovedDate >= dateString)
+
+                    TaskType.DAY ->
+                        task.taskAddedDate == dateString
+
+                    TaskType.UNTIL_COMPLETE ->
+                        false   // week / month / bar me ignore
+                }
+            }
+        }
+
+        fun calculateDailyScoresThisWeek(
+            tasks: List<TaskEntity>,
+            currentTodoDate: String,
+            completionMap: Map<String, Map<String, Int>>
+        ): List<DailyScore> {
+
+            val dailyScores = mutableListOf<DailyScore>()
+
+            val selected = LocalDate.parse(currentTodoDate)
+
+            val startMonday =
+                selected.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+            val endSunday = startMonday.plusDays(6)
+
+            var currentDate = startMonday
+            while (!currentDate.isAfter(endSunday)) {
+
+                val dateString = currentDate.toString()
+                val tasksForDate = filterTasksForDate(tasks, dateString)
+
+                val completionForDate = completionMap[dateString] ?: emptyMap()
+
+                var totalWeight = 0f
+                var completedWeight = 0f
+
+                for (task in tasksForDate) {
+
+                    totalWeight += task.weight.weight
+
+                    val count = completionForDate[task.id] ?: 0
+                    val target = task.dailyTargetCount.coerceAtLeast(1)
+
+                    if (count >= target) {
+                        completedWeight += task.weight.weight
+                    }
+                }
+
+                val score =
+                    if (totalWeight > 0f) {
+                        ((completedWeight / totalWeight) * 100)
+                            .roundToInt() / 10f
+                    } else 0f
+
+                val weekDay =
+                    currentDate.dayOfWeek.getDisplayName(
+                        TextStyle.SHORT,
+                        Locale.ENGLISH
+                    )
+
+                dailyScores.add(
+                    DailyScore(
+                        date = dateString,
+                        dayText = weekDay,
+                        monthDayText = "",
+                        score = score,
+                        taskCount = tasksForDate.size
+                    )
+                )
+
+                currentDate = currentDate.plusDays(1)
+            }
+
+            return dailyScores
+        }
+
+
+        fun filterTasks( //moved here from repository
+            tasks: List<TaskEntity>,
+            date: String
+        ): List<TaskEntity> {
+
+            return tasks.filter { task ->
+                when (task.taskType) {
+
+                    TaskType.DAILY ->
                         task.taskAddedDate <= date &&
                                 (task.taskRemovedDate == null || task.taskRemovedDate >= date)
-                    }
-                    TaskType.DAY -> {
+
+                    TaskType.DAY ->
                         task.taskAddedDate == date
-                    }
-                    TaskType.UNTIL_COMPLETE -> {
-                        val lastCompletedDate = task.completedDates.maxOrNull()
-                        // Agar complete ho gaya hai aur date uske baad hai → hide
-                        val isAfterCompletion = lastCompletedDate != null && date > lastCompletedDate
 
-                        !isAfterCompletion &&
-                                task.taskAddedDate <= date &&
+                    TaskType.UNTIL_COMPLETE ->
+                        task.taskAddedDate <= date &&
                                 (task.taskRemovedDate == null || task.taskRemovedDate >= date)
-                    }
                 }
             }
         }
 
-        fun filterTasksByCondition(
-            tasks: List<DailyTask>,
+
+
+        fun calculateScoreForDate(
+            tasks: List<TaskEntity>,
             date: String,
-            dateItemEntity: DateItemEntity
-        ): List<DailyTask> {
+            completionMap: Map<String, Map<String, Int>>
+        ): Float {
 
-            // FIXME: not tested yet 
-            // Get all unique itemIds from all dateData
-            val excludedIds = dateItemEntity.data
-                .flatMap { it.itemIds }
-                .toSet()
+            val tasksForDate = filterTasksForDate(tasks, date)
+            if (tasksForDate.isEmpty()) return 0f
 
-            return tasks.filter { task ->
-                // Check latest completion date (if any)
-                val lastCompletedDate = task.completedDates.maxOrNull()
-                val isAfterCompletion = lastCompletedDate != null && date > lastCompletedDate
+            val completionForDate = completionMap[date] ?: emptyMap()
 
-                if (isAfterCompletion) return@filter false
+            var totalWeight = 0
+            var completedWeight = 0
 
-                when (task.taskType) {
-                    TaskType.DAILY -> {
-                        task.taskAddedDate <= date &&
-                                (task.taskRemovedDate == null || task.taskRemovedDate >= date) &&
-                                !excludedIds.contains(task.id)
-                    }
-                    TaskType.DAY -> {
-                        task.taskAddedDate == date &&
-                                !excludedIds.contains(task.id)
-                    }
-                    TaskType.UNTIL_COMPLETE -> {
-                        task.taskAddedDate <= date &&
-                                !isAfterCompletion && // hide after last completed date
-                                (task.taskRemovedDate == null || task.taskRemovedDate >= date) &&
-                                !excludedIds.contains(task.id)
-                    }
-                }
-            }
-        }
+            for (task in tasksForDate) {
 
-
-
-
-
-//        fun filterTasksByCondition(
-//            tasks: List<DailyTask>,
-//            date: String,
-//            dateItemEntity: DateItemEntity
-//        ): List<DailyTask> {
-//            // Get all unique itemIds from all dateData
-//            val excludedIds = dateItemEntity.data
-//                .flatMap { it.itemIds }
-//                .toSet()
-//
-//            return tasks.filter { task ->
-//                if (task.isDaily) {
-//                    task.taskAddedDate <= date &&
-//                            (task.taskRemovedDate == null || task.taskRemovedDate > date) &&
-//                            !excludedIds.contains(task.id) // exclude tasks whose id is in the set
-//                } else {
-//                    task.taskAddedDate == date
-//                }
-//            }
-//        }
-
-
-        fun calculateDailyScoreForDate(tasks: List<DailyTask>, date: String): String {//pass only filtered task or fix here instead
-            val tasksOnDate = filterTasks(tasks, date)
-
-            var totalWeight = 0f
-            var completedWeight = 0f
-
-            for (task in tasksOnDate) {
                 totalWeight += task.weight.weight
-                if (task.completedDates.contains(date)) {
+
+                val count = completionForDate[task.id] ?: 0
+                val target = task.dailyTargetCount.coerceAtLeast(1)
+
+                if (count >= target) {
                     completedWeight += task.weight.weight
                 }
             }
 
-            val score = if (totalWeight > 0f) {
-                ((completedWeight / totalWeight) * 10f * 10).roundToInt() / 10f
-            } else 0f
+            if (totalWeight == 0) return 0f
 
-            // format: remove trailing ".0" if present
-            return if (score % 1f == 0f) {
-                score.toInt().toString()
-            } else {
-                String.format("%.1f", score)
+            val rawScore =
+                (completedWeight.toFloat() / totalWeight.toFloat()) * 10f
+
+            return ((rawScore * 10).roundToInt()) / 10f
+        }
+
+
+        fun calculateAggregateScore(
+            tasks: List<TaskEntity>,
+            startDate: LocalDate,
+            endDate: LocalDate,
+            completionMap: Map<String, Map<String, Int>>
+        ): Float {
+
+
+            val dailyScores = mutableListOf<Float>()
+            var currentDate = startDate
+
+            while (!currentDate.isAfter(endDate)) {
+
+                val dateStr = currentDate.toString()
+
+                val score = calculateScoreForDate(
+                    tasks,
+                    dateStr,
+                    completionMap
+                )
+
+                if (score > 0f) dailyScores.add(score)
+
+                currentDate = currentDate.plusDays(1)
+            }
+
+            if (dailyScores.isEmpty()) return 0f
+
+            return ((dailyScores.sum() / dailyScores.size) * 10)
+                .roundToInt() / 10f
+        }
+
+
+
+        fun formatDate(inputDate: String): String {
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val outputFormat = SimpleDateFormat("MMM d", Locale.getDefault())
+            return try {
+                val date = inputFormat.parse(inputDate)
+                if (date != null) outputFormat.format(date) else ""
+            } catch (e: Exception) {
+                ""
             }
         }
 
+
     }
-
-    /*
-        private fun showDatePickerDialog() {
-        val calendar = Calendar.getInstance()
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH)
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
-
-        val datePickerDialog = DatePickerDialog(
-            requireContext(), // agar Fragment me ho
-            { _, selectedYear, selectedMonth, selectedDay ->
-                val date = "$selectedDay/${selectedMonth + 1}/$selectedYear"
-                val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-                val cal = Calendar.getInstance()
-                cal.set(selectedYear, selectedMonth, selectedDay)
-                // binding.txtDate.text = sdf.format(cal.time)
-            },
-            year, month, day
-        )
-
-        datePickerDialog.setOnShowListener {
-            val positive = datePickerDialog.getButton(DatePickerDialog.BUTTON_POSITIVE)
-            val negative = datePickerDialog.getButton(DatePickerDialog.BUTTON_NEGATIVE)
-            val color = ContextCompat.getColor(requireContext(), R.color.brand_blue)
-            positive?.setTextColor(color)
-            negative?.setTextColor(color)
-        }
-        datePickerDialog.show()
-    }
-
-    */
-
 
 
 }
+
+
+//    private fun showTimePickerDialog(triggerSwitch: SwitchCompat?) {
+//        var hourOfDay: Int
+//        var minute: Int
+//
+//        val currentTimeText = binding.txtTime.text.toString().trim()
+//        if (currentTimeText != "--") {
+//            try {
+//                val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
+//                val date = sdf.parse(currentTimeText)
+//                val cal = Calendar.getInstance().apply { time = date!! }
+//                hourOfDay = cal.get(Calendar.HOUR_OF_DAY)
+//                minute = cal.get(Calendar.MINUTE)
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//                val calendar = Calendar.getInstance()
+//                calendar.add(Calendar.HOUR_OF_DAY, 1)
+//                hourOfDay = calendar.get(Calendar.HOUR_OF_DAY)
+//                minute = calendar.get(Calendar.MINUTE)
+//            }
+//        } else {
+//            val calendar = Calendar.getInstance()
+//            calendar.add(Calendar.HOUR_OF_DAY, 1)
+//            hourOfDay = calendar.get(Calendar.HOUR_OF_DAY)
+//            minute = calendar.get(Calendar.MINUTE)
+//        }
+//
+//        var isTimeSelected = false
+//
+//        val timePickerDialog = TimePickerDialog(
+//            requireContext(),
+//            { _, selectedHour, selectedMinute ->
+//                isTimeSelected = true
+//                val cal = Calendar.getInstance()
+//                cal.set(Calendar.HOUR_OF_DAY, selectedHour)
+//                cal.set(Calendar.MINUTE, selectedMinute)
+//                val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
+//                binding.txtTime.text = sdf.format(cal.time)
+//            },
+//            hourOfDay, minute, false
+//        )
+//
+//        timePickerDialog.setCancelable(true)
+//        timePickerDialog.setCanceledOnTouchOutside(true)
+//
+//        timePickerDialog.setOnCancelListener {
+//            if (triggerSwitch?.isChecked == true) triggerSwitch.isChecked = false
+//        }
+//
+//        timePickerDialog.setOnDismissListener {
+//            if (!isTimeSelected && triggerSwitch?.isChecked == true) {
+//                triggerSwitch.isChecked = false
+//            }
+//        }
+//
+//        timePickerDialog.setOnShowListener {
+//            val positive = timePickerDialog.getButton(TimePickerDialog.BUTTON_POSITIVE)
+//            val negative = timePickerDialog.getButton(TimePickerDialog.BUTTON_NEGATIVE)
+//            val color = ContextCompat.getColor(requireContext(), R.color.brand_blue)
+//            positive?.setTextColor(color)
+//            negative?.setTextColor(color)
+//        }
+//
+//        timePickerDialog.show()
+//    }

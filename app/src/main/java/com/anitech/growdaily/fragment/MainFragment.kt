@@ -18,6 +18,7 @@ import com.anitech.growdaily.adapter.ViewPagerAdapter
 import com.anitech.growdaily.data_class.MoodHistoryItem
 import com.anitech.growdaily.database.AppViewModel
 import com.anitech.growdaily.databinding.FragmentMainBinding
+import com.anitech.growdaily.dialog.TaskTypeDialog
 
 class MainFragment : Fragment() {
     private var _binding: FragmentMainBinding? = null
@@ -70,10 +71,10 @@ class MainFragment : Fragment() {
                     val adapter = binding.viewPager.adapter
                     if (adapter is ViewPagerAdapter) {
                         val homeFragment = adapter.getFragment(0)
-                        if (homeFragment is HomeFragment) {
-                            if (homeFragment.adapter.selectionCount() > 0) {
-                                homeFragment.adapter.clearSelection()
-                            }
+                        if (homeFragment is TaskFragment) {
+//                            if (homeFragment.adapter.selectionCount() > 0) {
+//                                homeFragment.adapter.clearSelection()
+//                            }
                         }
                     }
                 }
@@ -84,7 +85,16 @@ class MainFragment : Fragment() {
                         binding.bottomNav.selectedItemId = R.id.homeFragment
                         binding.fab.setImageResource(R.drawable.ic_add) // Home icon
                         binding.fab.setOnClickListener {
-                            findNavController().navigate(R.id.nav_add_task)
+                            TaskTypeDialog { selectedType ->
+
+                                val action = MainFragmentDirections
+                                    .actionMainToAddTask(
+                                        task = null,
+                                        taskType = selectedType.name
+                                    )
+
+                                findNavController().navigate(action)
+                            }.show(parentFragmentManager, "TaskTypeDialog")
                         }
                     }
 
@@ -106,53 +116,51 @@ class MainFragment : Fragment() {
 
 
         val today = CommonMethods.getTodayDate()
-         //val today ="2025-10-09"
+        //val today ="2025-10-09"
 
-        viewModel.getTodaysMoodLive(today).observe(viewLifecycleOwner) { mood ->
-            if (mood != null) {
-                binding.moodFabBtn.visibility = View.GONE
-                binding.moodFabBtn.isClickable = false
-            } else {
-                binding.moodFabBtn.visibility = View.VISIBLE
-                binding.moodFabBtn.isClickable = true
-                val rotate = AnimationUtils.loadAnimation(requireContext(), R.anim.rotate_fab)
-                binding.moodFabBtn.startAnimation(rotate)
-                binding.moodFabBtn.setOnClickListener {
-                    val moodHistoryItem = MoodHistoryItem(
-                        id = 0,
-                        emoji = "😐",
-                        date = today
-                    )
-                    MoodDialog(
-                        requireContext(),
-                        moodHistoryItem,
-                        object : MoodDialog.OnMoodSelectedListener {
-                            override fun onMoodSelected(updatedMood: MoodHistoryItem) {
-                                viewModel.insertMood(updatedMood)
-                            }
-                        }).show()
-                }
-            }
-        }
-
+//        viewModel.getTodaysMoodLive(today).observe(viewLifecycleOwner) { mood ->
+//            if (mood != null) {
+//                binding.moodFabBtn.visibility = View.GONE
+//                binding.moodFabBtn.isClickable = false
+//            } else {
+//                binding.moodFabBtn.visibility = View.VISIBLE
+//                binding.moodFabBtn.isClickable = true
+//                val rotate = AnimationUtils.loadAnimation(requireContext(), R.anim.rotate_fab)
+//                binding.moodFabBtn.startAnimation(rotate)
+//                binding.moodFabBtn.setOnClickListener {
+//                    val moodHistoryItem = MoodHistoryItem(
+//                        id = 0,
+//                        emoji = "😐",
+//                        date = today
+//                    )
+//                    MoodDialog(
+//                        requireContext(),
+//                        moodHistoryItem,
+//                        object : MoodDialog.OnMoodSelectedListener {
+//                            override fun onMoodSelected(updatedMood: MoodHistoryItem) {
+//                                viewModel.insertMood(updatedMood)
+//                            }
+//                        }).show()
+//                }
+//            }
+//        }
     }
-
 
     private val backPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            if (binding.viewPager.currentItem == 0) {
-                val homeFragment = (binding.viewPager.adapter as ViewPagerAdapter)
-                    .getFragment(0) as? HomeFragment
-                if ((homeFragment?.adapter?.selectionCount() ?: 0) > 0) {
-                    homeFragment?.adapter?.clearSelection()
-                } else {
-                    requireActivity().finish()
-                }
-            } else {
-                if (!findNavController().popBackStack()) {
-                    requireActivity().finish()
-                }
-            }
+//            if (binding.viewPager.currentItem == 0) {
+//                val taskFragment = (binding.viewPager.adapter as ViewPagerAdapter)
+//                    .getFragment(0) as? TaskFragment
+//                if ((taskFragment?.adapter?.selectionCount() ?: 0) > 0) {
+//                    taskFragment?.adapter?.clearSelection()
+//                } else {
+//                    requireActivity().finish()
+//                }
+//            } else {
+//                if (!findNavController().popBackStack()) {
+//                    requireActivity().finish()
+//                }
+//            }
 
         }
     }

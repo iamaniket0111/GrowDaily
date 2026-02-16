@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_gravity="center">
+
+    <!-- Icon background -->
+    <View
+        android:id="@+id/viewIconBg"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:background="@drawable/circular"/>
+
+    <!-- Task icon -->
+    <ImageView
+        android:id="@+id/imgTaskIcon"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_trophy"
+        app:tint="@android:color/white"/>
+</FrameLayout>

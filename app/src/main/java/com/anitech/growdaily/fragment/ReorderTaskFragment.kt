@@ -73,7 +73,7 @@ class ReorderTaskFragment : Fragment() {
                     Log.d("FragmentDebug", "Reorder complete, logging ${orderedTaskIds.size} IDs")
                     // Effective date current ya future – abhi current use kar
                     val effectiveDate = currentTodoDate  // Ya dialog se le agar chahiye
-                    viewModel.logTaskReorder(effectiveDate, orderedTaskIds)
+                   // viewModel.logTaskReorder(effectiveDate, orderedTaskIds)
                 }
             }
         )
@@ -82,16 +82,9 @@ class ReorderTaskFragment : Fragment() {
         viewModel.setDate(currentTodoDate)
 
         // 👇 Observe me debug logs add kiye – data flow check ke liye
-        viewModel.filteredTasksByCondition.observe(viewLifecycleOwner) { tasks ->
-            Log.d("FragmentDebug", "Observed tasks: ${tasks.size}")
-            if (tasks.isNotEmpty()) {
-                adapter.updateList(tasks)
-                // Optional: Initial auto-reorder if ViewModel ordering enough nahi
-                // adapter.autoReorderByTime()  // Comment out kar de if not needed
-            } else {
-                Log.w("FragmentDebug", "Empty tasks observed – check DB/filter!")
-            }
-        }
+//        viewModel.filteredTasksFunc.observe(viewLifecycleOwner) { tasks ->
+//            adapter.updateList(tasks)
+//        }
     }
 
     override fun onDestroyView() {

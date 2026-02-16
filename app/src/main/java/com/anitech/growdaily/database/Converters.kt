@@ -1,7 +1,6 @@
 package com.anitech.growdaily.database
 
 import androidx.room.TypeConverter
-import com.anitech.growdaily.data_class.DateDataEntity
 import com.anitech.growdaily.enum_class.TaskType
 import com.anitech.growdaily.enum_class.TaskWeight
 import com.google.gson.Gson
@@ -45,15 +44,6 @@ class Converters {
         return if (value.isEmpty()) emptyList() else value.split(",").map { it.toInt() }
     }
 
-    @TypeConverter
-    fun fromDateDataList(list: List<DateDataEntity>): String {
-        return gson.toJson(list)
-    }
 
-    @TypeConverter
-    fun toDateDataList(json: String): List<DateDataEntity> {
-        val type = object : TypeToken<List<DateDataEntity>>() {}.type
-        return gson.fromJson(json, type)
-    }
 
 }

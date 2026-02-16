@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/headerRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/circular_corners"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingStart="16dp"
+    android:paddingTop="16dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="16dp">
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/txtTaskTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:importantForAccessibility="yes"
+        android:maxLines="2"
+        android:text="Morning Workout"
+        android:textColor="@android:color/black"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <!-- Note / subtitle -->
+    <TextView
+        android:id="@+id/txtTaskNote"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:ellipsize="end"
+         android:importantForAccessibility="no"
+        android:maxLines="3"
+        android:text="Stay consistent even if energy is low"
+        android:textColor="#777777"
+        android:textSize="14sp" />
+
+    <!-- subtle divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:background="#E6E6E6" />
+
+    <!-- More info block (stacked rows) -->
+    <LinearLayout
+        android:id="@+id/layoutMoreInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- reusable row: Task type -->
+        <LinearLayout
+            android:id="@+id/rowTaskType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <ImageView
+                android:id="@+id/icTaskType"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_sun"
+                app:tint="#666666" />
+
+            <TextView
+                android:id="@+id/txtTaskType"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:text="Daily habit"
+                android:textColor="#444444"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Reminder row -->
+        <LinearLayout
+            android:id="@+id/rowReminder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <ImageView
+                android:id="@+id/icReminder"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_notification"
+                app:tint="#666666" />
+
+            <TextView
+                android:id="@+id/txtReminder"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:text="Reminder at 6:30 AM"
+                android:textColor="#444444"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Schedule row -->
+        <LinearLayout
+            android:id="@+id/rowSchedule"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <ImageView
+                android:id="@+id/icSchedule"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_calendar_view_day"
+                app:tint="#666666" />
+
+            <TextView
+                android:id="@+id/txtSchedule"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:text="Scheduled at 7:00 AM"
+                android:textColor="#444444"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Priority / weight row -->
+        <LinearLayout
+            android:id="@+id/rowWeight"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <ImageView
+                android:id="@+id/icWeight"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_flag"
+                app:tint="#666666" />
+
+            <TextView
+                android:id="@+id/txtWeight"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:text="Priority: Medium"
+                android:textColor="#444444"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Started since block (compact, inline) -->
+    <LinearLayout
+        android:id="@+id/layoutStartedSince"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_started_since"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="10dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="6dp">
+
+        <ImageView
+            android:id="@+id/icStarted"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:src="@drawable/ic_calendar"
+            app:tint="#666666" />
+
+        <TextView
+            android:id="@+id/txtStartedSince"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Started since 12 Jan 2025"
+            android:textColor="#555555"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/txtRunningFor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="• 28 days"
+            android:textColor="#777777"
+            android:textSize="12sp" />
+    </LinearLayout>
+</LinearLayout>

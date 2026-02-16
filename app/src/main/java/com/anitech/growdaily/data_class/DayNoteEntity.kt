@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "day_notes",
     foreignKeys = [ForeignKey(
-        entity = DailyTask::class,
+        entity = TaskEntity::class,
         parentColumns = ["id"],
         childColumns = ["taskOwnerId"],
         onDelete = ForeignKey.CASCADE

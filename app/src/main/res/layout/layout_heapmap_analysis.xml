@@ -1,0 +1,103 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/circular_corners"
+    android:padding="16dp"
+    >
+
+    <!-- YEAR HEADER -->
+    <TextView
+        android:id="@+id/txtProgressTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:text="Heatmap"
+        android:textColor="?android:textColorPrimary"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingBottom="8dp">
+
+        <ImageView
+            android:id="@+id/btnPrevYear"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+             android:src="@drawable/ic_left_arrow"
+            android:contentDescription="Previous year"
+            android:background="@drawable/circular"
+            android:backgroundTint="@color/light_gray_25"
+            />
+
+        <TextView
+            android:id="@+id/txtYear"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="16dp"
+            android:text="2025"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textAlignment="center"
+            android:layout_weight="1"
+            android:textColor="#333333"/>
+
+        <ImageView
+            android:id="@+id/btnNextYear"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+             android:src="@drawable/ic_right_arrow"
+            android:background="@drawable/circular"
+            android:backgroundTint="@color/light_gray_25"
+            android:contentDescription="Next year"/>
+    </LinearLayout>
+
+    <!-- EXISTING HEATMAP CARD -->
+    <LinearLayout
+        android:id="@+id/layoutOverview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+       >
+
+        <!-- Week labels -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingVertical="8dp">
+
+            <TextView style="@style/WeekLabelText" android:text="M"/>
+            <TextView style="@style/WeekLabelText" android:text="T"/>
+            <TextView style="@style/WeekLabelText" android:text="W"/>
+            <TextView style="@style/WeekLabelText" android:text="T"/>
+            <TextView style="@style/WeekLabelText" android:text="F"/>
+            <TextView style="@style/WeekLabelText" android:text="S"/>
+            <TextView style="@style/WeekLabelText" android:text="S"/>
+
+        </LinearLayout>
+
+        <!-- Scrollable heatmap -->
+        <HorizontalScrollView
+            android:id="@+id/heatmapScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="8dp"
+            android:paddingStart="2dp"
+            android:paddingEnd="8dp"
+            android:scrollbars="none">
+
+            <com.anitech.growdaily.YearHeatmapLayout
+                android:id="@+id/heatmapLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </HorizontalScrollView>
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -6,36 +6,41 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
-import androidx.lifecycle.switchMap
+import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.anitech.growdaily.CommonMethods
-import com.anitech.growdaily.CommonMethods.Companion.filterTasks
-import com.anitech.growdaily.CommonMethods.Companion.filterTasksByCondition
-import com.anitech.growdaily.data_class.ConditionEntity
-import com.anitech.growdaily.data_class.DailyTask
-import com.anitech.growdaily.data_class.DateItemEntity
 import com.anitech.growdaily.data_class.DayLogEntity
 import com.anitech.growdaily.data_class.DayNoteEntity
 import com.anitech.growdaily.data_class.DiaryEntry
+import com.anitech.growdaily.data_class.ListEntity
+import com.anitech.growdaily.data_class.ListWithTasks
 import com.anitech.growdaily.data_class.MoodHistoryItem
+import com.anitech.growdaily.data_class.TaskCompletionEntity
+import com.anitech.growdaily.data_class.TaskEntity
+import com.anitech.growdaily.data_class.TaskHeatmapUi
+import com.anitech.growdaily.data_class.TaskUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import java.time.temporal.TemporalAdjusters
 
 
 class AppViewModel(private val repository: AppRepository) : ViewModel() {
 
-    fun insertTask(task: DailyTask) = viewModelScope.launch {
+    fun insertTask(task: TaskEntity) = viewModelScope.launch {
         repository.insertTask(task)
     }
 
-    fun updateTask(task: DailyTask) = viewModelScope.launch {
+    fun updateTask(task: TaskEntity) = viewModelScope.launch {
         repository.updateTask(task)
     }
 
-    fun deleteTask(task: DailyTask) = viewModelScope.launch {
+    fun deleteTask(task: TaskEntity) = viewModelScope.launch {
         repository.deleteTask(task)
     }
 
@@ -43,90 +48,247 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
         repository.clearAllTasks()
     }
 
-    fun getAllTasks() = viewModelScope.launch {
-        repository.getAllTasks()
-    }
-
-
-//    val filteredTasks: LiveData<List<DailyTask>> = selectedDate.switchMap { date ->
-//        if (date == null) {
-//            MutableLiveData(emptyList())
-//        } else {
-//            allTasks.map { tasks -> filterTasks(tasks, date) }
-//        }
-//    }
-
-
-    val allTasks: LiveData<List<DailyTask>> =
-        repository.getAllTasks()  // 👇 Ye LiveData<...> return karega
+    val allTasks: LiveData<List<TaskEntity>> =
+        repository
+            .getAllTasksFlow()
+            .asLiveData()
 
     private val _selectedDate = MutableLiveData<String>()
     val selectedDate: LiveData<String> = _selectedDate
 
+    private val _selectedListId = MutableLiveData<String?>(null)
+    val selectedListId: LiveData<String?> = _selectedListId
+
+    fun setSelectedList(listId: String?) {
+        // double click ignore
+        if (_selectedListId.value == listId) return
+        _selectedListId.value = listId
+    }
+
     // 👇 Mediator same, but ab allTasks source auto-trigger hoga (DB load pe)
-    val filteredTasksByCondition = MediatorLiveData<List<DailyTask>>().apply {
-        var currentTasks: List<DailyTask>? = null
-        var currentDate: String? = null
+
+    val completionMap: LiveData<Map<String, Map<String, Int>>> =
+        repository.getAllCompletions().map { list ->
+            list.groupBy { it.date }
+                .mapValues { entry ->
+                    entry.value.associate { it.taskId to it.count }
+                }
+        }
+
+//    val taskUiState = MediatorLiveData<TaskUiState>().apply {
+//
+//        var tasks: List<TaskEntity>? = null
+//        var date: String? = null
+//        var completionMapAll: Map<String, Map<String, Int>>? = null
+//
+//        fun update() {
+//            val t = tasks ?: return
+//            val d = date ?: return
+//            val completionAll = completionMapAll ?: return
+//
+//            viewModelScope.launch(Dispatchers.Default) {
+//
+//               // val latestLog = repository.getLatestLogForDate(d)
+//
+////                val orderedTasks = if (latestLog != null) {
+////                    val orderedIds = latestLog.taskIds
+////                    t.sortedBy { orderedIds.indexOf(it.id).takeIf { it >= 0 } ?: Int.MAX_VALUE }
+////                } else {
+////                    t
+////                }
+//
+//                val filtered = CommonMethods.filterTasks(t, d)
+//
+//                val completionForDate = completionAll[d] ?: emptyMap()
+//
+//                postValue(TaskUiState(filtered, completionForDate))
+//            }
+//        }
+//
+//        addSource(allTasks) {
+//            tasks = it
+//            update()
+//        }
+//
+//        addSource(selectedDate) {
+//            date = it
+//            update()
+//        }
+//
+//        addSource(completionMap) {
+//            completionMapAll = it
+//            update()
+//        }
+//    }
+
+
+
+    //new task ui state
+    val taskUiState = MediatorLiveData<TaskUiState>().apply {
+
+        var tasks: List<TaskEntity>? = null
+        var date: String? = null
+        var completionMapAll: Map<String, Map<String, Int>>? = null
 
         fun update() {
-            Log.d("ViewModelDebug", "Update called: tasks=${currentTasks?.size}, date=$currentDate")
-            val tasks = currentTasks ?: return
-            val date = currentDate ?: return
-            viewModelScope.launch {
-                try {
-                    Log.d("ViewModelDebug", "Fetching log for date: $date")
-                    val latestLog = repository.getLatestLogForDate(date)
-                    Log.d("ViewModelDebug", "Latest log: ${latestLog?.taskIds?.size ?: 0} ids")
+            val t = tasks ?: return
+            val d = date ?: return
+            val completionAll = completionMapAll ?: return
 
-                    val orderedTasks = if (latestLog != null) {
-                        val orderedIds = latestLog.taskIds
-                        val sorted = tasks.sortedBy { task ->
-                            val index = orderedIds.indexOf(task.id)
-                            if (index >= 0) index else Int.MAX_VALUE
-                        }
-                        Log.d("ViewModelDebug", "Ordered tasks size: ${sorted.size}")
-                        sorted
-                    } else {
-                        Log.d("ViewModelDebug", "No log, using default sort")
-                        tasks.sortedBy { it.id }
-                    }
+            viewModelScope.launch(Dispatchers.Default) {
 
-                    val dateItem = repository.getDateItem(date)
-                    Log.d("ViewModelDebug", "DateItem: ${dateItem != null}")
+                val filteredTasks =
+                    CommonMethods.filterTasks(t, d)
 
-                    val filtered = if (dateItem != null) {
-                        val result = filterTasksByCondition(orderedTasks, date, dateItem)
-                        Log.d("ViewModelDebug", "Filtered by condition: ${result.size} tasks")
-                        result
-                    } else {
-                        val result = filterTasks(orderedTasks, date)
-                        Log.d("ViewModelDebug", "Filtered basic: ${result.size} tasks")
-                        result
-                    }
+                val completionForDate =
+                    completionAll[d] ?: emptyMap()
 
-                    postValue(filtered)
-                    Log.d("ViewModelDebug", "Posted filtered value: ${filtered.size}")
-                } catch (e: Exception) {
-                    Log.e("ViewModelDebug", "Error in update: ${e.message}", e)
-                }
+                val dayScore =
+                    CommonMethods.calculateScoreForDate(
+                        t, d, completionAll
+                    )
+
+                val selected = LocalDate.parse(d)
+
+                val weekStart =
+                    selected.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                val weekEnd = weekStart.plusDays(6)
+
+                val weekScore =
+                    CommonMethods.calculateAggregateScore(
+                        t, weekStart, weekEnd, completionAll
+                    )
+
+                val monthStart = selected.withDayOfMonth(1)
+                val monthEnd = selected.withDayOfMonth(selected.lengthOfMonth())
+
+                val monthScore =
+                    CommonMethods.calculateAggregateScore(
+                        t, monthStart, monthEnd, completionAll
+                    )
+
+                val weekBars =
+                    CommonMethods.calculateDailyScoresThisWeek(
+                        t, d, completionAll
+                    )
+
+                postValue(
+                    TaskUiState(
+                        date = d,
+                        tasks = filteredTasks,
+                        completionForDate = completionForDate,
+                        dayScore = dayScore,
+                        weekScore = weekScore,
+                        monthScore = monthScore,
+                        weekBarScores = weekBars,
+                        isFutureDate = CommonMethods.isFutureDate(d),
+                        isEmpty = filteredTasks.isEmpty()
+                    )
+                )
             }
         }
 
-        // Sources same – ab allTasks repo se LiveData hai, to initial emit pe "AllTasks source" log aayega
-        addSource(allTasks) { tasks: List<DailyTask>? ->
-            Log.d("ViewModelDebug", "AllTasks source: ${tasks?.size} tasks")  // 👇 Ye ab fire hoga
-            currentTasks = tasks
+        addSource(allTasks) {
+            tasks = it
             update()
         }
 
-        addSource(selectedDate) { date: String? ->
-            Log.d("ViewModelDebug", "SelectedDate source: $date")
-            currentDate = date
+        addSource(selectedDate) {
+            date = it
+            update()
+        }
+
+        addSource(completionMap) {
+            completionMapAll = it
             update()
         }
     }
 
-    suspend fun getTasksForDate(date: String): List<DailyTask> {
+
+
+
+    fun setDate(date: String) {
+        _selectedDate.value = date
+    }
+
+    val filteredTasksFunc = MediatorLiveData<List<TaskEntity>>()
+
+
+    private fun updateFilteredTasks() {
+        viewModelScope.launch {
+            val tasks = allTasks.value ?: return@launch
+            val date = selectedDate.value ?: return@launch
+
+            val result =CommonMethods.filterTasks(tasks, date)
+            filteredTasksFunc.postValue(result)
+        }
+    }
+
+    fun incrementTaskCompletion(taskId: String, date: String) =
+        viewModelScope.launch {
+            repository.incrementCompletion(taskId, date)
+        }
+
+    fun decrementTaskCompletion(taskId: String, date: String) =
+        viewModelScope.launch {
+            repository.decrementCompletion(taskId, date)
+        }
+
+    fun resetTaskCompletion(taskId: String, date: String) =
+        viewModelScope.launch {
+            repository.resetCompletion(taskId, date)
+        }
+
+
+
+
+
+    val completionCountsForSelectedDate: LiveData<Map<String, Int>> =
+        MediatorLiveData<Map<String, Int>>().apply {
+            var latestMap: Map<String, Map<String, Int>>? = null
+            var latestDate: String? = null
+
+            fun update() {
+                val m = latestMap ?: return
+                val d = latestDate ?: return
+                value = m[d] ?: emptyMap()
+            }
+
+            addSource(completionMap) { latestMap = it; update() }
+            addSource(selectedDate) { latestDate = it; update() }
+        }
+
+
+//    val completedIdsForSelectedDate: LiveData<Set<String>> =
+//        MediatorLiveData<Set<String>>().apply {
+//
+//            var currentMap: Map<String, Set<String>>? = null
+//            var currentDate: String? = null
+//
+//            fun update() {
+//                val map = currentMap ?: return
+//                val date = currentDate ?: return
+//                value = map[date] ?: emptySet()
+//            }
+//
+//            addSource(completionMap) { map ->
+//                currentMap = map
+//                update()
+//            }
+//
+//            addSource(selectedDate) { date ->
+//                currentDate = date
+//                update()
+//            }
+//        }
+
+
+    // optional helper (UI ke liye)
+    suspend fun isTaskCompleted(taskId: String, date: String): Boolean {
+        return repository.isTaskCompleted(taskId, date)
+    }
+
+    suspend fun getTasksForDate(date: String): List<TaskEntity> {
         val all = allTasks.value ?: emptyList()
         val latestLog = repository.getLatestLogForDate(date)
         return if (latestLog != null) {
@@ -137,12 +299,123 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
         }
     }
 
-    // Aur setDate me bhi log
-    fun setDate(date: String) {
-        Log.d("ViewModelDebug", "setDate called with: $date")
-        _selectedDate.value = date
-    }
-    //date and task item
+    val barTasksByDate: LiveData<Map<String, List<TaskEntity>>> =
+        MediatorLiveData<Map<String, List<TaskEntity>>>().apply {
+
+            addSource(allTasks) { tasks ->
+                viewModelScope.launch {
+
+                    val map = withContext(Dispatchers.Default) {
+
+                        val result = mutableMapOf<String, List<TaskEntity>>()
+                        val today = LocalDate.now()
+
+                        for (i in -14..14) {
+                            val date = today.plusDays(i.toLong()).toString()
+                            result[date] =CommonMethods.filterTasks(tasks, date)
+                        }
+
+                        result
+                    }
+
+                    postValue(map)
+                }
+
+            }
+
+        }
+
+    val barUiState: LiveData<
+            Pair<Map<String, List<TaskEntity>>, Map<String, Map<String, Int>>>
+            > =
+        MediatorLiveData<
+                Pair<Map<String, List<TaskEntity>>, Map<String, Map<String, Int>>>
+                >().apply {
+
+            var taskMap: Map<String, List<TaskEntity>>? = null
+            var completion: Map<String, Map<String, Int>>? = null
+
+            fun update() {
+                val t = taskMap ?: return
+                val c = completion ?: return
+                value = t to c
+            }
+
+            addSource(barTasksByDate) {
+                taskMap = it
+                update()
+            }
+
+            addSource(completionMap) {
+                completion = it
+                update()
+            }
+        }
+
+
+    val dayScoreTrigger:
+            LiveData<Triple<List<TaskEntity>, Map<String, Map<String, Int>>, String>> =
+        MediatorLiveData<Triple<List<TaskEntity>, Map<String, Map<String, Int>>, String>>().apply {
+
+            var tasks: List<TaskEntity>? = null
+            var completion: Map<String, Map<String, Int>>? = null
+            var date: String? = null
+
+            fun update() {
+                val t = tasks ?: return
+                val c = completion ?: return
+                val d = date ?: return
+                value = Triple(t, c, d)
+            }
+
+            addSource(allTasks) {
+                tasks = it
+                update()
+            }
+
+            addSource(completionMap) {
+                completion = it
+                update()
+            }
+
+            addSource(selectedDate) {
+                date = it
+                update()
+            }
+        }
+
+
+    val scoreTrigger:
+            LiveData<Triple<List<TaskEntity>, Map<String, Map<String, Int>>, String>> =
+        MediatorLiveData<Triple<List<TaskEntity>, Map<String, Map<String, Int>>, String>>().apply {
+
+            var tasks: List<TaskEntity>? = null
+            var completion: Map<String, Map<String, Int>>? = null
+            var date: String? = null
+
+            fun update() {
+                val t = tasks ?: return
+                val c = completion ?: return
+                val d = date ?: return
+                value = Triple(t, c, d)
+            }
+
+            addSource(allTasks) {
+                tasks = it
+                update()
+            }
+
+            addSource(completionMap) {
+                completion = it
+                update()
+            }
+
+            addSource(selectedDate) {
+                date = it
+                update()
+            }
+        }
+
 
     fun logTaskReorder(effectiveFromDate: String, taskIds: List<String>) {
         viewModelScope.launch {
@@ -151,26 +424,103 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
         }
     }
 
-    //deletion work
-    fun updateTasks(tasks: List<DailyTask>) = viewModelScope.launch {
+    fun updateTasks(tasks: List<TaskEntity>) = viewModelScope.launch {
         repository.updateTasks(tasks)
     }
 
-    fun deleteTasks(tasks: List<DailyTask>) = viewModelScope.launch {
+    fun deleteTasks(tasks: List<TaskEntity>) = viewModelScope.launch {
         repository.deleteTasks(tasks)
     }
 
-    fun getTasksByCondition(conditionId: Int): LiveData<List<DailyTask>> {//to get task of specific condition
-        return repository.getDailyTasksByCondition(conditionId)
-    }
 
-    suspend fun getTasksByConditionDirect(conditionId: Int): List<DailyTask> { //not live
-        return repository.getDailyTasksByConditionDirect(conditionId)
-    }
-
-    fun getAllDailyTasks(): LiveData<List<DailyTask>> {
+    fun getAllDailyTasks(): LiveData<List<TaskEntity>> {
         return repository.getAllDailyTasks()
     }
+
+    fun getAllCompletionsTaskData(): LiveData<List<TaskCompletionEntity>> {
+        return repository.getAllCompletionsTaskData()
+    }
+
+    fun getCompletionsForTask(taskId: String): LiveData<List<TaskCompletionEntity>> {
+        return repository.getCompletionsForTask(taskId)
+    }
+
+
+    fun deleteCompletionsBefore(taskId: String, newStartDate: String) {
+        viewModelScope.launch {
+            repository.deleteCompletionsBefore(taskId, newStartDate)
+        }
+    }
+
+
+    val heatmapUiList = MediatorLiveData<List<TaskHeatmapUi>>().apply {
+        var latestTasks: List<TaskEntity>? = null
+        var latestCompletions: List<TaskCompletionEntity>? = null
+
+        fun combineAndPublish() {
+
+            viewModelScope.launch {
+
+                val result = withContext(Dispatchers.Default) {
+
+                    val tasks = latestTasks ?: return@withContext emptyList()
+                    val completions = latestCompletions ?: emptyList()
+
+                    val completionMap = groupCompletions(completions)
+
+                    tasks.map { task ->
+                        val normalizedTaskId = task.id.trim().lowercase()
+                        TaskHeatmapUi(
+                            task = task,
+                            completedDates = completionMap[normalizedTaskId] ?: emptySet()
+                        )
+                    }
+                }
+
+                value = result
+            }
+        }
+
+
+        addSource(repository.getAllDailyTasks()) { tasks ->
+            latestTasks = tasks
+            combineAndPublish()
+        }
+
+        addSource(repository.getAllCompletionsTaskData()) { completions ->
+            latestCompletions = completions
+            combineAndPublish()
+        }
+    }
+
+
+    // somewhere common (object DateUtils or companion)
+    val DATE_FORMAT = "yyyy-MM-dd"
+    val DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT)
+
+    private fun groupCompletions(
+        list: List<TaskCompletionEntity>
+    ): Map<String, Set<LocalDate>> {
+        // return empty map quickly if no completions
+        if (list.isEmpty()) return emptyMap()
+
+        return list.mapNotNull { entity ->
+            val normalizedId = entity.taskId.trim().lowercase()
+            try {
+                val parsed = LocalDate.parse(entity.date, DATE_FORMATTER)
+                normalizedId to parsed
+            } catch (e: DateTimeParseException) {
+                Log.w(
+                    "groupCompletions",
+                    "Skipping bad date='${entity.date}' for taskId='$normalizedId'"
+                )
+                null
+            }
+        }
+            .groupBy({ it.first }, { it.second })
+            .mapValues { it.value.toSet() }
+    }
+
 
     //diary work ----------
     val allEntries: LiveData<List<DiaryEntry>> = repository.allEntries
@@ -271,81 +621,74 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
     }
 
 
-    //condition
-    fun getAllConditions(): LiveData<List<ConditionEntity>> {
-        return repository.getAll()
-    }
-
-    val allConditionsLiv: LiveData<List<ConditionEntity>> = repository.getAllConditions()
-
-    fun insertAll(conditions: List<ConditionEntity>) {
+    //list
+    fun insertList(list: ListEntity) {
         viewModelScope.launch {
-            repository.insertAll(conditions)
+            repository.insertList(list)
         }
     }
 
-    fun updateCondition(condition: ConditionEntity) {
+    val allLists: LiveData<List<ListEntity>> =
+        repository.getAllLists()
+
+    fun updateList(list: ListEntity) {
         viewModelScope.launch {
-            repository.updateCondition(condition)
+            repository.updateList(list)
         }
     }
 
-    fun updateConditions(conditions: List<ConditionEntity>) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.updateConditions(conditions)
+    fun getListIdsForTask(
+        taskId: String,
+        onResult: (List<String>) -> Unit
+    ) {
+        viewModelScope.launch {
+            val ids = repository.getListIdsForTask(taskId)
+            onResult(ids)
         }
     }
+
+
+    fun addTaskToList(listId: String, taskId: String) {
+        viewModelScope.launch {
+            repository.addTaskToList(listId, taskId)
+        }
+    }
+
+    fun removeTaskFromList(listId: String, taskId: String) {
+        viewModelScope.launch {
+            repository.removeTaskFromList(listId, taskId)
+        }
+    }
+
+    fun getListWithTasks(listId: String): LiveData<ListWithTasks> {
+        return repository.getListWithTasks(listId)
+    }
+
+    fun getTaskIdsForList(
+        listId: String,
+        onResult: (List<String>) -> Unit
+    ) {
+        viewModelScope.launch {
+            val ids = repository.getTaskIdsForList(listId)
+            onResult(ids)
+        }
+    }
+
+
+    fun saveTasksForList(listId: String, taskIds: List<String>) {
+        viewModelScope.launch {
+            repository.syncTasksForList(listId, taskIds)
+        }
+    }
+
 
     //condition date
-    fun insertDateItem(dateItem: DateItemEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.insertDateItem(dateItem)
-        }
-    }
 
-    suspend fun getDateItem(date: String): DateItemEntity? {
-        return repository.getDateItem(date)
-    }
-
-    fun deleteDateItem(date: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.deleteDateItem(date)
-        }
-    }
-
-    fun upsertDateItem(dateItem: DateItemEntity) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.upsertDateItem(dateItem)
-        }
-    }
-
-    fun removeConditionFromDate(date: String, conditionType: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.removeConditionFromDate(date, conditionType)
-        }
-    }
-
-    val dateEntity: LiveData<DateItemEntity?> = selectedDate.switchMap { date ->
-        if (date == null) {
-            MutableLiveData(null)
-        } else {
-            repository.getDateItemObs(date) // <- LiveData<DateItemEntity?>
-        }
-    }
 
     //combined data
     val dayLogs: LiveData<List<DayLogEntity>> =
         repository.getCombinedData().asLiveData()
 
-    //reorder
-    // In AppViewModel.kt – add these imports if not present
-
-
-// Existing class AppViewModel me yeh function add kar:
-
-// Updated ViewModel Code (AppViewModel.kt) - Add these
-
-    // 👈 New: StateFlow/LiveData for result (use MutableLiveData for simplicity, import androidx.lifecycle.MutableLiveData)
 
     sealed class SaveResult {
         object Idle : SaveResult()
@@ -363,44 +706,52 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
     }
 
     fun saveOrUpdateTask(
-        task: DailyTask,
+        task: TaskEntity,
         date: String,
         isEdit: Boolean,
         originalScheduledTime: String?
     ) = viewModelScope.launch {
-        _saveResult.value = SaveResult.Idle  // Clear before start
+
         _saveResult.value = SaveResult.Loading
 
         try {
-            if (!isEdit) {
-                insertAndReorderTask(task, date, isEdit = false)
-                _saveResult.value = SaveResult.Success(isNewTask = true)
-            } else {
-                val timeChanged = originalScheduledTime != task.scheduledTime
-                updateTask(task)
 
-                if (timeChanged && task.scheduledTime != null) {
-                    Log.d("AddTaskDebug", "Time changed during edit, triggering reorder")
-                    insertAndReorderTask(task, date, isEdit = true)
+            withContext(Dispatchers.Default) {
+
+                if (!isEdit) {
+                    insertAndReorderTask(task, date, isEdit = false)
                 } else {
-                    Log.d("AddTaskDebug", "Edit without time change, no reorder needed")
+
+                    val timeChanged = originalScheduledTime != task.scheduledTime
+                    repository.updateTask(task)   // direct repository call
+
+                    if (timeChanged && task.scheduledTime != null) {
+                        insertAndReorderTask(task, date, isEdit = true)
+                    }
                 }
-                _saveResult.value = SaveResult.Success(isNewTask = false)
             }
+
+            _saveResult.value = SaveResult.Success(isNewTask = !isEdit)
+
         } catch (e: Exception) {
+
             Log.e("AddTaskDebug", "SaveOrUpdate failed: ${e.message}", e)
             _saveResult.value = SaveResult.Error(e.message ?: "Unknown error")
-        } finally {
-            _saveResult.value = SaveResult.Idle  // Reset always
+
         }
     }
 
-    private suspend fun insertAndReorderTask(task: DailyTask, date: String, isEdit: Boolean) {
-        val currentTasks = getTasksForDate(date)
-        Log.d("AddTaskDebug", "Reorder triggered. Edit mode: $isEdit, Current tasks: ${currentTasks.size}")
 
-        val nullPositions = mutableMapOf<Int, DailyTask>()
-        val timed = mutableListOf<DailyTask>()
+    private suspend fun insertAndReorderTask(
+        task: TaskEntity,
+        date: String,
+        isEdit: Boolean
+    ) {
+
+        val currentTasks = getTasksForDate(date)
+
+        val nullPositions = mutableMapOf<Int, TaskEntity>()
+        val timed = mutableListOf<TaskEntity>()
 
         currentTasks.forEachIndexed { index, item ->
             if (item.scheduledTime == null) {
@@ -410,60 +761,67 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
             }
         }
 
-        val updatedTasks: List<DailyTask> = if (!task.scheduledTime.isNullOrBlank()) {
-            val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a")
-            try {
-                if (isEdit) {
-                    timed.removeAll { it.id == task.id }
-                    nullPositions.entries.removeIf { it.value.id == task.id }
-                }
-                timed.add(task)
+        val updatedTasks: List<TaskEntity> =
+            if (!task.scheduledTime.isNullOrBlank()) {
 
-                timed.sortBy { LocalTime.parse(it.scheduledTime!!, timeFormatter) }
-                Log.d("AddTaskDebug", "Sorted timed times: ${timed.map { it.scheduledTime }}")
+                val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a")
 
-                val newItems = mutableListOf<DailyTask>()
-                var timedIndex = 0
-                val totalSlots = if (isEdit) currentTasks.size else currentTasks.size + 1
-                for (i in 0 until totalSlots) {
-                    if (nullPositions.containsKey(i)) {
-                        newItems.add(nullPositions[i]!!)
-                    } else if (timedIndex < timed.size) {
+                try {
+
+                    if (isEdit) {
+                        timed.removeAll { it.id == task.id }
+                        nullPositions.entries.removeIf { it.value.id == task.id }
+                    }
+
+                    timed.add(task)
+
+                    timed.sortBy {
+                        LocalTime.parse(it.scheduledTime!!, timeFormatter)
+                    }
+
+                    val newItems = mutableListOf<TaskEntity>()
+                    var timedIndex = 0
+                    val totalSlots =
+                        if (isEdit) currentTasks.size
+                        else currentTasks.size + 1
+
+                    for (i in 0 until totalSlots) {
+                        if (nullPositions.containsKey(i)) {
+                            newItems.add(nullPositions[i]!!)
+                        } else if (timedIndex < timed.size) {
+                            newItems.add(timed[timedIndex++])
+                        }
+                    }
+
+                    while (timedIndex < timed.size) {
                         newItems.add(timed[timedIndex++])
                     }
+
+                    newItems
+
+                } catch (e: DateTimeParseException) {
+                    fallbackRebuild(currentTasks, task, isEdit)
                 }
-                while (timedIndex < timed.size) {
-                    newItems.add(timed[timedIndex++])
-                }
-                newItems
-            } catch (e: DateTimeParseException) {
-                Log.e("AddTaskDebug", "Invalid time: ${task.scheduledTime}, fallback")
+
+            } else {
                 fallbackRebuild(currentTasks, task, isEdit)
             }
-        } else {
-            Log.d("AddTaskDebug", "Null time task")
-            fallbackRebuild(currentTasks, task, isEdit)
-        }
 
         if (!isEdit) {
-            insertTask(task)
+            repository.insertTask(task)   // direct repository call
         }
 
         val orderedIds = updatedTasks.map { it.id }
-        logTaskReorder(date, orderedIds)
-
-        val action = if (isEdit) "updated" else "added"
-        val pos = updatedTasks.indexOf(task)
-        Log.d("AddTaskDebug", "Task $action, final pos: $pos, total: ${updatedTasks.size}")
+        repository.logReorder(CommonMethods.getTodayDate(), date, orderedIds)
     }
 
 
     // 👈 Helper: Fallback rebuild for null/invalid time or simple append/replace
     private fun fallbackRebuild(
-        currentTasks: List<DailyTask>,
-        task: DailyTask,
+        currentTasks: List<TaskEntity>,
+        task: TaskEntity,
         isEdit: Boolean
-    ): List<DailyTask> {
+    ): List<TaskEntity> {
         return if (isEdit) {
             // Edit: Replace in place
             currentTasks.map { if (it.id == task.id) task else it }
@@ -473,3 +831,4 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
         }
     }
 }
+

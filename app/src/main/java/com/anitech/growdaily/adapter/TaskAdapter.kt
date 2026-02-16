@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.BuildConfig
 import com.anitech.growdaily.CommonMethods.Companion.getTodayDate
 import com.anitech.growdaily.R
-import com.anitech.growdaily.data_class.DailyTask
+import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.databinding.RvDailyTaskItemBinding
 import com.anitech.growdaily.enum_class.TaskColor
 import com.anitech.growdaily.enum_class.TaskIcon
@@ -23,12 +23,12 @@ import java.util.Date
 import java.util.Locale
 
 class TaskAdapter(
-    private var taskList: List<DailyTask>,
-    private val listener: OnItemClickListener,
+    private var taskList: List<TaskEntity>,
+    private val listener: OnItemClickListener
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var currentDate: String = getTodayDate()
-    private val selectedItems = mutableSetOf<DailyTask>()
+    private val selectedItems = mutableSetOf<TaskEntity>()
     var isFutureDate = false
     private var selectionMode = false
 
@@ -36,14 +36,19 @@ class TaskAdapter(
     private var activeScheduledTime: String? = null  // Latest past/current scheduled time
     private val ITEM_VIEW = 1
     private val FOOTER_VIEW = 2
+    val sdf = SimpleDateFormat("hh:mm a", Locale.ENGLISH)
 
     // Cache for ColorStateList to improve performance
     private val colorStateListCache = mutableMapOf<Int, ColorStateList>()
+    private var completionMapForDate: Map<String, Int> = emptyMap()
+
 
     interface OnItemClickListener {
-        fun moveToEditListener(task: DailyTask)
+        fun moveToEditListener(task: TaskEntity)
         fun onItemSelectedCountChanged(count: Int)
-        fun onTaskCompleteClick(task: DailyTask)
+        fun onTaskCompleteClick(taskId: String, date: String)           // increment
+        fun onTaskCompleteLongClick(taskId: String, date: String)       // decrement
+
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -86,16 +91,15 @@ class TaskAdapter(
         }
     }
 
-
     override fun getItemCount(): Int = if (taskList.isEmpty()) 0 else taskList.size + 1
 
     inner class ViewHolder(
         private val binding: RvDailyTaskItemBinding,
-        private val onToggleSelection: (DailyTask, Int) -> Unit
+        private val onToggleSelection: (TaskEntity, Int) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(
-            task: DailyTask,
+            task: TaskEntity,
             isSelected: Boolean,
             position: Int,
             currentDate: String,
@@ -128,7 +132,7 @@ class TaskAdapter(
             setupClickListeners(task, position, currentDate)
         }
 
-        private fun setTaskNote(task: DailyTask) = with(binding) {
+        private fun setTaskNote(task: TaskEntity) = with(binding) {
             if (!task.note.isNullOrEmpty()) {
                 taskNote.text = task.note
                 taskNote.visibility = View.VISIBLE
@@ -137,7 +141,7 @@ class TaskAdapter(
             }
         }
 
-        private fun setTaskType(task: DailyTask) = with(binding) {
+        private fun setTaskType(task: TaskEntity) = with(binding) {
             when (task.taskType) {
                 TaskType.DAY -> taskType.text = "Today"
                 TaskType.DAILY -> taskType.text = "Daily"
@@ -153,7 +157,7 @@ class TaskAdapter(
             }
         }
 
-        private fun setTaskData(task: DailyTask) = with(binding) {
+        private fun setTaskData(task: TaskEntity) = with(binding) {
             taskTitle.text = task.title
             val icon = runCatching { TaskIcon.valueOf(task.iconResId) }.getOrDefault(TaskIcon.entries.first())
             imageProfile.setImageResource(icon.resId)
@@ -165,7 +169,7 @@ class TaskAdapter(
             }
         }
 
-        private fun handleScheduledTime(task: DailyTask) = with(binding) {
+        private fun handleScheduledTime(task: TaskEntity) = with(binding) {
             if (task.scheduledTime != null) {
                 timeTxt.text = task.scheduledTime
                 timeTxt.visibility = View.VISIBLE
@@ -193,20 +197,31 @@ class TaskAdapter(
             done.setImageResource(0)
         }
 
-        private fun updateCompletionState(task: DailyTask, currentDate: String, color: Int) = with(binding) {
-            if (task.completedDates.contains(currentDate)) { // Completed state
-                done.setImageResource(R.drawable.ic_check)
-               // done.backgroundTintList = ColorStateList.valueOf(color)
+        private fun updateCompletionState(task: TaskEntity, currentDate: String, color: Int) = with(binding) {
+            val count = completionMapForDate[task.id] ?: 0
+            val target = task.dailyTargetCount.coerceAtLeast(1)
+            val isCompleted = count >= target
 
-            } else { // Not completed state
-                done.setImageResource(0)
-               // done.backgroundTintList = null   // remove tint completely
+            // icon
+            if (isCompleted) done.setImageResource(R.drawable.ic_check) else done.setImageResource(0)
+
+            // doneCount text
+            if (task.dailyTargetCount > 1) {
+                doneCount.visibility = View.VISIBLE
+                doneCount.text = "$count/${task.dailyTargetCount}"
+                if(count >= target){
+                    doneCount.visibility = View.GONE
+                }
+            } else {
+                doneCount.visibility = View.GONE
             }
+
         }
+
 
         // TaskState for cleaner state management
         private fun getTaskState(
-            task: DailyTask,
+            task: TaskEntity,
             isSelected: Boolean,
             isActive: Boolean,
             currentDate: String
@@ -225,19 +240,36 @@ class TaskAdapter(
             color: Int,
             white: Int,
             currentDate: String,
-            task: DailyTask
+            task: TaskEntity
         ) = with(binding) {
             val context = root.context
             val defaultTextColor = ContextCompat.getColor(context, R.color.default_text_color)
             val darkerGray = ContextCompat.getColor(context, android.R.color.darker_gray)
             val completedBgColor = ContextCompat.getColor(context, R.color.category_dark_blue_10)
             val black = ContextCompat.getColor(context, R.color.black)
+            val count = completionMapForDate[task.id] ?: 0
+            val target = task.dailyTargetCount.coerceAtLeast(1)
+            val isCompleted = count >= target
 
             // Color tuples: (title, note, type, weight, iconBg, iconFilter, doneBg)
             val colors = when (state) {
-                TaskState.ACTIVE -> listOf(white, white, white, white, white, color, white,color)
-                TaskState.SELECTED -> listOf(white, white, white, white, white, Color.DKGRAY, white, Color.DKGRAY)  // Adjust as needed
-                TaskState.NORMAL -> listOf(black, defaultTextColor, color, defaultTextColor, color, white, color, if (task.completedDates.contains(currentDate)) color else white)
+                TaskState.ACTIVE ->
+                    listOf(white, white, white, white, white, color, white, color)
+
+                TaskState.SELECTED ->
+                    listOf(white, white, white, white, white, Color.DKGRAY, white, Color.DKGRAY)
+
+                TaskState.NORMAL ->
+                    listOf(
+                        black,
+                        defaultTextColor,
+                        color,
+                        defaultTextColor,
+                        color,
+                        white,
+                        color,
+                        if (isCompleted) color else white
+                    )
             }
 
             taskTitle.setTextColor(colors[0])
@@ -272,7 +304,7 @@ class TaskAdapter(
         }
 
         private fun updateColors(
-            task: DailyTask,
+            task: TaskEntity,
             isActive: Boolean,
             isSelected: Boolean,
             currentDate: String,
@@ -289,7 +321,7 @@ class TaskAdapter(
         }
 
         private fun setupClickListeners(
-            task: DailyTask,
+            task: TaskEntity,
             position: Int,
             currentDate: String
         ) = with(binding) {
@@ -307,17 +339,10 @@ class TaskAdapter(
                 true
             }
 
-            doneContainer.setOnClickListener {
-                if (BuildConfig.DEBUG) Log.e(tag, "bind: $currentDate")
-                // Immutable update
-                val updatedDates = if (task.completedDates.contains(currentDate)) {
-                    task.completedDates - currentDate
-                } else {
-                    task.completedDates + currentDate
-                }
-                val updatedTask = task.copy(completedDates = updatedDates)  // Assuming DailyTask is data class
-                listener.onTaskCompleteClick(updatedTask)
-            }
+            doneContainer.setOnClickListener { listener.onTaskCompleteClick(task.id, currentDate) }
+            doneContainer.setOnLongClickListener { listener.onTaskCompleteLongClick(task.id, currentDate); true }
+
+
         }
 
         // Time comparison functions (moved here if needed, but kept in adapter for shared use)
@@ -333,8 +358,7 @@ class TaskAdapter(
 
         private fun timeStringToMinutes(timeStr: String): Int {
             return try {
-                val sdf = SimpleDateFormat("hh:mm a", Locale.ENGLISH)
-                val date = sdf.parse(timeStr) ?: return 0
+                 val date = sdf.parse(timeStr) ?: return 0
                 val calendar = Calendar.getInstance().apply { time = date }
                 calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE)
             } catch (e: Exception) {
@@ -349,7 +373,7 @@ class TaskAdapter(
         }
 
         private fun getCurrentTime(): String {
-            val sdf = SimpleDateFormat("hh:mm a", Locale.ENGLISH)
+
             return sdf.format(Date())
         }
     }
@@ -358,12 +382,12 @@ class TaskAdapter(
         val shView: ImageView = itemView.findViewById(R.id.shView)
     }
 
-    fun updateList(newContacts: List<DailyTask>, currentDatee: String) {
+    fun updateList(newContacts: List<TaskEntity>, currentDatee: String) {
         currentDate = currentDatee
         taskList = newContacts
         selectedItems.clear()
         selectionMode = false
-        updateActiveScheduledTime()
+        //updateActiveScheduledTime()
         notifyDataSetChanged()
     }
 
@@ -382,7 +406,7 @@ class TaskAdapter(
         selectionMode = true
     }
 
-    fun getSelectedItems(): MutableSet<DailyTask> = selectedItems
+    fun getSelectedItems(): MutableSet<TaskEntity> = selectedItems
 
     private fun updateActiveScheduledTime() {
         val currentMinutes = getCurrentMinutes()
@@ -416,8 +440,7 @@ class TaskAdapter(
     // Shared time utils (moved from adapter to avoid duplication if needed)
     private fun timeStringToMinutes(timeStr: String): Int {
         return try {
-            val sdf = SimpleDateFormat("hh:mm a", Locale.ENGLISH)
-            val date = sdf.parse(timeStr) ?: return 0
+             val date = sdf.parse(timeStr) ?: return 0
             val calendar = Calendar.getInstance().apply { time = date }
             calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE)
         } catch (e: Exception) {
@@ -432,8 +455,7 @@ class TaskAdapter(
     }
 
     private fun getCurrentTime(): String {
-        val sdf = SimpleDateFormat("hh:mm a", Locale.ENGLISH)
-        return sdf.format(Date())
+         return sdf.format(Date())
     }
 
     sealed class TaskState {
@@ -443,7 +465,7 @@ class TaskAdapter(
     }
 
     // Lambda for toggle selection to avoid tight coupling
-    private val onToggleSelection: (DailyTask, Int) -> Unit = { task, position ->
+    private val onToggleSelection: (TaskEntity, Int) -> Unit = { task, position ->
         if (selectedItems.contains(task)) {
             selectedItems.remove(task)
         } else {
@@ -458,4 +480,22 @@ class TaskAdapter(
             // For now, it's fine as selections are per-item
         }
     }
+
+
+    fun updateCompletionForDate(map: Map<String, Int>) {
+        val oldMap = completionMapForDate
+        completionMapForDate = map
+
+        // Only update items whose completion actually changed
+        taskList.forEachIndexed { index, task ->
+            val old = oldMap[task.id] ?: 0
+            val new = map[task.id] ?: 0
+            if (old != new) {
+                notifyItemChanged(index)
+            }
+        }
+    }
+
+
+
 }

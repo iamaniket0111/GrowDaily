@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/circular_corners_more"
+    >
+
+    <!-- Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add to List"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:textColor="@color/brand_blue"
+        android:layout_marginTop="16dp"
+        android:layout_gravity="center"
+
+        />
+
+    <!-- List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvLists"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp" />
+
+    <!-- Add new list -->
+    <TextView
+        android:id="@+id/txtAddNewList"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="+ Create new list"
+        android:textColor="@color/brand_blue"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <!-- Inline input (hidden by default) -->
+    <LinearLayout
+        android:id="@+id/createListContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/etListName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="List name" />
+
+        <TextView
+            android:id="@+id/btnCreate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Create"
+            android:textColor="@color/brand_blue"
+            android:textStyle="bold"
+            android:padding="12dp" />
+    </LinearLayout>
+
+    <!-- Done -->
+    <Button
+        android:id="@+id/btnDone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Done" />
+
+</LinearLayout>

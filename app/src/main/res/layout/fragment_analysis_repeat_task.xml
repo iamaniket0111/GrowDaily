@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".fragment.AnalysisRepeatTaskFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        >
+        <include
+            android:id="@+id/iconLayout"
+            layout="@layout/layout_analysis_task_icon"/>
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="16dp"/>
+        <include
+            android:id="@+id/header"
+            layout="@layout/layout_analysis_header"/>
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="16dp"/>
+
+        <include
+            android:id="@+id/overview"
+            layout="@layout/layout_analysis_overview"/>
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="16dp"/>
+
+        <include
+            android:id="@+id/yearHeapMap"
+            layout="@layout/layout_heapmap_analysis"/>
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="16dp"/>
+
+        <include
+            android:id="@+id/weekExpanded"
+            layout="@layout/layout_week_analysis_expanded"/>
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="16dp"/>
+
+        <include
+            android:id="@+id/progressBar"
+            layout="@layout/layout_analysis_progress"/>
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="16dp"/>
+
+
+    </LinearLayout>
+
+
+</ScrollView>

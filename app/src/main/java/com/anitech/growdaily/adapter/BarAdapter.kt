@@ -1,7 +1,6 @@
 package com.anitech.growdaily.adapter
 
 import android.graphics.Typeface
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,17 +8,15 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.BarView
-import com.anitech.growdaily.CommonMethods.Companion.filterTasks
 import com.anitech.growdaily.R
 import com.anitech.growdaily.data_class.DailyScore
-import com.anitech.growdaily.data_class.DailyTask
+import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.enum_class.TaskType
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import kotlin.math.roundToInt
 
 class BarAdapter(
-    private var tasks: List<DailyTask>,
     private val listener: OnBarInteractionListener
 ) : RecyclerView.Adapter<BarAdapter.BarViewHolder>() {
     private var selectedPosition: Int = RecyclerView.NO_POSITION
@@ -28,6 +25,10 @@ class BarAdapter(
     private val endDate: LocalDate = today.plusDays(500)
     private val totalDays: Int = ChronoUnit.DAYS.between(startDate, endDate).toInt() + 1
     var isSelectingMode = false
+    private var completedTaskMap: Map<String, Map<String, Int>> = emptyMap()
+    private var tasksByDate: Map<String, List<TaskEntity>> = emptyMap()
+
+
 
 
     interface OnBarInteractionListener {
@@ -42,7 +43,7 @@ class BarAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BarViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.rv_score_bar, parent, false)
+            .inflate(R.layout.rv_bar, parent, false)
         return BarViewHolder(view)
     }
 
@@ -84,22 +85,54 @@ class BarAdapter(
         }
     }
 
+    fun updateData(
+        newTasksByDate: Map<String, List<TaskEntity>>,
+        completionMap: Map<String, Map<String, Int>>
+    )
+    {
+        tasksByDate = newTasksByDate
+        completedTaskMap = completionMap
+        notifyDataSetChanged()
+
+        if (selectedPosition == RecyclerView.NO_POSITION) {
+            selectedPosition =
+                ChronoUnit.DAYS.between(startDate, today).toInt()
+                    .coerceIn(0, totalDays - 1)
+        }
+    }
+
     override fun getItemCount(): Int = totalDays
 
-    private fun calculateScoreForDate(dateString: String, currentDate: LocalDate): DailyScore {
-        // ✅ Ignore UNTIL_COMPLETE tasks here
-        val tasksForDate = filterTasks(tasks, dateString)
-            .filter { it.taskType != TaskType.UNTIL_COMPLETE }
+    private fun calculateScoreForDate(
+        dateString: String,
+        currentDate: LocalDate
+    ): DailyScore {
 
-        val (totalWeight, completedWeight) = tasksForDate.fold(0f to 0f) { acc, task ->
-            val weight = task.weight.weight.toFloat() // ensure it's Float
-            val total = acc.first + weight
-            val completed = acc.second + if (task.completedDates.contains(dateString)) weight else 0f
-            total to completed
-        }
+        val tasksForDate = tasksByDate[dateString]
+            ?.filter { it.taskType != TaskType.UNTIL_COMPLETE }
+            ?: emptyList()
+
+        val completionForDate =
+            completedTaskMap[dateString] ?: emptyMap()
+
+        val (totalWeight, completedWeight) =
+            tasksForDate.fold(0f to 0f) { acc, task ->
+
+                val weight = task.weight.weight.toFloat()
+                val total = acc.first + weight
+
+                val count = completionForDate[task.id] ?: 0
+                val target = task.dailyTargetCount.coerceAtLeast(1)
+
+                val completed = acc.second +
+                        if (count >= target) weight else 0f
+
+                total to completed
+            }
 
         val score = if (totalWeight > 0f) {
-            ((completedWeight / totalWeight) * 10f * 10).roundToInt() / 10f
+            ((completedWeight / totalWeight) * 10f * 10)
+                .roundToInt() / 10f
         } else 0f
 
         return DailyScore(
@@ -110,6 +143,7 @@ class BarAdapter(
             taskCount = tasksForDate.size
         )
     }
+
 
 
     fun checkIfTodayVisible(layoutManager: RecyclerView.LayoutManager) {
@@ -124,14 +158,8 @@ class BarAdapter(
         }
     }
 
-    fun updateData(newTasks: List<DailyTask>) {
-        tasks = newTasks
-        notifyDataSetChanged()
 
-        // Default selection = today
-        if (selectedPosition == RecyclerView.NO_POSITION) {
-            selectedPosition =
-                ChronoUnit.DAYS.between(startDate, today).toInt().coerceIn(0, totalDays - 1)
-        }
-    }
+
 }
+
+

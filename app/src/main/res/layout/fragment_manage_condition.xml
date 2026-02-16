@@ -31,10 +31,11 @@
 
         <!-- Alternative Name -->
         <EditText
+            android:id="@+id/edListName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:hint="Set Alternative name (Optional)"
+            android:hint="List Name"
             android:inputType="textMultiLine"
             android:minLines="2"
             android:layout_marginHorizontal="16dp"/>

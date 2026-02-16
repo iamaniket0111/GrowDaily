@@ -13,12 +13,16 @@
     <fragment
         android:id="@+id/nav_main"
         android:name="com.anitech.growdaily.fragment.MainFragment"
-        tools:layout="@layout/fragment_main" />
+        tools:layout="@layout/fragment_main" >
+        <action
+            android:id="@+id/action_main_to_addTask"
+            app:destination="@id/nav_add_task" />
+    </fragment>
 
 
     <fragment
         android:id="@+id/nav_home"
-        android:name="com.anitech.growdaily.fragment.HomeFragment"
+        android:name="com.anitech.growdaily.fragment.TaskFragment"
         android:label="@string/menu_home"
         tools:layout="@layout/fragment_home">
 
@@ -32,10 +36,17 @@
 
         <argument
             android:name="task"
-            app:argType="com.anitech.growdaily.data_class.DailyTask"
+            app:argType="com.anitech.growdaily.data_class.TaskEntity"
             app:nullable="true"
             android:defaultValue="@null"
             />
+
+        <argument
+            android:name="taskType"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null"/>
+
     </fragment>
 
     <fragment
@@ -71,7 +82,9 @@
         tools:layout="@layout/fragment_manage_condition" >
         <argument
             android:name="ConditionEntity"
-            app:argType="com.anitech.growdaily.data_class.ConditionEntity"
+            app:argType="com.anitech.growdaily.data_class.ListEntity"
+            app:nullable="true"
+            android:defaultValue="@null"
             />
     </fragment>
 
@@ -80,5 +93,30 @@
         android:name="com.anitech.growdaily.fragment.ReorderTaskFragment"
         android:label="Reorder Task"
         tools:layout="@layout/fragment_reorder_task" />
+
+
+    <fragment
+        android:id="@+id/nav_analysis_list"
+        android:name="com.anitech.growdaily.fragment.RepeatTaskFragment"
+        android:label="Habits"
+        tools:layout="@layout/fragment_repeat_task">
+    </fragment>
+
+    <fragment
+        android:id="@+id/repeatConfigFragment"
+        android:name="com.anitech.growdaily.fragment.RepeatConfigFragment"
+        android:label="Repeat Settings"
+        tools:layout="@layout/fragment_repeat_config" />
+
+    <fragment
+        android:id="@+id/analysisRepeatTaskFragment"
+        android:name="com.anitech.growdaily.fragment.AnalysisRepeatTaskFragment"
+        android:label="Analysis"
+        tools:layout="@layout/fragment_analysis_repeat_task" >
+        <argument
+            android:name="task"
+            app:argType="com.anitech.growdaily.data_class.TaskEntity"
+            />
+    </fragment>
 
 </navigation>
