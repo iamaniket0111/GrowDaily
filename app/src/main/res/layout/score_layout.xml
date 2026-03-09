@@ -34,7 +34,7 @@
                 android:layout_height="wrap_content"
                 app:indicatorColor="@color/category_dark_blue"
                 app:indicatorSize="60dp"
-                app:trackColor="#80A6A6A7" />
+                app:trackColor="#40708CFF" />
 
             <!-- Center text -->
             <TextView
@@ -44,7 +44,7 @@
                 android:layout_gravity="center"
                 android:gravity="center"
                 android:text="6.5"
-                android:textColor="@color/black"
+                android:textColor="@color/brand_blue"
                 android:textSize="20sp"
                 android:textStyle="bold" />
         </FrameLayout>
@@ -90,7 +90,7 @@
                 android:layout_height="wrap_content"
                 app:indicatorColor="@color/category_red"
                 app:indicatorSize="60dp"
-                app:trackColor="#80A6A6A7" />
+                app:trackColor="#40FF6B6B" />
 
             <!-- Center text -->
             <TextView
@@ -100,7 +100,7 @@
                 android:layout_gravity="center"
                 android:gravity="center"
                 android:text="6.5"
-                android:textColor="@color/black"
+                android:textColor="@color/category_red"
                 android:textSize="20sp"
                 android:textStyle="bold" />
         </FrameLayout>
@@ -142,7 +142,7 @@
                 android:layout_height="wrap_content"
                 app:indicatorColor="@color/category_green"
                 app:indicatorSize="60dp"
-                app:trackColor="#80A6A6A7"  />
+                app:trackColor="#404ADE80"/>
 
             <!-- Center text -->
             <TextView
@@ -152,7 +152,7 @@
                 android:layout_gravity="center"
                 android:gravity="center"
                 android:text="6.5"
-                android:textColor="@color/black"
+                android:textColor="@color/category_green"
                 android:textSize="20sp"
                 android:textStyle="bold" />
         </FrameLayout>

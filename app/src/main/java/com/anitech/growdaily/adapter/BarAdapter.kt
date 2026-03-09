@@ -21,15 +21,15 @@ class BarAdapter(
 ) : RecyclerView.Adapter<BarAdapter.BarViewHolder>() {
     private var selectedPosition: Int = RecyclerView.NO_POSITION
     private val today: LocalDate = LocalDate.now()
-    private val startDate: LocalDate = today.minusDays(500)
-    private val endDate: LocalDate = today.plusDays(500)
-    private val totalDays: Int = ChronoUnit.DAYS.between(startDate, endDate).toInt() + 1
+    private val rangeDays = 91
+     private var startDate: LocalDate = today.minusDays(rangeDays / 2L)
+    private val totalDays: Int = rangeDays
+    private var centerDate: LocalDate = LocalDate.now()
+
+
+
     var isSelectingMode = false
-    private var completedTaskMap: Map<String, Map<String, Int>> = emptyMap()
-    private var tasksByDate: Map<String, List<TaskEntity>> = emptyMap()
-
-
-
+     private var scoreMap: Map<String, DailyScore> = emptyMap()
 
     interface OnBarInteractionListener {
         fun onBarSelected(dailyScore: DailyScore)
@@ -51,7 +51,16 @@ class BarAdapter(
         val currentDate = startDate.plusDays(position.toLong())
         val dateString = currentDate.toString()
 
-        val dailyScore = calculateScoreForDate(dateString, currentDate)
+        val dailyScore = scoreMap[dateString]
+            ?: DailyScore(
+                date = dateString,
+                dayText = currentDate.dayOfMonth.toString(),
+                monthDayText = "${currentDate.monthValue}/${currentDate.dayOfMonth}",
+                score = 0f,
+                taskCount = 0
+            )
+
+
 
         // Set score
         holder.barView.setScore(dailyScore.score)
@@ -85,65 +94,20 @@ class BarAdapter(
         }
     }
 
-    fun updateData(
-        newTasksByDate: Map<String, List<TaskEntity>>,
-        completionMap: Map<String, Map<String, Int>>
-    )
-    {
-        tasksByDate = newTasksByDate
-        completedTaskMap = completionMap
+    fun updateData(newScores: List<DailyScore>) {
+        scoreMap = newScores.associateBy { it.date }
         notifyDataSetChanged()
 
         if (selectedPosition == RecyclerView.NO_POSITION) {
             selectedPosition =
                 ChronoUnit.DAYS.between(startDate, today).toInt()
-                    .coerceIn(0, totalDays - 1)
+                    .coerceIn(0, itemCount - 1)
         }
     }
 
+
+
     override fun getItemCount(): Int = totalDays
-
-    private fun calculateScoreForDate(
-        dateString: String,
-        currentDate: LocalDate
-    ): DailyScore {
-
-        val tasksForDate = tasksByDate[dateString]
-            ?.filter { it.taskType != TaskType.UNTIL_COMPLETE }
-            ?: emptyList()
-
-        val completionForDate =
-            completedTaskMap[dateString] ?: emptyMap()
-
-        val (totalWeight, completedWeight) =
-            tasksForDate.fold(0f to 0f) { acc, task ->
-
-                val weight = task.weight.weight.toFloat()
-                val total = acc.first + weight
-
-                val count = completionForDate[task.id] ?: 0
-                val target = task.dailyTargetCount.coerceAtLeast(1)
-
-                val completed = acc.second +
-                        if (count >= target) weight else 0f
-
-                total to completed
-            }
-
-        val score = if (totalWeight > 0f) {
-            ((completedWeight / totalWeight) * 10f * 10)
-                .roundToInt() / 10f
-        } else 0f
-
-        return DailyScore(
-            date = dateString,
-            dayText = currentDate.dayOfMonth.toString(),
-            monthDayText = "${currentDate.monthValue}/${currentDate.dayOfMonth}",
-            score = score,
-            taskCount = tasksForDate.size
-        )
-    }
-
 
 
     fun checkIfTodayVisible(layoutManager: RecyclerView.LayoutManager) {
@@ -156,6 +120,13 @@ class BarAdapter(
                 listener.onTodayBarOutOfView()
             }
         }
+    }
+
+    fun setCenterDate(date: LocalDate) {
+        centerDate = date
+        startDate = centerDate.minusDays(rangeDays / 2L)
+        selectedPosition = rangeDays / 2
+        notifyDataSetChanged()
     }
 
 

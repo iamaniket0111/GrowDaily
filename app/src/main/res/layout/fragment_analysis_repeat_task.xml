@@ -4,59 +4,89 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
+    android:scrollbars="none"
     tools:context=".fragment.AnalysisRepeatTaskFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        >
-        <include
-            android:id="@+id/iconLayout"
-            layout="@layout/layout_analysis_task_icon"/>
+        android:orientation="vertical">
 
-        <Space
-            android:layout_width="wrap_content"
-            android:layout_height="16dp"/>
-        <include
-            android:id="@+id/header"
-            layout="@layout/layout_analysis_header"/>
 
-        <Space
-            android:layout_width="wrap_content"
-            android:layout_height="16dp"/>
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
 
-        <include
-            android:id="@+id/overview"
-            layout="@layout/layout_analysis_overview"/>
+            <include
+                android:id="@+id/iconLayout"
+                layout="@layout/layout_analysis_task_icon" />
 
-        <Space
-            android:layout_width="wrap_content"
-            android:layout_height="16dp"/>
+        </FrameLayout>
 
-        <include
-            android:id="@+id/yearHeapMap"
-            layout="@layout/layout_heapmap_analysis"/>
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
 
-        <Space
-            android:layout_width="wrap_content"
-            android:layout_height="16dp"/>
+            <include
+                android:id="@+id/header"
+                layout="@layout/layout_analysis_header" />
+        </FrameLayout>
 
-        <include
-            android:id="@+id/weekExpanded"
-            layout="@layout/layout_week_analysis_expanded"/>
 
-        <Space
-            android:layout_width="wrap_content"
-            android:layout_height="16dp"/>
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
 
-        <include
-            android:id="@+id/progressBar"
-            layout="@layout/layout_analysis_progress"/>
+            <include
+                android:id="@+id/overview"
+                layout="@layout/layout_analysis_overview" />
+        </FrameLayout>
 
-        <Space
-            android:layout_width="wrap_content"
-            android:layout_height="16dp"/>
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <include
+                android:id="@+id/totalCompletion"
+                layout="@layout/layout_total_completion" />
+        </FrameLayout>
+
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <include
+                android:id="@+id/yearHeapMap"
+                layout="@layout/layout_heatmap_analysis" />
+        </FrameLayout>
+
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <include
+                android:id="@+id/weekExpanded"
+                layout="@layout/layout_week_analysis_expanded" />
+        </FrameLayout>
+
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <include
+                android:id="@+id/progressBar"
+                layout="@layout/layout_analysis_progress" />
+        </FrameLayout>
 
 
     </LinearLayout>

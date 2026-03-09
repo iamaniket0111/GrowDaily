@@ -10,7 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.R
 import com.anitech.growdaily.data_class.TaskEntity
-import com.anitech.growdaily.databinding.RvDailyTaskItemBinding
+import com.anitech.growdaily.databinding.RvTaskItemBinding
 import com.anitech.growdaily.enum_class.TaskColor
 import com.anitech.growdaily.enum_class.TaskIcon
 import java.time.LocalTime
@@ -24,16 +24,12 @@ class TaskReorderAdapter(
     private val reorderCompleteListener: OnReorderCompleteListener? = null
 ) : RecyclerView.Adapter<TaskReorderAdapter.ViewHolder>() {
 
-    // 👇 Removed unused OnItemClickListener
-
-    private val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a")
-
     interface OnReorderCompleteListener {
         fun onReorderComplete(orderedTaskIds: List<String>)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = RvDailyTaskItemBinding.inflate(
+        val binding = RvTaskItemBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
             false
@@ -41,37 +37,55 @@ class TaskReorderAdapter(
         return ViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val task = taskList[position]
-        holder.bind(task)
-    }
-
     override fun getItemCount(): Int = taskList.size
 
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.bind(taskList[position])
+    }
+
     inner class ViewHolder(
-        private val binding: RvDailyTaskItemBinding
+        private val binding: RvTaskItemBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(task: TaskEntity) {
+
             binding.taskTitle.text = task.title
             binding.taskNote.visibility = View.GONE
 
             val icon = TaskIcon.valueOf(task.iconResId)
             val color = TaskColor.valueOf(task.colorCode)
 
-            binding.doneContainer.background = null
-            binding.doneContainer.backgroundTintList = null
-            binding.done.setImageResource(R.drawable.ic_drag_handle)
-            binding.done.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(binding.root.context, color.resId))
-
             binding.imageProfile.setImageResource(icon.resId)
             binding.imageProfile.backgroundTintList =
-                ColorStateList.valueOf(ContextCompat.getColor(binding.root.context, color.resId))
+                ColorStateList.valueOf(
+                    ContextCompat.getColor(binding.root.context, color.resId)
+                )
 
             binding.taskWeight.text =
-                binding.root.context.getString(R.string.task_weight_prefix, task.weight.weight)
+                binding.root.context.getString(
+                    R.string.task_weight_prefix,
+                    task.weight.weight
+                )
 
-            // 👇 Time visibility same, good
+            // 🔥 IMPORTANT CHANGE
+            if (task.isScheduled) {
+                binding.doneContainer.visibility = View.GONE
+            } else {
+                binding.doneContainer.visibility = View.VISIBLE
+                binding.done.setImageResource(R.drawable.ic_drag_handle)
+                binding.done.imageTintList =
+                    ColorStateList.valueOf(
+                        ContextCompat.getColor(binding.root.context, color.resId)
+                    )
+
+                binding.doneContainer.setOnTouchListener { _, event ->
+                    if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                        dragStartListener(this)
+                    }
+                    false
+                }
+            }
+
             if (task.scheduledTime != null) {
                 binding.timeTxt.text = task.scheduledTime
                 binding.timeTxt.visibility = View.VISIBLE
@@ -80,10 +94,6 @@ class TaskReorderAdapter(
             }
 
             binding.shContainer.visibility = View.GONE
-            binding.doneContainer.setOnTouchListener { _, event ->
-                if (event.actionMasked == MotionEvent.ACTION_DOWN) dragStartListener(this)
-                false
-            }
         }
     }
 
@@ -92,54 +102,15 @@ class TaskReorderAdapter(
         notifyItemMoved(from, to)
     }
 
-    /** 👇 Updated: Keep nulls at exact positions, fill gaps with sorted timed items */
-    fun autoReorderByTime() {
-        val nullPositions = mutableMapOf<Int, TaskEntity>()
-        val timed = mutableListOf<TaskEntity>()
-
-        // Collect current null positions and timed items
-        taskList.forEachIndexed { index, item ->
-            if (item.scheduledTime == null) {
-                nullPositions[index] = item
-            } else {
-                timed.add(item)
-            }
-        }
-
-        // Sort timed by ascending time – with error handling
-        try {
-            timed.sortBy { LocalTime.parse(it.scheduledTime!!, timeFormatter) }
-        } catch (e: DateTimeParseException) {
-            Log.e("AdapterDebug", "Time parse error in sort: ${e.message}", e)
-            // Fallback: Sort by alphabetical time string if parse fails
-            timed.sortBy { it.scheduledTime }
-        }
-
-        // Rebuild list: nulls stay fixed, timed fill the gaps in order
-        val newItems = mutableListOf<TaskEntity>()
-        var timedIndex = 0
-        for (i in 0 until taskList.size) {
-            if (nullPositions.containsKey(i)) {
-                newItems.add(nullPositions[i]!!)
-            } else if (timedIndex < timed.size) {
-                newItems.add(timed[timedIndex++])
-            }
-        }
-
-        taskList.clear()
-        taskList.addAll(newItems)
-        notifyDataSetChanged()
-
+    fun notifyReorderFinished() {
         val orderedIds = taskList.map { it.id }
-        Log.d("AdapterDebug", "Auto-reorder complete, ordered IDs: $orderedIds")
         reorderCompleteListener?.onReorderComplete(orderedIds)
     }
 
-    fun updateList(newTaskData: List<TaskEntity>) {
-        Log.d("AdapterDebug", "updateList called with: ${newTaskData.size} tasks")
+    fun updateList(newTasks: List<TaskEntity>) {
         taskList.clear()
-        taskList.addAll(newTaskData)
+        taskList.addAll(newTasks)
         notifyDataSetChanged()
-        Log.d("AdapterDebug", "Adapter updated, itemCount: ${taskList.size}")
     }
 }
+

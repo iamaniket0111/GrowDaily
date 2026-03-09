@@ -2,6 +2,7 @@ package com.anitech.growdaily
 
 import com.anitech.growdaily.data_class.DailyScore
 import com.anitech.growdaily.data_class.TaskEntity
+import com.anitech.growdaily.enum_class.DateMode
 import com.anitech.growdaily.enum_class.TaskType
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
@@ -9,6 +10,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -19,6 +21,37 @@ class CommonMethods {
         }
 
         const val DATE_FORMATE: String = "yyyy-MM-dd"
+        val sdf = DateTimeFormatter.ofPattern(DATE_FORMATE)
+
+
+        fun isTodayDate(currentDate: String): Boolean {
+            val date = LocalDate.parse(currentDate, sdf)
+            val today = LocalDate.now()
+            return date.isEqual(today)
+        }
+
+        fun isPastDate(currentDate: String): Boolean {
+            val date = LocalDate.parse(currentDate, sdf)
+            val today = LocalDate.now()
+            return date.isBefore(today)
+        }
+
+        fun isFutureDate(currentDate: String): Boolean {
+            val date = LocalDate.parse(currentDate, sdf)
+            val today = LocalDate.now()
+            return date.isAfter(today)
+        }
+
+        fun getDateMode(currentDate: String): DateMode {
+            val date = LocalDate.parse(currentDate, sdf)
+            val today = LocalDate.now()
+
+            return when {
+                date.isEqual(today) -> DateMode.TODAY
+                date.isBefore(today) -> DateMode.PAST
+                else -> DateMode.FUTURE
+            }
+        }
 
         fun getTodayDate(): String {
             return SimpleDateFormat(DATE_FORMATE, Locale.getDefault()).format(Date())
@@ -48,38 +81,16 @@ class CommonMethods {
         }
 
         fun isTomorrowDate(currentDate: String): Boolean {
-            val sdf = DateTimeFormatter.ofPattern(DATE_FORMATE)
             val date = LocalDate.parse(currentDate, sdf)
             val tomorrow = LocalDate.now().plusDays(1)
             return date.isEqual(tomorrow)
         }
 
-        fun isTodayDate(currentDate: String): Boolean {
-            val sdf = DateTimeFormatter.ofPattern(DATE_FORMATE)
-            val date = LocalDate.parse(currentDate, sdf)
-            val today = LocalDate.now()
-            return date.isEqual(today)
-        }
 
         fun isYesterdayDate(currentDate: String): Boolean {
-            val sdf = DateTimeFormatter.ofPattern(DATE_FORMATE)
             val date = LocalDate.parse(currentDate, sdf)
             val yesterday = LocalDate.now().minusDays(1)
             return date.isEqual(yesterday)
-        }
-
-        fun isPastDate(currentDate: String): Boolean {
-            val sdf = DateTimeFormatter.ofPattern(DATE_FORMATE)
-            val date = LocalDate.parse(currentDate, sdf)
-            val today = LocalDate.now()
-            return date.isBefore(today)
-        }
-
-        fun isFutureDate(currentDate: String): Boolean {
-            val sdf = DateTimeFormatter.ofPattern(DATE_FORMATE)
-            val date = LocalDate.parse(currentDate, sdf)
-            val today = LocalDate.now()
-            return date.isAfter(today)
         }
 
 
@@ -191,8 +202,6 @@ class CommonMethods {
             }
         }
 
-
-
         fun calculateScoreForDate(
             tasks: List<TaskEntity>,
             date: String,
@@ -261,7 +270,6 @@ class CommonMethods {
         }
 
 
-
         fun formatDate(inputDate: String): String {
             val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             val outputFormat = SimpleDateFormat("MMM d", Locale.getDefault())
@@ -273,74 +281,101 @@ class CommonMethods {
             }
         }
 
+        // FIXME: ensure this is not checking other than daily task 
+        fun calculateCurrentStreak(
+            taskStart: LocalDate,
+            completedDates: Set<LocalDate>
+        ): Int {
+
+            var streak = 0
+            var date = LocalDate.now()
+
+            while (!date.isBefore(taskStart)) {
+
+                if (completedDates.contains(date)) {
+                    streak++
+                    date = date.minusDays(1)
+                } else {
+                    break
+                }
+            }
+
+            return streak
+        }
+
+        fun calculateBestStreak(
+            taskStart: LocalDate,
+            completedDates: Set<LocalDate>
+        ): Int {
+
+            var best = 0
+            var current = 0
+
+            var date = taskStart
+            val today = LocalDate.now()
+
+            while (!date.isAfter(today)) {
+
+                if (completedDates.contains(date)) {
+                    current++
+                    best = maxOf(best, current)
+                } else {
+                    current = 0
+                }
+
+                date = date.plusDays(1)
+            }
+
+            return best
+        }
+
+        fun applySmartTimeOrder(tasks: List<TaskEntity>): List<TaskEntity> {
+
+            val baseList = tasks.sortedBy { it.manualOrder }.toMutableList()
+
+            val timedTasks = baseList
+                .filter { it.scheduledMinutes != null }
+                .sortedBy { it.scheduledMinutes }
+
+            var timedIndex = 0
+
+            for (i in baseList.indices) {
+                if (baseList[i].scheduledMinutes != null) {
+                    baseList[i] = timedTasks[timedIndex++]
+                }
+            }
+
+            return baseList
+        }
+
+        private val timeFormatter = SimpleDateFormat("hh:mm a", Locale.ENGLISH)
+
+         fun timeToMinutes(time: String?): Int? {
+            if (time.isNullOrBlank()) return null
+
+            return try {
+                val date = timeFormatter.parse(time) ?: return null
+
+                val cal = Calendar.getInstance().apply { this.time = date }
+
+                cal.get(Calendar.HOUR_OF_DAY) * 60 +
+                        cal.get(Calendar.MINUTE)
+
+            } catch (e: Exception) {
+                null
+            }
+        }
+
+        fun currentMinutes(): Int {
+            return timeToMinutes(getCurrentTime()) ?: 0
+        }
+
+
+        fun getCurrentTime(): String {
+            return timeFormatter.format(Date())
+        }
 
     }
 
 
 }
-
-
-//    private fun showTimePickerDialog(triggerSwitch: SwitchCompat?) {
-//        var hourOfDay: Int
-//        var minute: Int
-//
-//        val currentTimeText = binding.txtTime.text.toString().trim()
-//        if (currentTimeText != "--") {
-//            try {
-//                val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
-//                val date = sdf.parse(currentTimeText)
-//                val cal = Calendar.getInstance().apply { time = date!! }
-//                hourOfDay = cal.get(Calendar.HOUR_OF_DAY)
-//                minute = cal.get(Calendar.MINUTE)
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//                val calendar = Calendar.getInstance()
-//                calendar.add(Calendar.HOUR_OF_DAY, 1)
-//                hourOfDay = calendar.get(Calendar.HOUR_OF_DAY)
-//                minute = calendar.get(Calendar.MINUTE)
-//            }
-//        } else {
-//            val calendar = Calendar.getInstance()
-//            calendar.add(Calendar.HOUR_OF_DAY, 1)
-//            hourOfDay = calendar.get(Calendar.HOUR_OF_DAY)
-//            minute = calendar.get(Calendar.MINUTE)
-//        }
-//
-//        var isTimeSelected = false
-//
-//        val timePickerDialog = TimePickerDialog(
-//            requireContext(),
-//            { _, selectedHour, selectedMinute ->
-//                isTimeSelected = true
-//                val cal = Calendar.getInstance()
-//                cal.set(Calendar.HOUR_OF_DAY, selectedHour)
-//                cal.set(Calendar.MINUTE, selectedMinute)
-//                val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
-//                binding.txtTime.text = sdf.format(cal.time)
-//            },
-//            hourOfDay, minute, false
-//        )
-//
-//        timePickerDialog.setCancelable(true)
-//        timePickerDialog.setCanceledOnTouchOutside(true)
-//
-//        timePickerDialog.setOnCancelListener {
-//            if (triggerSwitch?.isChecked == true) triggerSwitch.isChecked = false
-//        }
-//
-//        timePickerDialog.setOnDismissListener {
-//            if (!isTimeSelected && triggerSwitch?.isChecked == true) {
-//                triggerSwitch.isChecked = false
-//            }
-//        }
-//
-//        timePickerDialog.setOnShowListener {
-//            val positive = timePickerDialog.getButton(TimePickerDialog.BUTTON_POSITIVE)
-//            val negative = timePickerDialog.getButton(TimePickerDialog.BUTTON_NEGATIVE)
-//            val color = ContextCompat.getColor(requireContext(), R.color.brand_blue)
-//            positive?.setTextColor(color)
-//            negative?.setTextColor(color)
-//        }
-//
-//        timePickerDialog.show()
-//    }

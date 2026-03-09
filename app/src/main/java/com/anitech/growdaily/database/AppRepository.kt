@@ -2,7 +2,6 @@ package com.anitech.growdaily.database
 
 import androidx.lifecycle.LiveData
 import com.anitech.growdaily.TaskDao
-import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.data_class.DayLogEntity
 import com.anitech.growdaily.data_class.DayNoteEntity
 import com.anitech.growdaily.data_class.DiaryEntry
@@ -11,18 +10,18 @@ import com.anitech.growdaily.data_class.ListTaskCrossRef
 import com.anitech.growdaily.data_class.ListWithTasks
 import com.anitech.growdaily.data_class.MoodHistoryItem
 import com.anitech.growdaily.data_class.TaskCompletionEntity
+import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.data_class.TaskOrderChangeLog
 import com.anitech.growdaily.enum_class.TaskType
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlin.math.roundToInt
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.flowOn
+import kotlin.math.roundToInt
 
 
 class AppRepository(
-    private val dao: TaskDao,
+    private val taskDao: TaskDao,
     private val diaryEntryDao: DiaryEntryDao,
     private val moodDao: MoodHistoryDao,
     private val listDao: ListDao,
@@ -30,24 +29,28 @@ class AppRepository(
     private val completionDao: TaskCompletionDao
 ) {
     //day score
-    suspend fun insertTask(task: TaskEntity) = dao.insertTask(task)
+    suspend fun insertTask(task: TaskEntity) = taskDao.insertTask(task)
 
-    suspend fun updateTask(task: TaskEntity) = dao.updateTask(task)
+    suspend fun updateTask(task: TaskEntity) = taskDao.updateTask(task)
 
-    suspend fun deleteTask(task: TaskEntity) = dao.deleteTask(task)
+    suspend fun deleteTask(task: TaskEntity) = taskDao.deleteTask(task)
 
-    suspend fun clearAllTasks() = dao.clearAllTasks()
+    fun getTaskById(taskId: String): LiveData<TaskEntity> {
+        return taskDao.getTaskById(taskId)
+    }
+
+    suspend fun clearAllTasks() = taskDao.clearAllTasks()
 
     fun getAllTasksFlow(): Flow<List<TaskEntity>> =
-        dao.getAllTasksFlow()
+        taskDao.getAllTasksFlow()
 
 
-    suspend fun updateTasks(tasks: List<TaskEntity>) = dao.updateTasks(tasks)
+    suspend fun updateTasks(tasks: List<TaskEntity>) = taskDao.updateTasks(tasks)
 
-    suspend fun deleteTasks(tasks: List<TaskEntity>) = dao.deleteTasks(tasks)
+    suspend fun deleteTasks(tasks: List<TaskEntity>) = taskDao.deleteTasks(tasks)
 
     fun getAllDailyTasks(): LiveData<List<TaskEntity>> {
-        return dao.getAllDailyTasks()
+        return taskDao.getAllDailyTasks()
     }
 
     //complete task
@@ -68,6 +71,7 @@ class AppRepository(
             completionDao.insertCompletion(TaskCompletionEntity(taskId, date, count = newCount))
         }
     }
+
     suspend fun incrementCompletion(taskId: String, date: String) {
         val existing = completionDao.isTaskCompletedOnDate(taskId, date)
 
@@ -124,6 +128,13 @@ class AppRepository(
         return completionDao.getCompletionsForTask(taskId)
     }
 
+    suspend fun getMaxManualOrder(): Int? {
+        return taskDao.getMaxManualOrder()
+    }
+
+    suspend fun updateTaskOrder(taskId: String, order: Int) {
+        taskDao.updateTaskOrder(taskId, order)
+    }
 
     fun calculateDailyScoreForDatePure(
         tasks: List<TaskEntity>,
@@ -175,25 +186,25 @@ class AppRepository(
 
     //day note
     suspend fun insertDayNote(note: DayNoteEntity) {
-        dao.insertDayNote(note)
+        taskDao.insertDayNote(note)
     }
 
     suspend fun updateDayNote(note: DayNoteEntity) {
-        dao.updateDayNote(note)
+        taskDao.updateDayNote(note)
     }
 
     suspend fun deleteDayNote(note: DayNoteEntity) {
-        dao.deleteDayNote(note)
+        taskDao.deleteDayNote(note)
     }
 
     // Specific task + date ka ek note
     suspend fun getNoteForDate(taskId: String, date: String): DayNoteEntity? {
-        return dao.getNoteForDate(taskId, date)
+        return taskDao.getNoteForDate(taskId, date)
     }
 
     // Ek specific date ke saare notes (jitne bhi tasks ke ho)
     suspend fun getNotesOnDate(date: String): List<DayNoteEntity> {
-        return dao.getNotesOnDate(date)
+        return taskDao.getNotesOnDate(date)
     }
 
     //mood history
@@ -227,9 +238,17 @@ class AppRepository(
     fun getAllLists(): LiveData<List<ListEntity>> {
         return listDao.getAllLists()
     }
+    fun getTaskIdsForListFlow(listId: String): Flow<List<String>> {
+        return listDao.getTaskIdsForListFlow(listId)
+    }
+
 
     suspend fun updateList(list: ListEntity) {
         listDao.updateList(list)
+    }
+
+    suspend fun updateListOrder(lists: List<ListEntity>) {
+        listDao.updateLists(lists)
     }
 
     suspend fun addTaskToList(listId: String, taskId: String) {
@@ -288,7 +307,7 @@ class AppRepository(
     //log
     fun getCombinedData(): Flow<List<DayLogEntity>> {
 
-        val tasksFlow = dao.getAllTasksFlow()
+        val tasksFlow = taskDao.getAllTasksFlow()
         val diaryFlow = diaryEntryDao.getAllEntriesFlow()
         val moodFlow = moodDao.getAllMoodsFlow()
         val completionFlow = completionDao.getAllCompletionsFlow()

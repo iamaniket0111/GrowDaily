@@ -3,19 +3,18 @@ package com.anitech.growdaily.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.R
 import com.anitech.growdaily.data_class.ListEntity
 
-class ConditionAdapter(
+class ListAdapter(
     private var conditionList: List<ListEntity>,
     private val listener: OnItemClickListener
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    private var selectedListTitle: String? = null   // null = NONE selected
+    private var selectedListId: String? = null
     var isSelectingMode = false
 
     interface OnItemClickListener {
@@ -86,7 +85,7 @@ class ConditionAdapter(
                 if (getItemViewType(position) == VIEW_NONE) {
                     holder.text.text = "None"
 
-                    val isSelected = selectedListTitle == null
+                    val isSelected = selectedListId == null
                     if (isSelected) {
                         holder.itemView.backgroundTintList =
                             ContextCompat.getColorStateList(
@@ -104,7 +103,7 @@ class ConditionAdapter(
                     val item = conditionList[position - 1]
                     holder.text.text = item.listTitle
 
-                    val isSelected = selectedListTitle == item.listTitle
+                    val isSelected = selectedListId == item.id
                     if (isSelected) {
                         holder.itemView.backgroundTintList =
                             ContextCompat.getColorStateList(
@@ -140,10 +139,11 @@ class ConditionAdapter(
 
     // ---------------- Public API ----------------
 
-    fun setSelectedList(title: String?) {
-        selectedListTitle = title
+    fun setSelectedListById(id: String?) {
+        selectedListId = id
         notifyDataSetChanged()
     }
+
 
     fun setData(newList: List<ListEntity>) {
         conditionList = newList

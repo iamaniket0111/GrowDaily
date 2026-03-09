@@ -17,36 +17,17 @@ import com.anitech.growdaily.data_class.ListWithTasks
 import com.anitech.growdaily.data_class.MoodHistoryItem
 import com.anitech.growdaily.data_class.TaskCompletionEntity
 import com.anitech.growdaily.data_class.TaskEntity
-import com.anitech.growdaily.data_class.TaskHeatmapUi
-import com.anitech.growdaily.data_class.TaskUiState
+import com.anitech.growdaily.data_class.RepeatTaskUi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import java.time.temporal.TemporalAdjusters
 
 
 class AppViewModel(private val repository: AppRepository) : ViewModel() {
-
-    fun insertTask(task: TaskEntity) = viewModelScope.launch {
-        repository.insertTask(task)
-    }
-
-    fun updateTask(task: TaskEntity) = viewModelScope.launch {
-        repository.updateTask(task)
-    }
-
-    fun deleteTask(task: TaskEntity) = viewModelScope.launch {
-        repository.deleteTask(task)
-    }
-
-    fun clearAllTasks() = viewModelScope.launch {//to delete all data, have to work on it further
-        repository.clearAllTasks()
-    }
 
     val allTasks: LiveData<List<TaskEntity>> =
         repository
@@ -75,173 +56,9 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
                 }
         }
 
-//    val taskUiState = MediatorLiveData<TaskUiState>().apply {
-//
-//        var tasks: List<TaskEntity>? = null
-//        var date: String? = null
-//        var completionMapAll: Map<String, Map<String, Int>>? = null
-//
-//        fun update() {
-//            val t = tasks ?: return
-//            val d = date ?: return
-//            val completionAll = completionMapAll ?: return
-//
-//            viewModelScope.launch(Dispatchers.Default) {
-//
-//               // val latestLog = repository.getLatestLogForDate(d)
-//
-////                val orderedTasks = if (latestLog != null) {
-////                    val orderedIds = latestLog.taskIds
-////                    t.sortedBy { orderedIds.indexOf(it.id).takeIf { it >= 0 } ?: Int.MAX_VALUE }
-////                } else {
-////                    t
-////                }
-//
-//                val filtered = CommonMethods.filterTasks(t, d)
-//
-//                val completionForDate = completionAll[d] ?: emptyMap()
-//
-//                postValue(TaskUiState(filtered, completionForDate))
-//            }
-//        }
-//
-//        addSource(allTasks) {
-//            tasks = it
-//            update()
-//        }
-//
-//        addSource(selectedDate) {
-//            date = it
-//            update()
-//        }
-//
-//        addSource(completionMap) {
-//            completionMapAll = it
-//            update()
-//        }
-//    }
 
 
-
-    //new task ui state
-    val taskUiState = MediatorLiveData<TaskUiState>().apply {
-
-        var tasks: List<TaskEntity>? = null
-        var date: String? = null
-        var completionMapAll: Map<String, Map<String, Int>>? = null
-
-        fun update() {
-            val t = tasks ?: return
-            val d = date ?: return
-            val completionAll = completionMapAll ?: return
-
-            viewModelScope.launch(Dispatchers.Default) {
-
-                val filteredTasks =
-                    CommonMethods.filterTasks(t, d)
-
-                val completionForDate =
-                    completionAll[d] ?: emptyMap()
-
-                val dayScore =
-                    CommonMethods.calculateScoreForDate(
-                        t, d, completionAll
-                    )
-
-                val selected = LocalDate.parse(d)
-
-                val weekStart =
-                    selected.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-                val weekEnd = weekStart.plusDays(6)
-
-                val weekScore =
-                    CommonMethods.calculateAggregateScore(
-                        t, weekStart, weekEnd, completionAll
-                    )
-
-                val monthStart = selected.withDayOfMonth(1)
-                val monthEnd = selected.withDayOfMonth(selected.lengthOfMonth())
-
-                val monthScore =
-                    CommonMethods.calculateAggregateScore(
-                        t, monthStart, monthEnd, completionAll
-                    )
-
-                val weekBars =
-                    CommonMethods.calculateDailyScoresThisWeek(
-                        t, d, completionAll
-                    )
-
-                postValue(
-                    TaskUiState(
-                        date = d,
-                        tasks = filteredTasks,
-                        completionForDate = completionForDate,
-                        dayScore = dayScore,
-                        weekScore = weekScore,
-                        monthScore = monthScore,
-                        weekBarScores = weekBars,
-                        isFutureDate = CommonMethods.isFutureDate(d),
-                        isEmpty = filteredTasks.isEmpty()
-                    )
-                )
-            }
-        }
-
-        addSource(allTasks) {
-            tasks = it
-            update()
-        }
-
-        addSource(selectedDate) {
-            date = it
-            update()
-        }
-
-        addSource(completionMap) {
-            completionMapAll = it
-            update()
-        }
-    }
-
-
-
-
-    fun setDate(date: String) {
-        _selectedDate.value = date
-    }
-
-    val filteredTasksFunc = MediatorLiveData<List<TaskEntity>>()
-
-
-    private fun updateFilteredTasks() {
-        viewModelScope.launch {
-            val tasks = allTasks.value ?: return@launch
-            val date = selectedDate.value ?: return@launch
-
-            val result =CommonMethods.filterTasks(tasks, date)
-            filteredTasksFunc.postValue(result)
-        }
-    }
-
-    fun incrementTaskCompletion(taskId: String, date: String) =
-        viewModelScope.launch {
-            repository.incrementCompletion(taskId, date)
-        }
-
-    fun decrementTaskCompletion(taskId: String, date: String) =
-        viewModelScope.launch {
-            repository.decrementCompletion(taskId, date)
-        }
-
-    fun resetTaskCompletion(taskId: String, date: String) =
-        viewModelScope.launch {
-            repository.resetCompletion(taskId, date)
-        }
-
-
-
-
+    //====have to remove above=========
 
     val completionCountsForSelectedDate: LiveData<Map<String, Int>> =
         MediatorLiveData<Map<String, Int>>().apply {
@@ -257,36 +74,6 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
             addSource(completionMap) { latestMap = it; update() }
             addSource(selectedDate) { latestDate = it; update() }
         }
-
-
-//    val completedIdsForSelectedDate: LiveData<Set<String>> =
-//        MediatorLiveData<Set<String>>().apply {
-//
-//            var currentMap: Map<String, Set<String>>? = null
-//            var currentDate: String? = null
-//
-//            fun update() {
-//                val map = currentMap ?: return
-//                val date = currentDate ?: return
-//                value = map[date] ?: emptySet()
-//            }
-//
-//            addSource(completionMap) { map ->
-//                currentMap = map
-//                update()
-//            }
-//
-//            addSource(selectedDate) { date ->
-//                currentDate = date
-//                update()
-//            }
-//        }
-
-
-    // optional helper (UI ke liye)
-    suspend fun isTaskCompleted(taskId: String, date: String): Boolean {
-        return repository.isTaskCompleted(taskId, date)
-    }
 
     suspend fun getTasksForDate(date: String): List<TaskEntity> {
         val all = allTasks.value ?: emptyList()
@@ -325,97 +112,14 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
 
         }
 
-    val barUiState: LiveData<
-            Pair<Map<String, List<TaskEntity>>, Map<String, Map<String, Int>>>
-            > =
-        MediatorLiveData<
-                Pair<Map<String, List<TaskEntity>>, Map<String, Map<String, Int>>>
-                >().apply {
 
-            var taskMap: Map<String, List<TaskEntity>>? = null
-            var completion: Map<String, Map<String, Int>>? = null
-
-            fun update() {
-                val t = taskMap ?: return
-                val c = completion ?: return
-                value = t to c
-            }
-
-            addSource(barTasksByDate) {
-                taskMap = it
-                update()
-            }
-
-            addSource(completionMap) {
-                completion = it
-                update()
+    fun updateManualOrder(orderedIds: List<String>) {
+        viewModelScope.launch {
+            orderedIds.forEachIndexed { index, taskId ->
+                repository.updateTaskOrder(taskId, index)
             }
         }
-
-
-    val dayScoreTrigger:
-            LiveData<Triple<List<TaskEntity>, Map<String, Map<String, Int>>, String>> =
-        MediatorLiveData<Triple<List<TaskEntity>, Map<String, Map<String, Int>>, String>>().apply {
-
-            var tasks: List<TaskEntity>? = null
-            var completion: Map<String, Map<String, Int>>? = null
-            var date: String? = null
-
-            fun update() {
-                val t = tasks ?: return
-                val c = completion ?: return
-                val d = date ?: return
-                value = Triple(t, c, d)
-            }
-
-            addSource(allTasks) {
-                tasks = it
-                update()
-            }
-
-            addSource(completionMap) {
-                completion = it
-                update()
-            }
-
-            addSource(selectedDate) {
-                date = it
-                update()
-            }
-        }
-
-
-    val scoreTrigger:
-            LiveData<Triple<List<TaskEntity>, Map<String, Map<String, Int>>, String>> =
-        MediatorLiveData<Triple<List<TaskEntity>, Map<String, Map<String, Int>>, String>>().apply {
-
-            var tasks: List<TaskEntity>? = null
-            var completion: Map<String, Map<String, Int>>? = null
-            var date: String? = null
-
-            fun update() {
-                val t = tasks ?: return
-                val c = completion ?: return
-                val d = date ?: return
-                value = Triple(t, c, d)
-            }
-
-            addSource(allTasks) {
-                tasks = it
-                update()
-            }
-
-            addSource(completionMap) {
-                completion = it
-                update()
-            }
-
-            addSource(selectedDate) {
-                date = it
-                update()
-            }
-        }
-
+    }
 
     fun logTaskReorder(effectiveFromDate: String, taskIds: List<String>) {
         viewModelScope.launch {
@@ -453,7 +157,7 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
     }
 
 
-    val heatmapUiList = MediatorLiveData<List<TaskHeatmapUi>>().apply {
+    val heatmapUiList = MediatorLiveData<List<RepeatTaskUi>>().apply {
         var latestTasks: List<TaskEntity>? = null
         var latestCompletions: List<TaskCompletionEntity>? = null
 
@@ -470,7 +174,7 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
 
                     tasks.map { task ->
                         val normalizedTaskId = task.id.trim().lowercase()
-                        TaskHeatmapUi(
+                        RepeatTaskUi(
                             task = task,
                             completedDates = completionMap[normalizedTaskId] ?: emptySet()
                         )
@@ -521,8 +225,15 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
             .mapValues { it.value.toSet() }
     }
 
+    // --------------------------------------------------
+    // ANALYSIS
+    // --------------------------------------------------
 
-    //diary work ----------
+
+    // --------------------------------------------------
+    //diary work
+    // --------------------------------------------------
+
     val allEntries: LiveData<List<DiaryEntry>> = repository.allEntries
 
     fun insert(entry: DiaryEntry) = viewModelScope.launch {
@@ -566,6 +277,8 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
             repository.deleteDayNote(note)
         }
     }
+
+
 
     // Ek note fetch karna (specific taskId + date)
     //will be use in add task
@@ -634,6 +347,12 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
     fun updateList(list: ListEntity) {
         viewModelScope.launch {
             repository.updateList(list)
+        }
+    }
+
+    fun updateListOrder(lists: List<ListEntity>) {
+        viewModelScope.launch {
+            repository.updateListOrder(lists)
         }
     }
 
@@ -814,6 +533,9 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
         val orderedIds = updatedTasks.map { it.id }
         repository.logReorder(CommonMethods.getTodayDate(), date, orderedIds)
     }
+
+
+
 
 
     // 👈 Helper: Fallback rebuild for null/invalid time or simple append/replace

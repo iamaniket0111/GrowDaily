@@ -105,6 +105,8 @@
                 android:id="@+id/repeatLayout"
                 layout="@layout/task_repeat_layout" />
 
+
+
             <!-- Scheduled Time, date -->
 
 
@@ -118,6 +120,15 @@
             <include
                 android:id="@+id/scheduleReminderLayout"
                 layout="@layout/layout_schedule_reminder" />
+
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="16dp" />
+
+            <include
+                android:id="@+id/deletePauseLayout"
+                layout="@layout/layout_delete_pause" />
 
             <!-- Save Button -->
 

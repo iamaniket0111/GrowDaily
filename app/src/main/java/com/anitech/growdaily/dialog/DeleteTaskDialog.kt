@@ -10,26 +10,28 @@ import android.widget.RadioGroup
 import androidx.core.graphics.drawable.toDrawable
 import com.anitech.growdaily.R
 import com.anitech.growdaily.data_class.TaskEntity
+import com.anitech.growdaily.enum_class.TaskType
 
 class DeleteTaskDialog(
     private val context: Context,
-    private val taskEntities: List<TaskEntity>,
-    private val nonTaskEntities: List<TaskEntity>,
+    private val task: TaskEntity,
     private val currentDate: String,
-    private val onDeleteDailyCompletely: (List<TaskEntity>) -> Unit,
-    private val onUpdateDailyDate: (List<TaskEntity>) -> Unit,
-    private val onDeleteNonDaily: (List<TaskEntity>) -> Unit
+    private val onDeleteDailyCompletely: (TaskEntity) -> Unit,
+    private val onUpdateDailyDate: (TaskEntity) -> Unit,
+    private val onDeleteNonDaily: (TaskEntity) -> Unit
 ) {
-
     fun show() {
-        val hasDailyTasks = taskEntities.isNotEmpty()
+        val isDailyTask = task.taskType == TaskType.DAILY
         var isRemoveCompletely = false
 
         val dialog = Dialog(context)
         val inflater = LayoutInflater.from(context)
 
-        val continueView = inflater.inflate(R.layout.dialog_delete_continue, null)
-        val warningView = inflater.inflate(R.layout.dialog_delete_warning, null)
+        val continueView =
+            inflater.inflate(R.layout.dialog_delete_continue, null)
+
+        val warningView =
+            inflater.inflate(R.layout.dialog_delete_warning, null)
 
         val continueBtn = continueView.findViewById<View>(R.id.btn_continue)
         val radioGroup = continueView.findViewById<RadioGroup>(R.id.radio_group)
@@ -43,19 +45,16 @@ class DeleteTaskDialog(
 
         deleteBtn.setOnClickListener {
 
-            if (hasDailyTasks) {
+            if (isDailyTask) {
                 if (isRemoveCompletely) {
-                    onDeleteDailyCompletely(taskEntities)
+                    onDeleteDailyCompletely(task)
                 } else {
-                    val updated = taskEntities.map {
-                        it.copy(taskRemovedDate = currentDate)
-                    }
-                    onUpdateDailyDate(updated)
+                    onUpdateDailyDate(
+                        task.copy(taskRemovedDate = currentDate)
+                    )
                 }
-            }
-
-            if (nonTaskEntities.isNotEmpty()) {
-                onDeleteNonDaily(nonTaskEntities)
+            } else {
+                onDeleteNonDaily(task)
             }
 
             dialog.dismiss()
@@ -63,7 +62,7 @@ class DeleteTaskDialog(
 
         cancelBtn.setOnClickListener { dialog.dismiss() }
 
-        if (hasDailyTasks) {
+        if (isDailyTask) {
             dialog.setContentView(continueView)
             continueBtn.setOnClickListener {
                 dialog.setContentView(warningView)
@@ -77,6 +76,7 @@ class DeleteTaskDialog(
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
+
         dialog.show()
     }
 }

@@ -19,6 +19,7 @@
 
             <!-- Schedule -->
             <LinearLayout
+                android:id="@+id/scheduleRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -74,6 +75,7 @@
         android:padding="16dp">
 
         <LinearLayout
+            android:id="@+id/reminderRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">

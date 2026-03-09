@@ -22,6 +22,9 @@ interface ListDao {
     @Query("SELECT * FROM list_table ORDER BY sortOrder ASC")
     fun getAllLists(): LiveData<List<ListEntity>>
 
+    @Query("SELECT taskId FROM list_task_cross_ref WHERE listId = :listId")
+    fun getTaskIdsForListFlow(listId: String): Flow<List<String>>
+
     @Update
     suspend fun updateList(list: ListEntity)
 
@@ -40,5 +43,8 @@ interface ListDao {
 
     @Query("SELECT listId FROM list_task_cross_ref WHERE taskId = :taskId")
     suspend fun getListIdsForTask(taskId: String): List<String>
+
+    @Update
+    suspend fun updateLists(lists: List<ListEntity>)
 
 }

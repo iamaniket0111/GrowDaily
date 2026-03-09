@@ -3,7 +3,7 @@
     <item
         android:id="@+id/homeFragment"
         android:icon="@drawable/ic_home"
-        android:title="Home" />
+        android:title="Overall" />
 
     <!-- empty space item -->
     <item
@@ -13,8 +13,8 @@
         android:title="" />
 
     <item
-        android:id="@+id/diaryFragment"
-        android:icon="@drawable/ic_diary"
-        android:title="Diary" />
+        android:id="@+id/repeatTaskFragment"
+        android:icon="@drawable/ic_repeat"
+        android:title="Repeat Task" />
 
 </menu>

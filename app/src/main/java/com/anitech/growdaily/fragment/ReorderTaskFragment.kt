@@ -1,7 +1,6 @@
 package com.anitech.growdaily.fragment
 
 import android.os.Bundle
-import android.util.Log  // 👇 Debug ke liye add kar if not there
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,75 +15,96 @@ import com.anitech.growdaily.database.AppViewModel
 import com.anitech.growdaily.databinding.FragmentReorderTaskBinding
 
 class ReorderTaskFragment : Fragment() {
+
     private var _binding: FragmentReorderTaskBinding? = null
     private val binding get() = _binding!!
+
     private val viewModel: AppViewModel by activityViewModels()
-    var currentTodoDate: String = CommonMethods.Companion.getTodayDate()
-    lateinit var adapter: TaskReorderAdapter
+
+    private lateinit var adapter: TaskReorderAdapter
     private lateinit var itemTouchHelper: ItemTouchHelper
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentReorderTaskBinding.inflate(inflater, container, false)
-        val root: View = binding.root
-        return root
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupRecycler()
+        observeTasks()
+    }
+
+    private fun setupRecycler() {
+
+        adapter = TaskReorderAdapter(
+            mutableListOf(),
+            { vh -> itemTouchHelper.startDrag(vh) },
+            object : TaskReorderAdapter.OnReorderCompleteListener {
+                override fun onReorderComplete(orderedTaskIds: List<String>) {
+                    viewModel.updateManualOrder(orderedTaskIds)
+                }
+            }
+        )
+
         val callback = object : ItemTouchHelper.SimpleCallback(
-            ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN,
+            0
         ) {
             override fun onMove(
-                rv: RecyclerView,
-                vh: RecyclerView.ViewHolder,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
                 target: RecyclerView.ViewHolder
             ): Boolean {
-                val from = vh.adapterPosition
-                val to = target.adapterPosition
-                adapter.moveItem(from, to)
+                adapter.moveItem(
+                    viewHolder.adapterPosition,
+                    target.adapterPosition
+                )
                 return true
             }
 
-            override fun onSwiped(vh: RecyclerView.ViewHolder, dir: Int) {}
+            override fun onSwiped(
+                viewHolder: RecyclerView.ViewHolder,
+                direction: Int
+            ) {
+            }
+
             override fun isLongPressDragEnabled(): Boolean = false
 
-            // 👇 After user stops dragging, auto-fix time order
             override fun clearView(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder
             ) {
                 super.clearView(recyclerView, viewHolder)
-                adapter.autoReorderByTime()  // Ye chalega, phir listener fire hoga adapter me
+
+
+                adapter.notifyReorderFinished()
             }
         }
 
         itemTouchHelper = ItemTouchHelper(callback)
         itemTouchHelper.attachToRecyclerView(binding.taskReorderRv)
 
-        adapter = TaskReorderAdapter(
-            mutableListOf(),
-            { vh -> itemTouchHelper.startDrag(vh) },
-            object : TaskReorderAdapter.OnReorderCompleteListener {  // 👇 Naya: Logging callback
-                override fun onReorderComplete(orderedTaskIds: List<String>) {
-                    Log.d("FragmentDebug", "Reorder complete, logging ${orderedTaskIds.size} IDs")
-                    // Effective date current ya future – abhi current use kar
-                    val effectiveDate = currentTodoDate  // Ya dialog se le agar chahiye
-                   // viewModel.logTaskReorder(effectiveDate, orderedTaskIds)
-                }
-            }
-        )
-        binding.taskReorderRv.layoutManager = LinearLayoutManager(requireContext())
-        binding.taskReorderRv.adapter = adapter
-        viewModel.setDate(currentTodoDate)
+        binding.taskReorderRv.layoutManager =
+            LinearLayoutManager(requireContext())
 
-        // 👇 Observe me debug logs add kiye – data flow check ke liye
-//        viewModel.filteredTasksFunc.observe(viewLifecycleOwner) { tasks ->
-//            adapter.updateList(tasks)
-//        }
+        binding.taskReorderRv.adapter = adapter
+    }
+
+    private fun observeTasks() {
+
+        viewModel.allTasks.observe(viewLifecycleOwner) { tasks ->
+            // Reorder screen me sirf manual order follow kare
+            val orderedTasks =
+                CommonMethods.applySmartTimeOrder(tasks)
+
+            adapter.updateList(orderedTasks)
+        }
     }
 
     override fun onDestroyView() {

@@ -91,7 +91,8 @@ class ImagePickerDialog : DialogFragment() {
             TaskIcon.entries.map { it.resId },
             object : CategorySymbolAdapter.OnSymbolClickListener {
                 override fun onSymbolClick(symbolResId: Int) {
-                    selectedIcon = TaskIcon.entries.find { it.resId == symbolResId } ?: TaskIcon.BELL
+                    selectedIcon =
+                        TaskIcon.entries.find { it.resId == symbolResId } ?: TaskIcon.BELL
                     updatePreview()
                 }
             },

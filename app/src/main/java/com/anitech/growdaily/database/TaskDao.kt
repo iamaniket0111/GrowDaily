@@ -54,4 +54,16 @@ interface TaskDao {
     //to get combined data
     @Query("SELECT * FROM daily_tasks")
     fun getAllTasksFlow(): Flow<List<TaskEntity>>
+
+    //to get ordered data
+    @Query("SELECT MAX(manualOrder) FROM daily_tasks")
+    suspend fun getMaxManualOrder(): Int?
+
+    @Query("UPDATE daily_tasks SET manualOrder = :order WHERE id = :taskId")
+    suspend fun updateTaskOrder(taskId: String, order: Int)
+
+    @Query("SELECT * FROM daily_tasks WHERE id = :taskId LIMIT 1")
+    fun getTaskById(taskId: String): LiveData<TaskEntity>
+
+
 }

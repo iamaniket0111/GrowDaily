@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:orientation="horizontal"
+    android:weightSum="2"
+    android:id="@+id/deletePauseContainer"
+     >
+
+    <!-- Delete block -->
+    <LinearLayout
+        android:id="@+id/deleteRow"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp"
+        android:background="@drawable/circular_corners"
+        android:clickable="true"
+        android:focusable="true">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Delete"
+            android:textStyle="bold"
+            android:textSize="16sp" />
+
+        <ImageView
+            android:id="@+id/ivDelete"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="Delete"
+            android:src="@drawable/ic_delete" />
+    </LinearLayout>
+
+    <!-- Spacer -->
+    <View
+        android:layout_width="8dp"
+        android:layout_height="match_parent" />
+
+    <!-- Pause block -->
+    <LinearLayout
+        android:id="@+id/pauseRow"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp"
+        android:background="@drawable/circular_corners"
+        android:clickable="true"
+        android:focusable="true">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Pause"
+            android:textStyle="bold"
+            android:textSize="16sp" />
+
+        <ImageView
+            android:id="@+id/ivPause"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="Pause"
+            android:src="@drawable/ic_pause" />
+    </LinearLayout>
+
+</LinearLayout>

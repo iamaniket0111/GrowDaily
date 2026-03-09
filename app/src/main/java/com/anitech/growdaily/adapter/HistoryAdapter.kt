@@ -10,14 +10,14 @@ import com.anitech.growdaily.SquareBorderProgressView
 import com.anitech.growdaily.data_class.WeekHabit
 import java.time.LocalDate
 
-class WeekHabitAdapter(
+class HistoryAdapter(
     private val taskId: String,
     private val taskAddedDate: LocalDate,
     private val completedDates: Set<LocalDate>,
     private val taskColor: Int,
     private val weekList: List<WeekHabit>,
     private val listener: OnItemClickListener
-) : RecyclerView.Adapter<WeekHabitAdapter.WeekViewHolder>()  {
+) : RecyclerView.Adapter<HistoryAdapter.WeekViewHolder>()  {
     private var completedTaskIds: Set<String> = emptySet()
     private lateinit var dailyTaskId:String
 

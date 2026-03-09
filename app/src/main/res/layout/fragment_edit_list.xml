@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".fragment.ManageConditionFragment">
+    tools:context=".fragment.EditListFragment">
 
     <!-- Content Section -->
     <LinearLayout
@@ -47,7 +47,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:lineSpacingExtra="2dp"
-            android:text="@string/condition_message"
+            android:text="@string/list_message"
             android:textSize="14sp"
             android:textStyle="bold"
             android:layout_marginHorizontal="16dp"/>

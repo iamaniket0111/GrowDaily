@@ -5,143 +5,197 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/circular_corners"
-    android:padding="16dp">
+    android:padding="20dp">
 
-    <!-- Title -->
+    <!-- Section Title -->
     <TextView
         android:id="@+id/txtOverviewTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Overview"
-        android:textColor="#111111"
-        android:textSize="16sp"
-        android:textStyle="bold"
+        android:text="ACTIVITY OVERVIEW"
+        android:textColor="@color/black"
+        android:textSize="12sp"
+        android:textStyle="normal"
+        android:letterSpacing="0.05"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Current streak -->
-    <LinearLayout
-        android:id="@+id/layoutCurrentStreak"
-        android:layout_width="0dp"
+    <!-- Stats Grid -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutStatsGrid"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:gravity="center"
-        android:orientation="vertical"
-        app:layout_constraintEnd_toStartOf="@id/divider1"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/txtOverviewTitle"
-        app:layout_constraintWidth_percent="0.33">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <TextView
-            android:id="@+id/txtCurrentStreak"
-            android:layout_width="wrap_content"
+        <!-- Current Streak -->
+        <LinearLayout
+            android:id="@+id/layoutCurrentStreak"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="🔥 5"
-            android:textColor="#FF6B35"
-            android:textSize="22sp"
-            android:layout_marginBottom="4dp"
-            android:textStyle="bold" />
+            android:orientation="vertical"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/divider1"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
 
-        <TextView
-            android:layout_width="wrap_content"
+            <TextView
+                android:id="@+id/txtCurrentStreakValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="5"
+                android:textColor="#212121"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:layout_gravity="center_horizontal" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Current streak"
+                android:textColor="#9E9E9E"
+                android:textSize="13sp"
+                android:layout_marginTop="4dp"
+                android:layout_gravity="center_horizontal" />
+
+            <TextView
+                android:id="@+id/txtCurrentStreakDays"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="days"
+                android:textColor="#9E9E9E"
+                android:textSize="11sp"
+                android:layout_gravity="center_horizontal" />
+        </LinearLayout>
+
+        <!-- Divider 1 -->
+        <View
+            android:id="@+id/divider1"
+            android:layout_width="1dp"
+            android:layout_height="40dp"
+            android:background="#E0E0E0"
+            app:layout_constraintStart_toEndOf="@id/layoutCurrentStreak"
+            app:layout_constraintEnd_toStartOf="@id/layoutBestStreak"
+            app:layout_constraintTop_toTopOf="@id/layoutCurrentStreak"
+            app:layout_constraintBottom_toBottomOf="@id/layoutCurrentStreak" />
+
+        <!-- Best Streak -->
+        <LinearLayout
+            android:id="@+id/layoutBestStreak"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Current streak"
-            android:textColor="#777777"
-            android:textSize="12sp" />
-    </LinearLayout>
+            android:orientation="vertical"
+            app:layout_constraintStart_toEndOf="@id/divider1"
+            app:layout_constraintEnd_toStartOf="@id/divider2"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
 
-    <!-- Divider -->
-    <View
-        android:id="@+id/divider1"
-        android:layout_width="1dp"
-        android:layout_height="40dp"
-        android:background="#E0E0E0"
-        app:layout_constraintBottom_toBottomOf="@id/layoutCurrentStreak"
-        app:layout_constraintStart_toEndOf="@id/layoutCurrentStreak"
-        app:layout_constraintTop_toTopOf="@id/layoutCurrentStreak" />
+            <TextView
+                android:id="@+id/txtBestStreakValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="14"
+                android:textColor="#212121"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:layout_gravity="center_horizontal" />
 
-    <!-- Completion -->
-    <LinearLayout
-        android:id="@+id/layoutCompletion"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        app:layout_constraintEnd_toStartOf="@id/divider2"
-        app:layout_constraintStart_toEndOf="@id/divider1"
-        app:layout_constraintTop_toTopOf="@id/layoutCurrentStreak"
-        app:layout_constraintWidth_percent="0.34">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Best streak"
+                android:textColor="#9E9E9E"
+                android:textSize="13sp"
+                android:layout_marginTop="4dp"
+                android:layout_gravity="center_horizontal" />
 
-        <TextView
-            android:id="@+id/txtCompletionPercent"
-            android:layout_width="wrap_content"
+            <TextView
+                android:id="@+id/txtBestStreakDays"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="days"
+                android:textColor="#9E9E9E"
+                android:textSize="11sp"
+                android:layout_gravity="center_horizontal" />
+        </LinearLayout>
+
+        <!-- Divider 2 -->
+        <View
+            android:id="@+id/divider2"
+            android:layout_width="1dp"
+            android:layout_height="40dp"
+            android:background="#E0E0E0"
+            app:layout_constraintStart_toEndOf="@id/layoutBestStreak"
+            app:layout_constraintEnd_toStartOf="@id/layoutDates"
+            app:layout_constraintTop_toTopOf="@id/layoutCurrentStreak"
+            app:layout_constraintBottom_toBottomOf="@id/layoutCurrentStreak" />
+
+        <!-- Dates Section -->
+        <LinearLayout
+            android:id="@+id/layoutDates"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
+            android:orientation="vertical"
             android:gravity="center"
-            android:text="78%"
-            android:textColor="#2196F3"
-            android:textSize="22sp"
-            android:textStyle="bold" />
+            app:layout_constraintStart_toEndOf="@id/divider2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
 
-        <TextView
-            android:id="@+id/txtCompletionCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="42 / 54 days"
-            android:textColor="#777777"
-            android:textSize="12sp" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_marginBottom="8dp">
 
-        <ProgressBar
-            android:id="@+id/progressCompletion"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="60dp"
-            android:layout_height="4dp"
-            android:layout_marginTop="8dp"
-            android:max="100"
-            android:progress="78"
-            android:progressBackgroundTint="#E0E0E0"
-            android:progressTint="#2196F3" />
-    </LinearLayout>
+                <TextView
+                    android:id="@+id/txtLastCompletedDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Mar 4, 2026"
+                    android:textColor="#2E7D32"
+                    android:textSize="14sp"
+                     />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Last completed"
+                    android:textColor="#9E9E9E"
+                    android:textSize="11sp"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/txtLastMissedDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Feb 28, 2026"
+                    android:textColor="#C62828"
+                    android:textSize="14sp"
+                     />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Last missed"
+                    android:textColor="#9E9E9E"
+                    android:textSize="11sp"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-    <!-- Divider -->
-    <View
-        android:id="@+id/divider2"
-        android:layout_width="1dp"
-        android:layout_height="40dp"
-        android:background="#E0E0E0"
-        app:layout_constraintBottom_toBottomOf="@id/layoutCurrentStreak"
-        app:layout_constraintStart_toEndOf="@id/layoutCompletion"
-        app:layout_constraintTop_toTopOf="@id/layoutCurrentStreak" />
-
-    <!-- Best streak -->
-    <LinearLayout
-        android:id="@+id/layoutBestStreak"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/divider2"
-        app:layout_constraintTop_toTopOf="@id/layoutCurrentStreak"
-        app:layout_constraintWidth_percent="0.33">
-
-        <TextView
-            android:id="@+id/txtBestStreak"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="⭐ 14"
-            android:textColor="#FFC107"
-            android:textSize="22sp"
-            android:layout_marginBottom="4dp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Best streak"
-            android:textColor="#777777"
-            android:textSize="12sp" />
-    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

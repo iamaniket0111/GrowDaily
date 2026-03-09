@@ -1,44 +1,36 @@
 package com.anitech.growdaily.fragment
 
 import android.annotation.SuppressLint
-import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
-import androidx.navigation.findNavController
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.CommonMethods
-import com.anitech.growdaily.CommonMethods.Companion.calculateAggregateScore
-import com.anitech.growdaily.CommonMethods.Companion.calculateDailyScoresThisWeek
-import com.anitech.growdaily.CommonMethods.Companion.calculateScoreForDate
 import com.anitech.growdaily.CommonMethods.Companion.formatDate
-import com.anitech.growdaily.CommonMethods.Companion.isFutureDate
 import com.anitech.growdaily.CommonMethods.Companion.isTodayDate
 import com.anitech.growdaily.CommonMethods.Companion.isTomorrowDate
 import com.anitech.growdaily.CommonMethods.Companion.isYesterdayDate
-import com.anitech.growdaily.MainActivity
+import com.anitech.growdaily.MyApp
 import com.anitech.growdaily.R
 import com.anitech.growdaily.adapter.BarAdapter
-import com.anitech.growdaily.adapter.ConditionAdapter
+import com.anitech.growdaily.adapter.ListAdapter
 import com.anitech.growdaily.adapter.TaskAdapter
 import com.anitech.growdaily.data_class.DailyScore
-import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.data_class.ListEntity
-import com.anitech.growdaily.database.AppViewModel
-import com.anitech.growdaily.databinding.FragmentHomeBinding
-import com.anitech.growdaily.dialog.DeleteTaskDialog
+import com.anitech.growdaily.data_class.TaskEntity
+import com.anitech.growdaily.data_class.TaskUiState
+import com.anitech.growdaily.database.TaskViewModel
+import com.anitech.growdaily.database.TaskViewModelFactory
+import com.anitech.growdaily.databinding.FragmentTaskBinding
 import com.anitech.growdaily.dialog.ResetCompletionBottomSheet
 import com.anitech.growdaily.enum_class.TaskType
 import com.google.android.material.progressindicator.CircularProgressIndicator
@@ -46,47 +38,33 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
-import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
 import kotlin.math.roundToInt
 
 class TaskFragment : Fragment() {
-    private var _binding: FragmentHomeBinding? = null
+    private var _binding: FragmentTaskBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: AppViewModel by activityViewModels()
-    var currentTodoDate: String = CommonMethods.getTodayDate()
     private lateinit var taskAdapter: TaskAdapter
-    private lateinit var conditionAdapter: ConditionAdapter
+    private lateinit var listAdapter: ListAdapter
     private lateinit var barAdapter: BarAdapter
+    private val viewModel: TaskViewModel by viewModels {
+        TaskViewModelFactory(
+            (requireActivity().application as MyApp).repository
+        )
+    }
 
     companion object {
         private const val TAG = "TaskFragment"
     }
-
-
-    // * FIXME:
-    // * -Fix showDeleteDialog() to use ctx instead of requireContext() inside context?.let
-    // * -Call setupRecyclerViews() before observeViewModel() in onViewCreated
-    // * -Set adapter.isFutureDate = isFutureDate(currentTodoDate) after adapter init
-    // * -Remove unused LocalDate.rangeTo function
-    // * -Avoid !! in bar recycler scroll listener, use safe cast
-    // * -Move score calculation logic from Fragment to ViewModel later
-    // * -(Optional) Convert delete dialog to BottomSheetDialogFragment
-    // * -(Optional) Migrate LiveData to StateFlow
-
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentHomeBinding.inflate(inflater, container, false)
-        viewModel.setDate(currentTodoDate)
-        updateDayText(currentTodoDate)
-        updateWeekText(currentTodoDate)
-        updateMonthText(currentTodoDate)
-
+        _binding = FragmentTaskBinding.inflate(inflater, container, false)
+        viewModel.setDate(CommonMethods.getTodayDate())
         return binding.root
     }
 
@@ -105,102 +83,9 @@ class TaskFragment : Fragment() {
         binding.scoreLayout.cpiMonth.setProgress(progress, true)
 
         setupRecyclerViews()
-        observeViewModel()
+        observeUiState()
 
     }
-
-
-    private fun observeViewModel() {
-
-//        viewModel.allLists.observe(viewLifecycleOwner) { lists ->
-//            conditionAdapter.setData(lists)
-//        }
-
-        viewModel.taskUiState.observe(viewLifecycleOwner) { state ->
-
-            val tasks = state.tasks
-            val completionMap = state.completionMap
-
-            if (tasks.isEmpty()) {
-                binding.noDayTaskLayoutContainer.visibility = View.VISIBLE
-                binding.emptySpaceLayoutContainer.visibility = View.GONE
-            } else {
-                binding.noDayTaskLayoutContainer.visibility = View.GONE
-                binding.emptySpaceLayoutContainer.visibility = View.VISIBLE
-            }
-
-            taskAdapter.updateList(tasks, currentTodoDate)
-            taskAdapter.updateCompletionForDate(completionMap)
-        }
-
-
-//        viewModel.dayScoreTrigger.observe(viewLifecycleOwner) { (tasks, completionMap, date) ->
-//
-//            val selected = LocalDate.parse(date)
-//
-//            updateScoreUI(
-//                tasks,
-//                binding.scoreLayout.doneWeight,
-//                binding.scoreLayout.cpi,
-//                selected,
-//                selected
-//            )
-//        }
-
-
-//        viewModel.scoreTrigger.observe(viewLifecycleOwner) { (tasks, completionMap, selectedDate) ->
-//
-//            val selected = LocalDate.parse(selectedDate)
-//
-//            // WEEK (Monday → Sunday)
-//            val weekStart =
-//                selected.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-//            val weekEnd = weekStart.plusDays(6)
-//
-//            updateScoreUI(
-//                tasks,
-//                binding.scoreLayout.doneWeekWeight,
-//                binding.scoreLayout.cpiWeek,
-//                weekStart,
-//                weekEnd
-//            )
-//
-//            // MONTH
-//            val monthStart = selected.withDayOfMonth(1)
-//            val monthEnd = selected.withDayOfMonth(selected.lengthOfMonth())
-//
-//            updateScoreUI(
-//                tasks,
-//                binding.scoreLayout.doneMonthWeight,
-//                binding.scoreLayout.cpiMonth,
-//                monthStart,
-//                monthEnd
-//            )
-//
-//            // GRAPH
-//            val scores =
-//                calculateDailyScoresThisWeek(tasks, selectedDate, completionMap)
-//
-//            binding.barGraph2.scoreBackground.setData(scores)
-//        }
-
-
-
-//        viewModel.barUiState.observe(viewLifecycleOwner) { (taskMap, completionMap) ->
-//            barAdapter.updateData(taskMap, completionMap)
-//        }
-
-//        viewModel.completionCountsForSelectedDate.observe(
-//            viewLifecycleOwner
-//        ) { completionMap ->
-//            taskAdapter.updateCompletionForDate(completionMap)
-//        }
-
-
-    }
-
-
-
 
     private fun setupRecyclerViews() {
         setupTaskRecycler()
@@ -208,49 +93,78 @@ class TaskFragment : Fragment() {
         setupBarRecycler()
     }
 
+    private fun observeUiState() {
+        viewModel.selectedDate.observe(viewLifecycleOwner) { date ->
+            updateDayText(date)
+            updateWeekText(date)
+            updateMonthText(date)
+        }
+
+        viewModel.taskUiState.observe(viewLifecycleOwner) { state ->
+            render(state)
+        }
+
+        viewModel.allLists.observe(viewLifecycleOwner) {
+            listAdapter.setData(it)
+        }
+    }
+
+    private fun render(state: TaskUiState) {
+        // empty / no task UI
+        binding.noDayTaskLayoutContainer.visibility =
+            if (state.isEmpty) View.VISIBLE else View.GONE
+
+        binding.emptySpaceLayoutContainer.visibility =
+            if (state.isEmpty) View.GONE else View.VISIBLE
+
+        // task list
+        taskAdapter.updateList(state.tasks, state.date, mode = state.dateMode)
+
+        // score UI
+        updateScore(binding.scoreLayout.doneWeight, binding.scoreLayout.cpi, state.dayScore)
+        updateScore(
+            binding.scoreLayout.doneWeekWeight,
+            binding.scoreLayout.cpiWeek,
+            state.weekScore
+        )
+        updateScore(
+            binding.scoreLayout.doneMonthWeight,
+            binding.scoreLayout.cpiMonth,
+            state.monthScore
+        )
+
+        // bar graph
+        barAdapter.updateData(state.barScores)
+
+        //selected list
+        listAdapter.setSelectedListById(state.selectedListId)
+    }
+
     private fun setupTaskRecycler() {
-
-        taskAdapter = TaskAdapter(emptyList(), object : TaskAdapter.OnItemClickListener {
-
+        taskAdapter = TaskAdapter(object : TaskAdapter.OnItemClickListener {
             override fun moveToEditListener(task: TaskEntity) {
-                val navController =
-                    requireActivity().findNavController(R.id.nav_host_fragment_content_main)
+                val navController = findNavController()
+                val bundle = bundleOf("task" to task)
 
-                    val bundle = bundleOf("task" to task)
+                if (task.taskType == TaskType.DAILY) {
 
-                    if (task.taskType == TaskType.DAILY) {
+                    val bundle = bundleOf("taskId" to task.id)
+
                     navController.navigate(
                         R.id.analysisRepeatTaskFragment,
                         bundle
                     )
+
                 } else {
-                    navController.navigate(
-                        R.id.nav_add_task,
-                        bundle
-                    )
+                    navController.navigate(R.id.nav_add_task, bundle)
                 }
             }
 
-            override fun onItemSelectedCountChanged(count: Int) {
-                val isSelectionMode = count > 0
-                (activity as? MainActivity)?.setSelectionMode(isSelectionMode)
-
-                if (!isSelectionMode) binding.container.setBackgroundColor(Color.TRANSPARENT)
-                else binding.container.setBackgroundResource(R.color.background_color2)
-                barAdapter.isSelectingMode = isSelectionMode
-                conditionAdapter.isSelectingMode = isSelectionMode
-
-                val title = if (count > 0) "$count selected" else getString(R.string.app_name)
-                (activity as? AppCompatActivity)?.supportActionBar?.title = title
-            }
-
             override fun onTaskCompleteClick(taskId: String, date: String) {
+                val state = viewModel.taskUiState.value ?: return
+                val task = state.tasks.find { it.task.id == taskId }?.task ?: return
 
-                val uiState = viewModel.taskUiState.value ?: return
-                val completionMap = uiState.completionMap
-                val task = uiState.tasks.find { it.id == taskId } ?: return
-
-                val count = completionMap[taskId] ?: 0
+                val count = state.completionForDate[taskId] ?: 0
                 val target = task.dailyTargetCount.coerceAtLeast(1)
 
                 if (target == 1) {
@@ -270,10 +184,8 @@ class TaskFragment : Fragment() {
                 }
             }
 
-
-
             override fun onTaskCompleteLongClick(taskId: String, date: String) {
-              viewModel.decrementTaskCompletion(taskId, date)
+                viewModel.decrementTaskCompletion(taskId, date)
             }
         })
 
@@ -282,31 +194,26 @@ class TaskFragment : Fragment() {
             isNestedScrollingEnabled = false
             adapter = taskAdapter
         }
-
     }
 
     private fun setupListRecycler() {
-        conditionAdapter =
-            ConditionAdapter(emptyList(), object : ConditionAdapter.OnItemClickListener {
+        listAdapter =
+            ListAdapter(emptyList(), object : ListAdapter.OnItemClickListener {
 
                 override fun onItemClick(conditionItem: ListEntity, isSelected: Boolean) {
 
                     if (isSelected) {
                         // same list tapped → back to ALL
-                        conditionAdapter.setSelectedList(null)
-                     //   viewModel.setSelectedList(null)
+                        viewModel.setSelectedList(null)
                     } else {
-                        conditionAdapter.setSelectedList(conditionItem.listTitle)
-                   //     viewModel.setSelectedList(conditionItem.id)
+                        viewModel.setSelectedList(conditionItem.id)
                     }
                 }
 
                 override fun onAllClick(isSelected: Boolean) {
                     // ALL already selected → ignore
                     if (isSelected) return
-
-                    conditionAdapter.setSelectedList(null)
-                  //  viewModel.setSelectedList(null)
+                    viewModel.setSelectedList(null)
                 }
 
                 override fun onLongPress(conditionList: List<ListEntity>) {
@@ -316,19 +223,20 @@ class TaskFragment : Fragment() {
                 }
 
                 override fun onNewListClick() {
-                    findNavController().navigate(R.id.manageCondition)
+                    findNavController().navigate(R.id.editList)
 
                 }
 
                 override fun onMangeListClick() {
-                    Toast.makeText(requireContext(), "manage lists", Toast.LENGTH_SHORT).show()
+                    findNavController().navigate(R.id.manageListFragment)
+
                 }
             })
 
         binding.conditionLayout.recyclerView.apply {
             layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-            adapter = conditionAdapter
+            adapter = listAdapter
             addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
                 override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
                     rv.parent.requestDisallowInterceptTouchEvent(true)
@@ -344,9 +252,7 @@ class TaskFragment : Fragment() {
     private fun setupBarRecycler() {
         barAdapter = BarAdapter(object : BarAdapter.OnBarInteractionListener {
             override fun onBarSelected(score: DailyScore) {
-                if (currentTodoDate != score.date) {
-                    changeDate(score.date)
-                }
+                viewModel.setDate(score.date)
             }
 
             override fun onTodayBarOutOfView() {
@@ -355,7 +261,7 @@ class TaskFragment : Fragment() {
         })
 
         binding.barGraph2.goToTodayButton.setOnClickListener {
-            scrollToToday(barAdapter)
+            scrollToToday()
             binding.barGraph2.goToTodayButton.visibility = View.GONE
         }
 
@@ -383,39 +289,19 @@ class TaskFragment : Fragment() {
                 }
             })
 
-            val todayIndex = 500 - 4
-            scrollToPosition(todayIndex)//its better that by default its not smooth scroll
+            scrollToToday()
         }
     }
 
-    private fun changeDate(date: String) {
-        if (currentTodoDate == date) return
+    fun scrollToToday() {
+        val today = LocalDate.now()
+        barAdapter.setCenterDate(today)
 
-        currentTodoDate = date
-        viewModel.setDate(date)
-        updateDayText(currentTodoDate)
-        updateWeekText(currentTodoDate)
-        updateMonthText(currentTodoDate)
+        val layoutManager = binding.barGraph2.recyclerViewBar.layoutManager as? LinearLayoutManager
+            ?: return
 
-        taskAdapter.isFutureDate = isFutureDate(date)
-    }
-
-
-    fun scrollToToday(barAdapter: BarAdapter) {
-        val today: LocalDate = LocalDate.now()
-        val startDate: LocalDate = today.minusDays(500)
-        val todayIndex = ChronoUnit.DAYS.between(startDate, today).toInt()
-
-        val layoutManager = binding.barGraph2.recyclerViewBar.layoutManager as LinearLayoutManager
-        val offset = 4
-        val targetIndex = (todayIndex - offset).coerceAtLeast(0)
-
-        val smoothScroller = object : LinearSmoothScroller(requireContext()) {
-            override fun getHorizontalSnapPreference(): Int = SNAP_TO_START
-        }
-
-        smoothScroller.targetPosition = targetIndex
-        layoutManager.startSmoothScroll(smoothScroller)
+        layoutManager.scrollToPositionWithOffset(40, 0)
+        viewModel.setDate(CommonMethods.getTodayDate())
     }
 
     private fun updateDayText(date: String) {
@@ -457,52 +343,6 @@ class TaskFragment : Fragment() {
         binding.scoreLayout.monthText.text = monthName
     }
 
-
-    fun handleDeleteSelected() {
-        val selectedItems = taskAdapter.getSelectedItems()
-        if (selectedItems.isNotEmpty()) {
-            val map = getDailyTaskMap(selectedItems)
-            showDeleteDialog(map)
-            taskAdapter.clearSelection()
-        }
-    }
-
-    fun getDailyTaskMap(selectedItems: Set<TaskEntity>): Map<Boolean, List<TaskEntity>> {
-        return selectedItems.groupBy { it.taskType == TaskType.DAILY }
-    }
-
-
-    private fun updateScoreUI(
-        tasks: List<TaskEntity>,
-        textView: TextView,
-        progressBar: CircularProgressIndicator,
-        startDate: LocalDate? = null,
-        endDate: LocalDate? = null
-    ) {
-//        val completionMap = viewModel.completionMap.value ?: emptyMap()
-//
-//        val score: Float = if (startDate != null && endDate != null) {
-//            // week / month ke liye
-//            calculateAggregateScore(
-//                tasks = tasks,
-//                startDate = startDate,
-//                endDate = endDate,
-//                completionMap = completionMap
-//            )
-//        } else {
-//            // sirf current date ke liye
-//            calculateScoreForDate(
-//                tasks = tasks,
-//                date = currentTodoDate,
-//                completionMap = completionMap
-//            )
-//        }
-//
-//        textView.text = formatScore(score)
-//        progressBar.setProgress(score.roundToInt(), true)
-    }
-
-
     private fun formatScore(value: Float): String {
         return if (value % 1f == 0f) {
             value.toInt().toString()
@@ -511,32 +351,8 @@ class TaskFragment : Fragment() {
         }
     }
 
-    operator fun LocalDate.rangeTo(other: LocalDate) = generateSequence(this) { it.plusDays(1) }
-        .takeWhile { !it.isAfter(other) }
-
-
-    fun showDeleteDialog(map: Map<Boolean, List<TaskEntity>>) {
-
-        val dailyTasks = map[true] ?: emptyList()
-        val nonDailyTasks = map[false] ?: emptyList()
-
-//        context?.let { ctx ->
-//            DeleteTaskDialog(
-//                context = ctx,
-//                taskEntities = dailyTasks,
-//                nonTaskEntities = nonDailyTasks,
-//                currentDate = currentTodoDate,
-//                onDeleteDailyCompletely = { viewModel.deleteTasks(it) },
-//                onUpdateDailyDate = { viewModel.updateTasks(it) },
-//                onDeleteNonDaily = { viewModel.deleteTasks(it) }
-//            ).show()
-//        }
-
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
+    private fun updateScore(textView: TextView, progress: CircularProgressIndicator, value: Float) {
+        textView.text = formatScore(value)
+        progress.setProgress(value.roundToInt(), true)
     }
 }
-
-

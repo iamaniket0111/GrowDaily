@@ -1,14 +1,13 @@
 package com.anitech.growdaily.dialog
 
-import android.app.AlertDialog
 import android.app.Dialog
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.graphics.drawable.toDrawable
+import android.view.Window
 import androidx.fragment.app.DialogFragment
-import androidx.navigation.fragment.findNavController
 import com.anitech.growdaily.R
 import com.anitech.growdaily.enum_class.TaskType
 
@@ -17,8 +16,19 @@ class TaskTypeDialog(
 ) : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val view = requireActivity().layoutInflater
-            .inflate(R.layout.dialog_task_type, null)
+
+        val view = layoutInflater.inflate(R.layout.dialog_task_type, null)
+
+        val dialog = Dialog(requireContext())
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(view)
+
+        dialog.window?.setBackgroundDrawable(
+            ColorDrawable(Color.TRANSPARENT)
+        )
+
+        dialog.setCancelable(true)
+        dialog.setCanceledOnTouchOutside(true)
 
         view.findViewById<View>(R.id.optionDaily).setOnClickListener {
             onTypeSelected(TaskType.DAILY)
@@ -35,21 +45,12 @@ class TaskTypeDialog(
             dismiss()
         }
 
-        return AlertDialog.Builder(requireContext())
-            .setView(view)
-            .create()
-    }
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
 
-    override fun onStart() {
-        super.onStart()
-
-        dialog?.window?.apply {
-            setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
-            setLayout(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        }
+        return dialog
     }
 }
 

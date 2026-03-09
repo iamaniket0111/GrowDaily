@@ -11,11 +11,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.R
 import com.anitech.growdaily.data_class.TaskEntity
 
-class TaskForConditionAdapter(
+class TaskForListAdapter(
     private var allTasks: List<TaskEntity>,
     private val selectedTaskIds: MutableSet<String>,
     private val listener: OnItemClickListener
-) : RecyclerView.Adapter<TaskForConditionAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<TaskForListAdapter.ViewHolder>() {
 
     interface OnItemClickListener {
         fun onTaskSelected(taskId: String)
@@ -24,7 +24,7 @@ class TaskForConditionAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.rv_daily_task_item, parent, false)
+            .inflate(R.layout.rv_simple_task_item, parent, false)
         return ViewHolder(view)
     }
 

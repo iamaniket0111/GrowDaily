@@ -9,8 +9,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.anitech.growdaily.R
 import com.anitech.growdaily.adapter.ListCheckAdapter
 import com.anitech.growdaily.data_class.ListEntity
-import com.anitech.growdaily.databinding.BottomSheetTaskListBinding
 import com.anitech.growdaily.database.AppViewModel
+import com.anitech.growdaily.databinding.BottomSheetTaskListBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import java.util.UUID
 

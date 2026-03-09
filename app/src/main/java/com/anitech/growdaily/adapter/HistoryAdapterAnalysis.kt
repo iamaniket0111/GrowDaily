@@ -7,20 +7,14 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.R
 import com.anitech.growdaily.SquareBorderProgressView
-import com.anitech.growdaily.data_class.TaskEntity
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
-class WeekHabitAdapterHaveToCombine(
-    private val task: TaskEntity,
+class HistoryAdapterAnalysis(
+    private var startDate: LocalDate,
     private var completedDates: Set<LocalDate>,
-    private val taskColor: Int
-) : RecyclerView.Adapter<WeekHabitAdapterHaveToCombine.WeekViewHolder>() {
-
-    private val startDate = LocalDate.parse(task.taskAddedDate)
-    private val today = LocalDate.now()
-
-    private val totalDays =
-        java.time.temporal.ChronoUnit.DAYS.between(startDate, today).toInt() + 1
+    private var taskColor: Int
+) : RecyclerView.Adapter<HistoryAdapterAnalysis.WeekViewHolder>() {
 
     class WeekViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val borderProgress =
@@ -35,16 +29,23 @@ class WeekHabitAdapterHaveToCombine(
         return WeekViewHolder(view)
     }
 
-    override fun getItemCount(): Int = totalDays
+    override fun getItemCount(): Int {
+        val today = LocalDate.now()
+        return ChronoUnit.DAYS
+            .between(startDate, today)
+            .toInt() + 1
+    }
+
 
     override fun onBindViewHolder(holder: WeekViewHolder, position: Int) {
 
         val date = startDate.plusDays(position.toLong())
 
         // Day letter (Mon, Tue, etc.)
-        holder.tvDay.text =
-            date.dayOfWeek.name.take(3)
+        val dayLetter =date.dayOfWeek
+            .getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault())
 
+        holder.tvDay.text = dayLetter
         // Date format: d/M
         holder.tvDate.text = "${date.dayOfMonth}/${date.monthValue}"
 
@@ -58,9 +59,32 @@ class WeekHabitAdapterHaveToCombine(
         }
     }
 
-    fun updateCompletedDates(newDates: Set<LocalDate>) {
-        completedDates = newDates
-        notifyDataSetChanged()
+    fun updateData(
+        newStartDate: LocalDate,
+        newCompletedDates: Set<LocalDate>,
+        newColor: Int
+    ) {
+
+        var shouldRefresh = false
+
+        if (startDate != newStartDate) {
+            startDate = newStartDate
+            shouldRefresh = true
+        }
+
+        if (completedDates != newCompletedDates) {
+            completedDates = newCompletedDates
+            shouldRefresh = true
+        }
+
+        if (taskColor != newColor) {
+            taskColor = newColor
+            shouldRefresh = true
+        }
+
+        if (shouldRefresh) {
+            notifyDataSetChanged()
+        }
     }
 }
 

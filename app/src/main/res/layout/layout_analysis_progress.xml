@@ -12,15 +12,17 @@
     android:paddingBottom="16dp">
 
     <!-- Section Title -->
+
     <TextView
-        android:id="@+id/txtProgressTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="PROGRESS"
+        android:textStyle="normal"
         android:layout_marginBottom="12dp"
-        android:text="Progress"
-        android:textColor="?android:textColorPrimary"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        android:textColor="@color/black"
+        android:letterSpacing="0.05"
+    />
+
 
     <!-- Segmented Tabs -->
     <LinearLayout
@@ -29,7 +31,7 @@
         android:layout_height="44dp"
         android:layout_marginBottom="14dp"
         android:background="@drawable/circular_corners"
-        android:backgroundTint="@color/light_gray_25"
+        android:backgroundTint="@color/lightBackground"
         android:orientation="horizontal"
         android:padding="4dp"
         android:weightSum="3">
@@ -44,7 +46,9 @@
             android:text="Week"
             android:textColor="?android:textColorPrimary"
             android:textSize="14sp"
-            android:textStyle="bold" />
+         />
+
+
 
         <TextView
             android:id="@+id/tabMonth"
@@ -55,6 +59,7 @@
             android:text="Month"
             android:textColor="#777777"
             android:textSize="14sp" />
+
 
         <TextView
             android:id="@+id/tabYear"
@@ -78,10 +83,11 @@
 
         <ImageView
             android:id="@+id/btnPrevious"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:contentDescription="Previous"
-            android:padding="6dp"
+            android:background="@drawable/circular"
+            android:backgroundTint="@color/lightBackground"
             android:src="@drawable/ic_left_arrow"
             app:tint="@color/brand_blue" />
 
@@ -92,16 +98,20 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="March 2026"
-            android:textColor="?android:textColorPrimary"
+            android:textColor="#212121"
             android:textSize="16sp"
-            android:textStyle="bold" />
+            android:letterSpacing="-0.02"
+            android:textFontWeight="@integer/material_motion_duration_medium_1"/>
+
+
 
         <ImageView
             android:id="@+id/btnNext"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:contentDescription="Next"
-            android:padding="6dp"
+            android:background="@drawable/circular"
+            android:backgroundTint="@color/lightBackground"
             android:src="@drawable/ic_right_arrow"
             app:tint="@color/brand_blue" />
     </LinearLayout>

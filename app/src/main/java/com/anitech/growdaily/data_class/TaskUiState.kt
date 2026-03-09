@@ -1,17 +1,21 @@
 package com.anitech.growdaily.data_class
 
+import com.anitech.growdaily.enum_class.DateMode
+
 data class TaskUiState(
     val date: String,
-    val tasks: List<TaskEntity> = emptyList(),
+    val tasks: List<TaskUiItem> = emptyList(),
     val completionForDate: Map<String, Int> = emptyMap(),
 
     val dayScore: Float = 0f,
     val weekScore: Float = 0f,
     val monthScore: Float = 0f,
 
-    val weekBarScores: List<DailyScore> = emptyList(),
+    val barScores: List<DailyScore> = emptyList(),
 
-    val isFutureDate: Boolean = false,
-    val isEmpty: Boolean = true
+    val dateMode: DateMode,
+    val isEmpty: Boolean = true,
+    val selectedListId: String?
+
 )
 

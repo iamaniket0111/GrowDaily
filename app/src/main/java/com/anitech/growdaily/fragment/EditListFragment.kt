@@ -11,21 +11,21 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.anitech.growdaily.R
-import com.anitech.growdaily.adapter.TaskForConditionAdapter
+import com.anitech.growdaily.adapter.TaskForListAdapter
 import com.anitech.growdaily.data_class.ListEntity
 import com.anitech.growdaily.database.AppViewModel
-import com.anitech.growdaily.databinding.FragmentManageConditionBinding
+import com.anitech.growdaily.databinding.FragmentEditListBinding
 import java.util.UUID
 
-class ManageConditionFragment : Fragment() {
+class EditListFragment : Fragment() {
 
-    private var _binding: FragmentManageConditionBinding? = null
+    private var _binding: FragmentEditListBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel: AppViewModel by activityViewModels()
-    private val args: ManageConditionFragmentArgs by navArgs()
+    private val args: EditListFragmentArgs by navArgs()
 
-    private lateinit var adapter: TaskForConditionAdapter
+    private lateinit var adapter: TaskForListAdapter
 
     // temp selected state
     private val tempSelectedTaskIds = mutableSetOf<String>()
@@ -38,7 +38,7 @@ class ManageConditionFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentManageConditionBinding.inflate(inflater, container, false)
+        _binding = FragmentEditListBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -54,7 +54,7 @@ class ManageConditionFragment : Fragment() {
 
             binding.defName.text = "New List"
             binding.infoText.text =
-                getString(R.string.condition_message, "New List")
+                getString(R.string.list_message, "New List")
 
         } else {
             // EDIT MODE
@@ -64,14 +64,14 @@ class ManageConditionFragment : Fragment() {
             binding.defName.text = condition.listTitle
             binding.edListName.setText(condition.listTitle)
             binding.infoText.text =
-                getString(R.string.condition_message, condition.listTitle)
+                getString(R.string.list_message, condition.listTitle)
 
             // load existing selected tasks
-//            viewModel.getTaskIdsForList(listId) { ids ->
-//                tempSelectedTaskIds.clear()
-//                tempSelectedTaskIds.addAll(ids)
-//                adapter.notifyDataSetChanged()
-//            }
+            viewModel.getTaskIdsForList(listId) { ids ->
+                tempSelectedTaskIds.clear()
+                tempSelectedTaskIds.addAll(ids)
+                adapter.notifyDataSetChanged()
+            }
 
         }
 
@@ -81,10 +81,10 @@ class ManageConditionFragment : Fragment() {
     }
 
     private fun setupRecycler() {
-        adapter = TaskForConditionAdapter(
+        adapter = TaskForListAdapter(
             allTasks = emptyList(),
             selectedTaskIds = tempSelectedTaskIds,
-            listener = object : TaskForConditionAdapter.OnItemClickListener {
+            listener = object : TaskForListAdapter.OnItemClickListener {
 
                 override fun onTaskSelected(taskId: String) {
                     tempSelectedTaskIds.add(taskId)
@@ -101,9 +101,9 @@ class ManageConditionFragment : Fragment() {
     }
 
     private fun observeAllTasks() {
-//        viewModel.allTasks.observe(viewLifecycleOwner) { tasks ->
-//            adapter.submitList(tasks)
-//        }
+        viewModel.allTasks.observe(viewLifecycleOwner) { tasks ->
+            adapter.submitList(tasks)
+        }
     }
 
     private fun setupSaveButton() {
@@ -119,17 +119,17 @@ class ManageConditionFragment : Fragment() {
                 sortOrder = 0
             )
 
-//            if (isEditMode) {
-//                viewModel.updateList(listEntity)
-//            } else {
-//                viewModel.insertList(listEntity)
-//            }
+            if (isEditMode) {
+                viewModel.updateList(listEntity)
+            } else {
+                viewModel.insertList(listEntity)
+            }
 
             // save task relations
-//            viewModel.saveTasksForList(
-//                listId = listId,
-//                taskIds = tempSelectedTaskIds.toList()
-//            )
+            viewModel.saveTasksForList(
+                listId = listId,
+                taskIds = tempSelectedTaskIds.toList()
+            )
 
 
             Toast.makeText(requireContext(), "Saved successfully", Toast.LENGTH_SHORT).show()

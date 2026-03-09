@@ -1,10 +1,11 @@
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@drawable/circular_corners"
-    android:padding="20dp">
-
+    android:padding="20dp"
+    android:minWidth="320dp">
     <TextView
         android:id="@+id/txtTitle"
         android:layout_width="0dp"
@@ -37,7 +38,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:background="@drawable/bg_option"
-        android:backgroundTint="#0DFFD93D"
+        android:backgroundTint="#0D708CFF"
         android:clickable="true"
         android:focusable="true"
         android:foreground="?attr/selectableItemBackground"
@@ -51,14 +52,14 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:background="@drawable/circular_corners_less"
-            android:backgroundTint="#1AFFD93D">
+            android:backgroundTint="#1A708CFF">
 
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_sun"
-                app:tint="@color/category_yellow" />
+                app:tint="@color/brand_blue" />
         </FrameLayout>
 
         <Space
@@ -80,7 +81,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Repeats every day. Best for habits."
-                android:textColor="@color/category_yellow" />
+                android:textColor="@color/brand_blue" />
         </LinearLayout>
 
 
@@ -93,7 +94,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:background="@drawable/bg_option"
-        android:backgroundTint="#0DC084FC"
+        android:backgroundTint="#0D708CFF"
         android:clickable="true"
         android:focusable="true"
         android:foreground="?attr/selectableItemBackground"
@@ -109,14 +110,14 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:background="@drawable/circular_corners_less"
-            android:backgroundTint="#1AC084FC">
+            android:backgroundTint="#1A708CFF">
 
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_calendar"
-                app:tint="@color/category_purple" />
+                app:tint="@color/brand_blue" />
         </FrameLayout>
 
         <Space
@@ -138,7 +139,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Shown only on selected date."
-                android:textColor="@color/category_purple" />
+                android:textColor="@color/brand_blue" />
         </LinearLayout>
     </LinearLayout>
 
@@ -149,7 +150,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:background="@drawable/bg_option"
-        android:backgroundTint="#0D4ADE80"
+        android:backgroundTint="#0D708CFF"
         android:clickable="true"
         android:focusable="true"
         android:foreground="?attr/selectableItemBackground"
@@ -163,14 +164,14 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:background="@drawable/circular_corners_less"
-            android:backgroundTint="#1A4ADE80">
+            android:backgroundTint="#1A708CFF">
 
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_check"
-                app:tint="@color/category_green" />
+                app:tint="@color/brand_blue" />
         </FrameLayout>
 
         <Space
@@ -193,7 +194,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Stays visible until you complete it."
-                android:textColor="@color/category_green" />
+                android:textColor="@color/brand_blue" />
         </LinearLayout>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -5,10 +5,6 @@
         android:title="Settings"
         app:showAsAction="never" />
 
-    <item
-        android:id="@+id/menu_select_all"
-        android:title="Select All"
-        app:showAsAction="never" />
 
     <item
         android:id="@+id/menu_analyse"
@@ -16,11 +12,6 @@
         android:title="Explore"
         app:iconTint="@color/black"
         app:showAsAction="ifRoom" />
-
-    <item
-        android:id="@+id/menu_condition"
-        android:title="Manage Exclude"
-        app:showAsAction="never" />
 
     <item
         android:id="@+id/menu_reorder_task"

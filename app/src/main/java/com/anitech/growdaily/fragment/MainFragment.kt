@@ -4,18 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AnimationUtils
-import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.widget.ViewPager2
 import com.anitech.growdaily.CommonMethods
-import com.anitech.growdaily.MoodDialog
 import com.anitech.growdaily.R
 import com.anitech.growdaily.adapter.ViewPagerAdapter
-import com.anitech.growdaily.data_class.MoodHistoryItem
 import com.anitech.growdaily.database.AppViewModel
 import com.anitech.growdaily.databinding.FragmentMainBinding
 import com.anitech.growdaily.dialog.TaskTypeDialog
@@ -39,6 +34,20 @@ class MainFragment : Fragment() {
         val adapter = ViewPagerAdapter(requireActivity())
         binding.viewPager.adapter = adapter
 
+        binding.fab.setImageResource(R.drawable.ic_add) // Home icon
+        binding.fab.setOnClickListener {
+            TaskTypeDialog { selectedType ->
+
+                val action = MainFragmentDirections
+                    .actionMainToAddTask(
+                        task = null,
+                        taskType = selectedType.name
+                    )
+
+                findNavController().navigate(action)
+            }.show(parentFragmentManager, "TaskTypeDialog")
+        }
+
         binding.bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.homeFragment -> {
@@ -46,7 +55,7 @@ class MainFragment : Fragment() {
                     true
                 }
 
-                R.id.diaryFragment -> {
+                R.id.repeatTaskFragment -> {
                     binding.viewPager.currentItem = 1
                     true
                 }
@@ -60,62 +69,21 @@ class MainFragment : Fragment() {
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-
-                //fixme: is this below clock of code irrilevant
-                val navOptions = NavOptions.Builder()
-                    .setPopUpTo(R.id.nav_main, inclusive = false) // ya true depending on behavior
-                    .build()
-                //todo: remove above code
-
-                if (position != 0) {
-                    val adapter = binding.viewPager.adapter
-                    if (adapter is ViewPagerAdapter) {
-                        val homeFragment = adapter.getFragment(0)
-                        if (homeFragment is TaskFragment) {
-//                            if (homeFragment.adapter.selectionCount() > 0) {
-//                                homeFragment.adapter.clearSelection()
-//                            }
-                        }
-                    }
-                }
-
                 when (position) {
 
                     0 -> {
                         binding.bottomNav.selectedItemId = R.id.homeFragment
-                        binding.fab.setImageResource(R.drawable.ic_add) // Home icon
-                        binding.fab.setOnClickListener {
-                            TaskTypeDialog { selectedType ->
-
-                                val action = MainFragmentDirections
-                                    .actionMainToAddTask(
-                                        task = null,
-                                        taskType = selectedType.name
-                                    )
-
-                                findNavController().navigate(action)
-                            }.show(parentFragmentManager, "TaskTypeDialog")
-                        }
                     }
 
                     1 -> {
-                        binding.bottomNav.selectedItemId = R.id.diaryFragment
-                        binding.fab.setImageResource(R.drawable.ic_write_diary)
-                        binding.fab.setOnClickListener {
-                            findNavController().navigate(R.id.nav_add_diary)
-                        }
+                        binding.bottomNav.selectedItemId = R.id.repeatTaskFragment
                     }
                 }
             }
         })
 
-        requireActivity().onBackPressedDispatcher.addCallback(
-            viewLifecycleOwner,
-            backPressedCallback
-        )
 
-
-        val today = CommonMethods.getTodayDate()
+        CommonMethods.getTodayDate()
         //val today ="2025-10-09"
 
 //        viewModel.getTodaysMoodLive(today).observe(viewLifecycleOwner) { mood ->
@@ -146,24 +114,6 @@ class MainFragment : Fragment() {
 //        }
     }
 
-    private val backPressedCallback = object : OnBackPressedCallback(true) {
-        override fun handleOnBackPressed() {
-//            if (binding.viewPager.currentItem == 0) {
-//                val taskFragment = (binding.viewPager.adapter as ViewPagerAdapter)
-//                    .getFragment(0) as? TaskFragment
-//                if ((taskFragment?.adapter?.selectionCount() ?: 0) > 0) {
-//                    taskFragment?.adapter?.clearSelection()
-//                } else {
-//                    requireActivity().finish()
-//                }
-//            } else {
-//                if (!findNavController().popBackStack()) {
-//                    requireActivity().finish()
-//                }
-//            }
-
-        }
-    }
 
     fun getCurrentFragment(): Fragment? {
         val adapter = binding.viewPager.adapter as? ViewPagerAdapter ?: return null

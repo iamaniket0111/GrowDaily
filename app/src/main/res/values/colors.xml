@@ -14,6 +14,7 @@
     <color name="background_color2">#E0E0E0</color>
     <color name="high_light_dark">#6C6A6D</color>
     <color name="light_surface">#F1F1F3</color>
+    <color name="lightBackground">#F4F6F8</color>
 
     <!-- Brand / Accent Colors -->
     <color name="brand_blue">#708CFF</color>
@@ -31,4 +32,9 @@
     <!-- Opacity Variants -->
     <color name="category_dark_blue_25">#40708CFF</color>
     <color name="category_dark_blue_10">#E5E5E6</color>
+
+<!--    light icon task-->
+
+    <color name="iconTint">#C2C8E2</color>
+
 </resources>

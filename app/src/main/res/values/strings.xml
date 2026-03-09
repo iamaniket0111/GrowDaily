@@ -18,9 +18,8 @@
     <string name="time">10:26 AM</string>
     <string name="holiday">Holiday</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="condition_message">
-    Select the tasks you want to exclude as they are irrelevant under %1$s.\n
-    If you update the data later, please reapply this condition to reflect the changes.
+    <string name="list_message">
+    Select the tasks you want to add into %1$s.
 </string>
 
     <string name="save_changes">Save Changes</string>

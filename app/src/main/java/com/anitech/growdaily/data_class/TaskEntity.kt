@@ -33,7 +33,11 @@ data class TaskEntity(
     val repeatType: RepeatType?,
     val repeatDays: String?,
 
-    val dailyTargetCount: Int
+    val dailyTargetCount: Int,
+    val manualOrder: Int,
+    val scheduledMinutes: Int?
+
+
 
 ) : Parcelable
 

@@ -96,7 +96,9 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    >
                     <TextView
                         android:id="@+id/taskType"
                         android:layout_width="0dp"
@@ -106,14 +108,67 @@
                         android:textSize="14sp"
                         android:textColor="@color/brand_blue" />
 
-                    <TextView
-                        android:id="@+id/taskWeight"
+                    <LinearLayout
+                        android:id="@+id/weightContainer"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="1/4"
-                        android:textSize="11sp"
-                        android:textColor="@color/default_text_color"
-                        />
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/circular_corners_less"
+                        android:backgroundTint="@color/brand_blue"
+
+                        android:gravity="center"
+
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="4dp">
+
+                        <TextView
+                            android:id="@+id/taskWeight"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1/4"
+                            android:textColor="@color/default_text_color"
+                            android:textSize="12sp" />
+
+                        <ImageView
+                            android:id="@+id/flag"
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_flag_fill"
+                            app:tint="@color/white" />
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:id="@+id/streakContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/circular_corners_less"
+                        android:backgroundTint="@color/lightBackground"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="4dp">
+
+                        <TextView
+                            android:id="@+id/taskStreak"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="@color/default_text_color"
+                            android:textSize="12sp" />
+
+                        <ImageView
+                            android:id="@+id/fire"
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_fire_fill"
+                            app:tint="@color/iconTint" />
+                    </LinearLayout>
+
+
+
+
+
                 </LinearLayout>
 
                 <TextView
@@ -144,6 +199,7 @@
                 android:layout_height="38dp"
                 android:background="@drawable/circular2"
                 android:backgroundTint="@color/brand_blue"
+
                 >
 
                 <ImageView
@@ -165,6 +221,7 @@
                     android:textSize="11sp"
                     android:textColor="@color/default_text_color"
                     android:layout_gravity="center"
+                    android:visibility="gone"
                     />
             </FrameLayout>
 
