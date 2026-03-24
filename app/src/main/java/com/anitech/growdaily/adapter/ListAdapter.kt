@@ -20,7 +20,7 @@ class ListAdapter(
     interface OnItemClickListener {
         fun onItemClick(conditionItem: ListEntity, isSelected: Boolean)
         fun onAllClick(isSelected: Boolean)
-        fun onLongPress(conditionList: List<ListEntity>)
+        fun onLongPress(item: ListEntity)
         fun onNewListClick()
         fun onMangeListClick()
     }
@@ -120,7 +120,7 @@ class ListAdapter(
 
                     holder.itemView.setOnLongClickListener {
                         if (!isSelectingMode) {
-                            listener.onLongPress(conditionList)
+                            listener.onLongPress(item)
                             true
                         } else false
                     }

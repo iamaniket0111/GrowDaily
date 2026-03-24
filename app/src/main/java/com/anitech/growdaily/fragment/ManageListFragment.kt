@@ -108,7 +108,6 @@ class ManageListFragment : Fragment() {
     }
 
     private fun observeLists() {
-
         viewModel.allLists.observe(viewLifecycleOwner) { lists ->
             adapter.updateList(lists)
         }

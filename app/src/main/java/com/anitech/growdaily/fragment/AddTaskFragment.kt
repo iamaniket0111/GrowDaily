@@ -1,5 +1,6 @@
 package com.anitech.growdaily.fragment
 
+import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.res.ColorStateList
@@ -50,7 +51,10 @@ class AddTaskFragment : Fragment() {
     private var selectedRepeatType: String = "EVERY_DAY"
     private var originalStartDate: String = ""
     private var startDateChangeConfirmed = false
+
+    // Guards to prevent observer-driven UI updates from re-firing toggle listeners
     private var ignoreScheduleToggle = false
+    private var ignoreReminderToggle = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -71,7 +75,6 @@ class AddTaskFragment : Fragment() {
 
         binding.deletePauseLayout.deletePauseContainer.visibility =
             if (args.task != null) View.VISIBLE else View.GONE
-
     }
 
     private fun setupActionBar() {
@@ -85,28 +88,24 @@ class AddTaskFragment : Fragment() {
             !args.taskType.isNullOrBlank() -> TaskType.valueOf(args.taskType!!)
             else -> TaskType.DAILY
         }
-        // Setup UI based on task type if needed
     }
 
     private fun setupObservers() {
-        // Observe UI state
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             updateUIFromState(state)
         }
 
-        // Observe lists for updating list summary
         viewModel.allLists.observe(viewLifecycleOwner) {
             updateListSummary()
         }
 
-        // Observe selected list IDs
         viewModel.selectedListIds.observe(viewLifecycleOwner) {
             updateListSummary()
         }
     }
 
     private fun updateUIFromState(state: AddTaskUiState) {
-        // Update text fields only if they're different to avoid infinite loops
+        // Update text fields only if different to avoid infinite loops
         if (binding.titleNoteLayout.editTextTitle.text.toString() != state.title) {
             binding.titleNoteLayout.editTextTitle.setText(state.title)
         }
@@ -115,34 +114,43 @@ class AddTaskFragment : Fragment() {
         }
 
         binding.startDateLayout.txtStartDate.text = state.startDate
-        binding.scheduleReminderLayout.switchSchedule.isChecked = state.isScheduled
-        binding.scheduleReminderLayout.switchReminder.isChecked = state.isReminderEnabled
+
+        // ── Schedule switch ──────────────────────────────────────────────────
+        // Use ignore flags so that programmatic isChecked changes don't fire
+        // the checked-change listeners (which would show dialogs unexpectedly).
+        if (binding.scheduleReminderLayout.switchSchedule.isChecked != state.isScheduled) {
+            ignoreScheduleToggle = true
+            binding.scheduleReminderLayout.switchSchedule.isChecked = state.isScheduled
+            ignoreScheduleToggle = false
+        }
+
+        // ── Reminder switch ──────────────────────────────────────────────────
+        if (binding.scheduleReminderLayout.switchReminder.isChecked != state.isReminderEnabled) {
+            ignoreReminderToggle = true
+            binding.scheduleReminderLayout.switchReminder.isChecked = state.isReminderEnabled
+            ignoreReminderToggle = false
+        }
+
         binding.scheduleReminderLayout.txtScheduleTime.text = state.scheduleTime ?: "--"
         binding.scheduleReminderLayout.txtReminderTime.text = state.reminderTime ?: "--"
 
-        // Update visibility
         binding.scheduleReminderLayout.layoutScheduleTime.visibility =
             if (state.isScheduled) View.VISIBLE else View.GONE
         binding.scheduleReminderLayout.layoutReminder.visibility =
             if (state.isReminderEnabled) View.VISIBLE else View.GONE
 
-        // Update priority text
         binding.taskWeightPriorityLayout.txtPriority.text = "${state.weight.weight}/4"
 
-        // Update icon and color
         updateIconAndColor(state.icon, state.color)
 
-        // Show/hide loading
         binding.progressBarSave.visibility = if (state.isLoading) View.VISIBLE else View.GONE
         binding.buttonSave.isEnabled = !state.isLoading
 
-        // Show error if any
         state.errorMessage?.let {
             Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
             viewModel.clearError()
         }
 
-        // Handle save completion
         if (state.isSaved) {
             Toast.makeText(
                 requireContext(),
@@ -189,6 +197,8 @@ class AddTaskFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
+
+        // ── Start date ───────────────────────────────────────────────────────
         binding.startDateLayout.startDateRow.setOnClickListener {
             if (args.task != null) {
                 showStartDateWarningDialog()
@@ -197,62 +207,54 @@ class AddTaskFragment : Fragment() {
             }
         }
 
+        // ── Schedule toggle ──────────────────────────────────────────────────
         binding.scheduleReminderLayout.switchSchedule.setOnCheckedChangeListener { _, isChecked ->
             if (ignoreScheduleToggle) return@setOnCheckedChangeListener
 
             if (isChecked) {
-                showScheduleTimeOptions()
+                handleScheduleEnabled()
             } else {
                 viewModel.updateSchedule(null, false)
             }
         }
 
+        // ── Reminder toggle ──────────────────────────────────────────────────
         binding.scheduleReminderLayout.switchReminder.setOnCheckedChangeListener { _, isChecked ->
+            if (ignoreReminderToggle) return@setOnCheckedChangeListener
+
             if (isChecked) {
-                showReminderTimeOptions()
+                handleReminderEnabled()
             } else {
                 viewModel.updateReminder(null, false)
             }
         }
 
-        binding.scheduleReminderLayout.checkSameAsSchedule.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked && viewModel.uiState.value?.scheduleTime != null) {
-                val scheduleTime = viewModel.uiState.value?.scheduleTime
-                viewModel.updateReminder(scheduleTime, true)
-                binding.scheduleReminderLayout.txtReminderTime.isEnabled = false
-            } else {
-                binding.scheduleReminderLayout.txtReminderTime.isEnabled = true
-                openTimePicker { time ->
-                    viewModel.updateReminder(time, true)
-                }
-            }
-        }
 
+        // ── Tap on the schedule time label to change time ────────────────────
         binding.scheduleReminderLayout.scheduleRow.setOnClickListener {
             if (binding.scheduleReminderLayout.switchSchedule.isChecked) {
                 openTimePicker { time ->
                     viewModel.updateSchedule(time, true)
-                    if (binding.scheduleReminderLayout.checkSameAsSchedule.isChecked) {
-                        viewModel.updateReminder(time, true)
-                    }
                 }
             }
         }
 
+        // ── Tap on the reminder time label to change time ────────────────────
         binding.scheduleReminderLayout.reminderRow.setOnClickListener {
-            if (binding.scheduleReminderLayout.switchReminder.isChecked &&
-                !binding.scheduleReminderLayout.checkSameAsSchedule.isChecked
-            ) {
+            if (binding.scheduleReminderLayout.switchReminder.isChecked) {
                 openTimePicker { time ->
                     viewModel.updateReminder(time, true)
                 }
             }
         }
 
+        // ── Other rows ───────────────────────────────────────────────────────
         binding.addToListLayout.addToListRow.setOnClickListener {
             val currentIds = viewModel.selectedListIds.value ?: emptyList()
             TaskListBottomSheet(
-                preselectedIds = currentIds
+                allListsLiveData = viewModel.allLists,
+                preselectedIds = currentIds,
+                onInsertList = { list -> viewModel.insertList(list) }
             ) { ids ->
                 viewModel.updateSelectedLists(ids)
             }.show(parentFragmentManager, "TaskListBottomSheet")
@@ -260,9 +262,7 @@ class AddTaskFragment : Fragment() {
 
         binding.taskWeightPriorityLayout.priorityContainer.setOnClickListener {
             val currentWeight = viewModel.uiState.value?.weight ?: TaskWeight.VERY_LOW
-            TaskPriorityBottomSheet(
-                selectedWeight = currentWeight
-            ) { weight ->
+            TaskPriorityBottomSheet(selectedWeight = currentWeight) { weight ->
                 viewModel.updateWeight(weight)
             }.show(parentFragmentManager, "TaskPriorityBottomSheet")
         }
@@ -280,7 +280,6 @@ class AddTaskFragment : Fragment() {
         }
 
         binding.deletePauseLayout.deleteRow.setOnClickListener {
-
             val task = args.task ?: return@setOnClickListener
             val currentDate = CommonMethods.getTodayDate()
 
@@ -316,63 +315,121 @@ class AddTaskFragment : Fragment() {
         }
     }
 
-    private fun showScheduleTimeOptions() {
-        val options = mutableListOf("Set time now")
+    // ── Schedule/Reminder enable helpers ────────────────────────────────────
+
+    /**
+     * Called when the user manually turns ON the Schedule switch.
+     *
+     * • If reminder is already set  → ask "use same time?" (non-cancellable dialog).
+     * • Otherwise                   → open TimePicker directly.
+     *
+     * If the user dismisses without choosing (back press is the only escape since the
+     * dialog is not cancellable), the switch is turned back off cleanly.
+     */
+    private fun handleScheduleEnabled() {
         val currentState = viewModel.uiState.value
+        val reminderTime = currentState?.reminderTime
 
-        if (currentState?.isReminderEnabled == true && currentState.reminderTime != null) {
-            options.add("Use reminder time (${currentState.reminderTime})")
+        if (currentState?.isReminderEnabled == true && reminderTime != null) {
+            // Offer "use reminder time" but force a decision — not cancellable by touch-outside
+            val dialog =   androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Schedule time")
+                .setMessage("Use the same time as your reminder ($reminderTime)?")
+                .setCancelable(false)                       // must tap a button
+                .setPositiveButton("Use same ($reminderTime)") { _, _ ->
+                    viewModel.updateSchedule(reminderTime, true)
+                }
+                .setNegativeButton("Pick different time") { _, _ ->
+                    openTimePickerOrRevertSchedule()
+                }
+                .show()
+
+            val primaryColor = ContextCompat.getColor(requireContext(), R.color.brand_blue)
+
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(primaryColor)
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.setTextColor(primaryColor)
+        } else {
+            // No reminder set — go straight to TimePicker
+            openTimePickerOrRevertSchedule()
         }
-        options.add("Cancel")
+    }
 
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle("Enable Schedule")
-            .setItems(options.toTypedArray()) { _, which ->
-                when (options[which]) {
-                    "Set time now" -> {
-                        openTimePicker { time ->
-                            viewModel.updateSchedule(time, true)
-                            if (binding.scheduleReminderLayout.checkSameAsSchedule.isChecked) {
-                                viewModel.updateReminder(time, true)
-                            }
-                        }
-                    }
+    /**
+     * Called when the user manually turns ON the Reminder switch.
+     *
+     * • If schedule is already set  → ask "use same time?" (non-cancellable dialog).
+     * • Otherwise                   → open TimePicker directly.
+     */
+    private fun handleReminderEnabled() {
+        val currentState = viewModel.uiState.value
+        val scheduleTime = currentState?.scheduleTime
 
-                    else -> {
-                        if (options[which].startsWith("Use reminder") &&
-                            currentState?.reminderTime != null
-                        ) {
-                            viewModel.updateSchedule(currentState.reminderTime, true)
-                            if (binding.scheduleReminderLayout.checkSameAsSchedule.isChecked) {
-                                viewModel.updateReminder(currentState.reminderTime, true)
-                            }
-                        } else {
-                            // Cancel - turn switch off
-                            ignoreScheduleToggle = true
-                            binding.scheduleReminderLayout.switchSchedule.isChecked = false
-                            ignoreScheduleToggle = false
-                            viewModel.updateSchedule(null, false)
-                        }
-                    }
+        if (currentState?.isScheduled == true && scheduleTime != null) {
+            val dialog =  androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Reminder time")
+                .setMessage("Use the same time as your schedule ($scheduleTime)?")
+                .setCancelable(false)
+                .setPositiveButton("Use same ($scheduleTime)") { _, _ ->
+                    viewModel.updateReminder(scheduleTime, true)
+                }
+                .setNegativeButton("Pick different time") { _, _ ->
+                    openTimePickerOrRevertReminder()
+                }
+                .show()
+
+            val primaryColor = ContextCompat.getColor(requireContext(), R.color.brand_blue)
+
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(primaryColor)
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.setTextColor(primaryColor)
+        } else {
+            openTimePickerOrRevertReminder()
+        }
+    }
+
+    /**
+     * Opens the TimePicker for schedule time.
+     * If the user cancels the picker (taps Cancel), the switch is reverted to OFF
+     * so we never end up with isScheduled=true but no time chosen.
+     */
+    private fun openTimePickerOrRevertSchedule() {
+        var timePicked = false
+        openTimePicker(
+            onDismiss = {
+                if (!timePicked) {
+                    ignoreScheduleToggle = true
+                    binding.scheduleReminderLayout.switchSchedule.isChecked = false
+                    ignoreScheduleToggle = false
+                    viewModel.updateSchedule(null, false)
                 }
             }
-            .show()
-    }
-
-    private fun showReminderTimeOptions() {
-        val currentState = viewModel.uiState.value
-
-        if (currentState?.isScheduled == true && currentState.scheduleTime != null) {
-            binding.scheduleReminderLayout.checkSameAsSchedule.visibility = View.VISIBLE
-            binding.scheduleReminderLayout.checkSameAsSchedule.isChecked = true
-            viewModel.updateReminder(currentState.scheduleTime, true)
-        } else {
-            binding.scheduleReminderLayout.checkSameAsSchedule.visibility = View.GONE
-            openTimePicker { time ->
-                viewModel.updateReminder(time, true)
-            }
+        ) { time ->
+            timePicked = true
+            viewModel.updateSchedule(time, true)
         }
     }
+
+    /**
+     * Opens the TimePicker for reminder time.
+     * If the user cancels the picker, the switch is reverted to OFF.
+     */
+    private fun openTimePickerOrRevertReminder() {
+        var timePicked = false
+        openTimePicker(
+            onDismiss = {
+                if (!timePicked) {
+                    ignoreReminderToggle = true
+                    binding.scheduleReminderLayout.switchReminder.isChecked = false
+                    ignoreReminderToggle = false
+                    viewModel.updateReminder(null, false)
+                }
+            }
+        ) { time ->
+            timePicked = true
+            viewModel.updateReminder(time, true)
+        }
+    }
+
+    // ── Date / Time pickers ──────────────────────────────────────────────────
 
     private fun showStartDateWarningDialog() {
         androidx.appcompat.app.AlertDialog.Builder(requireContext())
@@ -419,7 +476,18 @@ class AddTaskFragment : Fragment() {
         datePickerDialog.show()
     }
 
-    private fun openTimePicker(onSelected: (String) -> Unit) {
+    /**
+     * Opens a TimePickerDialog and calls back on selection or dismissal.
+     *
+     * @param onDismiss  called when the dialog is dismissed for any reason (including
+     *                   after [onSelected] fires — guard with a flag if needed).
+     * @param onSelected called with the formatted time string when the user confirms.
+     *                   Placed last so it can be used as a trailing lambda at call sites.
+     */
+    private fun openTimePicker(
+        onDismiss: (() -> Unit)? = null,
+        onSelected: (String) -> Unit
+    ) {
         val cal = Calendar.getInstance()
 
         val dialog = TimePickerDialog(
@@ -441,8 +509,14 @@ class AddTaskFragment : Fragment() {
             dialog.getButton(TimePickerDialog.BUTTON_NEGATIVE)?.setTextColor(color)
         }
 
+        if (onDismiss != null) {
+            dialog.setOnDismissListener { onDismiss() }
+        }
+
         dialog.show()
     }
+
+    // ── List summary ─────────────────────────────────────────────────────────
 
     private fun updateListSummary() {
         val selectedIds = viewModel.selectedListIds.value ?: emptyList()
@@ -463,28 +537,26 @@ class AddTaskFragment : Fragment() {
         }
     }
 
+    // ── Save ─────────────────────────────────────────────────────────────────
+
     private fun saveTask() {
         val state = viewModel.uiState.value ?: return
 
-        // Validate
         if (state.title.isBlank()) {
             Toast.makeText(requireContext(), "Please enter a task title", Toast.LENGTH_SHORT).show()
             return
         }
 
         if (state.isScheduled && state.scheduleTime == null) {
-            Toast.makeText(requireContext(), "Please select schedule time", Toast.LENGTH_SHORT)
-                .show()
+            Toast.makeText(requireContext(), "Please select schedule time", Toast.LENGTH_SHORT).show()
             return
         }
 
         if (state.isReminderEnabled && state.reminderTime == null) {
-            Toast.makeText(requireContext(), "Please select reminder time", Toast.LENGTH_SHORT)
-                .show()
+            Toast.makeText(requireContext(), "Please select reminder time", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Save task
         viewModel.saveTask(
             isEdit = args.task != null,
             existingId = args.task?.id,
@@ -495,7 +567,6 @@ class AddTaskFragment : Fragment() {
             }
         }
 
-        // Handle completion deletion if start date changed
         if (args.task != null && startDateChangeConfirmed &&
             state.startDate != originalStartDate
         ) {

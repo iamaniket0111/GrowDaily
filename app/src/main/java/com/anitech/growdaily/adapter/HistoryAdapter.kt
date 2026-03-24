@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.R
 import com.anitech.growdaily.SquareBorderProgressView
@@ -13,21 +14,21 @@ import java.time.LocalDate
 class HistoryAdapter(
     private val taskId: String,
     private val taskAddedDate: LocalDate,
-    private val completedDates: Set<LocalDate>,
-    private val taskColor: Int,
+    private var completedDates: Map<LocalDate, Int>,
+    private var taskColor: Int,
     private val weekList: List<WeekHabit>,
     private val listener: OnItemClickListener
-) : RecyclerView.Adapter<HistoryAdapter.WeekViewHolder>()  {
-    private var completedTaskIds: Set<String> = emptySet()
-    private lateinit var dailyTaskId:String
+) : RecyclerView.Adapter<HistoryAdapter.WeekViewHolder>() {
 
     interface OnItemClickListener {
         fun onTaskCompleteClick(taskId: String, date: String)
     }
-     class WeekViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val borderProgress =  itemView.findViewById<SquareBorderProgressView>(R.id.borderProgress)
-        val tvDate = itemView.findViewById<TextView>(R.id.tvDate)
-        val tvDay = itemView.findViewById<TextView>(R.id.tvDay)
+
+    class WeekViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val borderProgress: SquareBorderProgressView =
+            itemView.findViewById(R.id.borderProgress)
+        val tvDate: TextView = itemView.findViewById(R.id.tvDate)
+        val tvDay: TextView = itemView.findViewById(R.id.tvDay)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WeekViewHolder {
@@ -40,7 +41,6 @@ class HistoryAdapter(
         val item = weekList[position]
         val date = item.date
 
-        // Hide dates before taskAddedDate
         if (date.isBefore(taskAddedDate)) {
             holder.itemView.visibility = View.INVISIBLE
             return
@@ -48,44 +48,53 @@ class HistoryAdapter(
             holder.itemView.visibility = View.VISIBLE
         }
 
-        // tvDay
         holder.tvDay.text = item.dayLetter
-
-        // tvDate -> d/M
         holder.tvDate.text = "${date.dayOfMonth}/${date.monthValue}"
-
-        // tvDate color = task color
         holder.tvDate.setTextColor(taskColor)
 
-        // progress logic
-        val isCompleted = completedDates.contains(date)
+        val isCompleted = completedDates.containsKey(date)
         holder.borderProgress.apply {
-           // setColor(taskColor)
             setProgress(if (isCompleted) 100 else 0)
+            setProgressColor(taskColor)
         }
-        holder.borderProgress.setProgressColor(taskColor)
-//        var progress =0
-//        holder.itemView.setOnClickListener {
-//            if (progress < 100) {
-//                progress += 10
-//                holder.borderProgress.setProgress(progress)
-//            }
-//        }
 
         holder.itemView.setOnClickListener {
-            listener.onTaskCompleteClick(
-                taskId,
-                date.toString() // yyyy-MM-dd
-            )
+            listener.onTaskCompleteClick(taskId, date.toString())
         }
     }
 
     override fun getItemCount(): Int = weekList.size
+
+    /**
+     * Called when only completedDates or color changed for the SAME task.
+     * Uses DiffUtil so only the cells that flipped are redrawn — no full
+     * notifyDataSetChanged() needed.
+     */
+    fun updateData(completedDates: Map<LocalDate, Int>, taskColor: Int) {
+        val oldCompleted = this.completedDates
+        val oldColor = this.taskColor
+
+        this.completedDates = completedDates
+        this.taskColor = taskColor
+
+        // If color changed every visible cell needs a redraw.
+        if (oldColor != taskColor) {
+            notifyItemRangeChanged(0, itemCount)
+            return
+        }
+
+        // Color didn't change — only redraw cells whose completion state flipped.
+        val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+            override fun getOldListSize() = weekList.size
+            override fun getNewListSize() = weekList.size
+
+            override fun areItemsTheSame(oldPos: Int, newPos: Int) = oldPos == newPos
+
+            override fun areContentsTheSame(oldPos: Int, newPos: Int): Boolean {
+                val date = weekList[oldPos].date
+                return oldCompleted.contains(date) == completedDates.containsKey(date)
+            }
+        })
+        diff.dispatchUpdatesTo(this)
+    }
 }
-/*what to do
-        * we have to show data from task added date
-        * set color of task to tvDate text
-        * if completed date containes date then set progress to 100 else 0
-        * text of tvDate set in the formate 2/3 2 is day and 3 is month
-        * text of tvDay is the first letter of week day in capital ex. "M" for monday
-        * i will handle click listner logic in fragment only provide task id and date in yyyy-MM-dd formate*/

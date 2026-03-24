@@ -106,6 +106,10 @@ class TaskFragment : Fragment() {
 
         viewModel.allLists.observe(viewLifecycleOwner) {
             listAdapter.setData(it)
+            val currentId = viewModel.selectedListId.value
+            if (currentId != null) {
+                viewModel.setSelectedList(null)
+            }
         }
     }
 
@@ -216,10 +220,10 @@ class TaskFragment : Fragment() {
                     viewModel.setSelectedList(null)
                 }
 
-                override fun onLongPress(conditionList: List<ListEntity>) {
+                override fun onLongPress(item: ListEntity) {
                     // TODO: have to show manage list option, better bottom shit dialog
-                    Toast.makeText(requireContext(), "manage this list item", Toast.LENGTH_SHORT)
-                        .show()
+                    val bundle = bundleOf("ConditionEntity" to item)
+                    findNavController().navigate(R.id.editList, bundle)
                 }
 
                 override fun onNewListClick() {

@@ -1,5 +1,6 @@
 package com.anitech.growdaily.adapter
 
+import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import androidx.transition.Visibility
 import com.anitech.growdaily.R
 import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.databinding.RvTaskItemBinding
@@ -47,6 +49,7 @@ class TaskReorderAdapter(
         private val binding: RvTaskItemBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
+        @SuppressLint("ClickableViewAccessibility")
         fun bind(task: TaskEntity) {
 
             binding.taskTitle.text = task.title
@@ -61,11 +64,19 @@ class TaskReorderAdapter(
                     ContextCompat.getColor(binding.root.context, color.resId)
                 )
 
-            binding.taskWeight.text =
-                binding.root.context.getString(
-                    R.string.task_weight_prefix,
-                    task.weight.weight
-                )
+            binding.weightContainer.visibility = View.GONE
+            binding.streakContainer.visibility = View.GONE
+            binding.doneContainer.backgroundTintList = ColorStateList.valueOf(
+                ContextCompat.getColor(binding.root.context, color.resId)
+            )
+
+            binding.taskType.setTextColor(ColorStateList.valueOf(
+                ContextCompat.getColor(binding.root.context, color.resId)
+            ))
+
+
+            binding.taskType.text = itemView.context.getString(task.taskType.labelRes)
+
 
             // 🔥 IMPORTANT CHANGE
             if (task.isScheduled) {

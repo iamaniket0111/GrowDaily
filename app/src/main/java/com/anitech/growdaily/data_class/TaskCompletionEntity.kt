@@ -11,3 +11,4 @@ data class TaskCompletionEntity(
     val date: String,
     val count: Int = 0
 )
+//fixme beeter add task type into too to fetch only repeat tasks

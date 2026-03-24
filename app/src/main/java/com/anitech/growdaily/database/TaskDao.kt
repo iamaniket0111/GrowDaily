@@ -55,6 +55,9 @@ interface TaskDao {
     @Query("SELECT * FROM daily_tasks")
     fun getAllTasksFlow(): Flow<List<TaskEntity>>
 
+    @Query("SELECT * FROM daily_tasks WHERE taskType = 'DAILY'")
+    fun getRepeatTasksFlow(): Flow<List<TaskEntity>>
+
     //to get ordered data
     @Query("SELECT MAX(manualOrder) FROM daily_tasks")
     suspend fun getMaxManualOrder(): Int?

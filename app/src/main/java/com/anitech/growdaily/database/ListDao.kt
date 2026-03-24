@@ -47,4 +47,14 @@ interface ListDao {
     @Update
     suspend fun updateLists(lists: List<ListEntity>)
 
+
+    @Delete
+    suspend fun deleteList(list: ListEntity)
+
+    @Query("DELETE FROM list_task_cross_ref WHERE listId = :listId")
+    suspend fun deleteAllTaskRefsForList(listId: String)
+
+    @Query("DELETE FROM list_task_cross_ref WHERE taskId = :taskId")
+    suspend fun removeTaskFromAllLists(taskId: String)
+
 }

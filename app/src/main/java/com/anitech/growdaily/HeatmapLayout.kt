@@ -1,223 +1,216 @@
 package com.anitech.growdaily
 
 import android.content.Context
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
 import android.util.AttributeSet
-import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import java.time.DayOfWeek
 import java.time.LocalDate
- import kotlin.math.ceil
 
+/**
+ * HeatmapLayout — fully Canvas-based.
+ *
+ * Zero child Views are inflated. Every cell is drawn directly onto the Canvas,
+ * which means no layout inflation, no measure/layout passes for hundreds of
+ * children, and no main-thread jank when binding.
+ *
+ * Public API is identical to the old version:
+ *   setDateRange(start, end)   — optional, defaults to 1 year back → today
+ *   bindHeatmap(taskAddedDate, completedDates, activeColor)
+ */
 class HeatmapLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null
-) : ViewGroup(context, attrs) {
+) : View(context, attrs) {
 
+    // ── sizing ───────────────────────────────────────────────────────────────
+    private val boxSize = dp(9f)
+    private val boxGap  = dp(1f)
+    private val monthGap = dp(6f)
+    private val cornerRadius = dp(2f)
+
+    private val cellStep get() = boxSize + boxGap   // distance from cell origin to next
     private val rows = 7
+
+
+    /*
+    *     private val rows = 7
     private val boxGap = dp(1)
-    private val monthGap = dp(6)
+    private val monthGap = dp(6)*/
 
+    // ── state ────────────────────────────────────────────────────────────────
     private var startDate: LocalDate = LocalDate.now().minusYears(1)
-    private var endDate: LocalDate = LocalDate.now()
+    private var endDate: LocalDate   = LocalDate.now()
 
+    /** Flat list of (date | null) mirroring week-major order, null = padding cell */
     private val cells = mutableListOf<LocalDate?>()
 
+    // colours per cell index — set by bindHeatmap()
+    private val cellColors = mutableMapOf<Int, Int>()
+
+    private var activeColor  = Color.parseColor("#4CAF50")
+    private var lightColor   = lightenColor(activeColor)
+    private val grayColor    = Color.parseColor("#E0E0E0")
+
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val rect  = RectF()
+
+    // ── computed layout ──────────────────────────────────────────────────────
+    /** x-offset at the start of each column index (week column) */
+    private val columnX = mutableListOf<Float>()
+    private var measuredW = 0
+    private var measuredH = 0
+
     init {
-        setDateRange(endDate.minusYears(1), endDate)
+        setDateRange(LocalDate.now().minusYears(1), LocalDate.now())
     }
 
-    // --------------------------------------------------
-    // PUBLIC API
-    // --------------------------------------------------
+    // ── public API ───────────────────────────────────────────────────────────
+
     fun setDateRange(start: LocalDate, end: LocalDate) {
         startDate = start
-        endDate = end
-
-        cells.clear()
-        removeAllViews()
-
-        var monthCursor = startDate.withDayOfMonth(1)
-
-        while (!monthCursor.isAfter(endDate)) {
-
-            val monthStart = monthCursor
-            val monthEnd = monthCursor.withDayOfMonth(monthCursor.lengthOfMonth())
-
-            val effectiveStart = maxOf(monthStart, startDate)
-            val effectiveEnd = minOf(monthEnd, endDate)
-
-            val weekStart = monthStart.with(DayOfWeek.MONDAY)
-            val weekEnd = monthEnd.with(DayOfWeek.SUNDAY)
-
-            var cursor = weekStart
-            while (!cursor.isAfter(weekEnd)) {
-
-                val visible =
-                    !cursor.isBefore(effectiveStart) &&
-                            !cursor.isAfter(effectiveEnd)
-
-                cells.add(if (visible) cursor else null)
-
-                addView(
-                    LayoutInflater.from(context)
-                        .inflate(R.layout.item_box, this, false).apply {
-                            visibility = if (visible) View.VISIBLE else View.INVISIBLE
-                        }
-                )
-
-                cursor = cursor.plusDays(1)
-            }
-
-            monthCursor = monthCursor.plusMonths(1)
-        }
-
-        requestLayout()
-        invalidate()
+        endDate   = end
+        rebuildCells()
     }
-
-    // --------------------------------------------------
-    // MEASURE (FIXED 🔥)
-    // --------------------------------------------------
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        if (childCount == 0) {
-            setMeasuredDimension(0, 0)
-            return
-        }
-
-        val sample = getChildAt(0)
-        measureChild(sample, widthMeasureSpec, heightMeasureSpec)
-
-        val boxWidth = sample.measuredWidth + boxGap
-        val boxHeight = sample.measuredHeight + boxGap
-
-        val lastVisibleIndex = cells.indexOfLast { it != null }
-        if (lastVisibleIndex == -1) {
-            setMeasuredDimension(0, 0)
-            return
-        }
-
-        // Calculate actual weeks needed for visible cells
-        val totalWeeks = ceil((lastVisibleIndex + 1) / 7.0).toInt()
-
-        // Calculate month gaps between visible cells
-        var monthGapTotal = 0
-        for (i in 0 until lastVisibleIndex) {
-            val curr = cells[i]
-            val next = cells[i + 1]
-            if (curr != null && next != null && curr.monthValue != next.monthValue) {
-                monthGapTotal += monthGap
-            }
-        }
-
-        val width = totalWeeks * boxWidth + monthGapTotal
-        val height = rows * boxHeight
-
-        setMeasuredDimension(width, height)
-
-        // Measure all children
-        for (i in 0 until childCount) {
-            measureChild(getChildAt(i), widthMeasureSpec, heightMeasureSpec)
-        }
-    }
-    // --------------------------------------------------
-    // LAYOUT (trim trailing space)
-    // --------------------------------------------------
-    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        if (childCount == 0) return
-
-        val sample = getChildAt(0)
-        val boxWidth = sample.measuredWidth + boxGap
-        val boxHeight = sample.measuredHeight + boxGap
-
-        val lastVisibleIndex = cells.indexOfLast { it != null }
-        if (lastVisibleIndex == -1) return
-
-        var xOffset = 0
-        var weekIndex = 0
-        var dayIndexInWeek = 0
-
-        for (i in 0..lastVisibleIndex) {
-            // Calculate position
-            val left = weekIndex * boxWidth + xOffset
-            val top = dayIndexInWeek * boxHeight
-
-            // Layout only visible views
-            val view = getChildAt(i)
-            if (cells[i] != null) {
-                view.layout(
-                    left,
-                    top,
-                    left + view.measuredWidth,
-                    top + view.measuredHeight
-                )
-            }
-
-            // Update indices
-            dayIndexInWeek++
-            if (dayIndexInWeek == 7) {
-                dayIndexInWeek = 0
-                weekIndex++
-            }
-
-            // Add month gap if needed (but only if there are more visible cells)
-            if (i < lastVisibleIndex) {
-                val curr = cells[i]
-                val next = cells[i + 1]
-                if (curr != null && next != null && curr.monthValue != next.monthValue) {
-                    xOffset += monthGap
-                }
-            }
-        }
-
-        // Hide all views after lastVisibleIndex
-        for (i in lastVisibleIndex + 1 until childCount) {
-            getChildAt(i).visibility = View.GONE
-        }
-    }
-    private fun dp(value: Int): Int =
-        (value * resources.displayMetrics.density).toInt()
 
     fun bindHeatmap(
         taskAddedDate: LocalDate,
         completedDates: Set<LocalDate>,
         activeColor: Int
     ) {
+        this.activeColor = activeColor
+        this.lightColor  = lightenColor(activeColor)
 
-        val lightTaskColor = lightenColor(activeColor)
+        cellColors.clear()
         for (i in cells.indices) {
-
             val date = cells[i] ?: continue
-            val box = getChildAt(i)
+            cellColors[i] = when {
+                date.isBefore(taskAddedDate)    -> grayColor
+                completedDates.contains(date)   -> activeColor
+                else                            -> lightColor
+            }
+        }
+        invalidate()   // single draw call — no layout needed
+    }
 
-            when {
-                date.isBefore(taskAddedDate) -> {
-                    box.setBackgroundColor(Color.parseColor("#E0E0E0")) // light gray
-                }
+    // ── internals ────────────────────────────────────────────────────────────
 
-                completedDates.contains(date) -> {
-                    box.setBackgroundColor(activeColor) // task color
-                }
+    private fun rebuildCells() {
+        cells.clear()
+        columnX.clear()
 
-                else -> {
-                    box.setBackgroundColor(lightTaskColor)  // light green
+        var monthCursor = startDate.withDayOfMonth(1)
+        while (!monthCursor.isAfter(endDate)) {
+            val monthStart  = monthCursor
+            val monthEnd    = monthCursor.withDayOfMonth(monthCursor.lengthOfMonth())
+            val effectiveStart = maxOf(monthStart, startDate)
+            val effectiveEnd   = minOf(monthEnd,   endDate)
+
+            val weekStart = monthStart.with(DayOfWeek.MONDAY)
+            val weekEnd   = monthEnd.with(DayOfWeek.SUNDAY)
+
+            var cursor = weekStart
+            while (!cursor.isAfter(weekEnd)) {
+                val visible = !cursor.isBefore(effectiveStart) && !cursor.isAfter(effectiveEnd)
+                cells.add(if (visible) cursor else null)
+                cursor = cursor.plusDays(1)
+            }
+            monthCursor = monthCursor.plusMonths(1)
+        }
+
+        recomputeLayout()
+        requestLayout()
+        invalidate()
+    }
+
+    /** Pre-compute the x position of every column so onDraw is pure arithmetic. */
+    private fun recomputeLayout() {
+        columnX.clear()
+        if (cells.isEmpty()) return
+
+        val lastVisible = cells.indexOfLast { it != null }
+        if (lastVisible == -1) return
+
+        var x = 0f
+        var dayInWeek = 0
+
+        for (i in 0..lastVisible) {
+            if (dayInWeek == 0) {
+                columnX.add(x)
+            }
+            dayInWeek++
+            if (dayInWeek == rows) {
+                dayInWeek = 0
+
+                // month-gap: if the next visible cell is in a new month, add gap
+                if (i < lastVisible) {
+                    val curr = cells[i]
+                    val next = cells.subList(i + 1, minOf(i + 8, cells.size))
+                        .firstOrNull { it != null }
+                    if (curr != null && next != null && curr.monthValue != next.monthValue) {
+                        x += cellStep + monthGap
+                    } else {
+                        x += cellStep
+                    }
                 }
             }
         }
+
+        val totalCols = columnX.size
+        measuredW = if (totalCols == 0) 0 else (columnX.last() + boxSize).toInt()
+        measuredH = (rows * cellStep - boxGap).toInt()
     }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        setMeasuredDimension(measuredW, measuredH)
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+        if (cells.isEmpty() || columnX.isEmpty()) return
+
+        val lastVisible = cells.indexOfLast { it != null }
+        if (lastVisible == -1) return
+
+        var colIdx    = 0
+        var dayInWeek = 0
+
+        for (i in 0..lastVisible) {
+            val date = cells[i]
+
+            if (date != null) {
+                val x = columnX[colIdx]
+                val y = dayInWeek * cellStep
+
+                paint.color = cellColors[i] ?: lightColor
+                rect.set(x, y, x + boxSize, y + boxSize)
+                canvas.drawRoundRect(rect, cornerRadius, cornerRadius, paint)
+            }
+
+            dayInWeek++
+            if (dayInWeek == rows) {
+                dayInWeek = 0
+                colIdx++
+            }
+        }
+    }
+
+    // ── helpers ───────────────────────────────────────────────────────────────
+
+    private fun dp(value: Float): Float =
+        value * resources.displayMetrics.density
 
     private fun lightenColor(color: Int, factor: Float = 0.6f): Int {
         val r = Color.red(color)
         val g = Color.green(color)
         val b = Color.blue(color)
-
-        val newR = (r + (255 - r) * factor).toInt()
-        val newG = (g + (255 - g) * factor).toInt()
-        val newB = (b + (255 - b) * factor).toInt()
-
-        return Color.rgb(newR, newG, newB)
+        return Color.rgb(
+            (r + (255 - r) * factor).toInt(),
+            (g + (255 - g) * factor).toInt(),
+            (b + (255 - b) * factor).toInt()
+        )
     }
-
 }

@@ -44,6 +44,9 @@ class AppRepository(
     fun getAllTasksFlow(): Flow<List<TaskEntity>> =
         taskDao.getAllTasksFlow()
 
+    fun getRepeatTasksFlow(): Flow<List<TaskEntity>> =
+        taskDao.getRepeatTasksFlow()
+
 
     suspend fun updateTasks(tasks: List<TaskEntity>) = taskDao.updateTasks(tasks)
 
@@ -101,6 +104,9 @@ class AppRepository(
     suspend fun resetCompletion(taskId: String, date: String) {
         completionDao.delete(taskId, date)
     }
+
+    fun getAllCompletionsFlow(): Flow<List<TaskCompletionEntity>> =
+        completionDao.getAllCompletionsFlow()
 
 
     suspend fun removeAllCompletionsForDate(taskId: String, date: String) {
@@ -302,6 +308,16 @@ class AppRepository(
     suspend fun getListIdsForTask(taskId: String): List<String> {
         return listDao.getListIdsForTask(taskId)
     }
+
+    suspend fun deleteList(list: ListEntity) {
+        listDao.deleteAllTaskRefsForList(list.id)   // clean up cross-ref rows first
+        listDao.deleteList(list)
+    }
+
+    suspend fun removeTaskFromAllLists(taskId: String) {
+        listDao.removeTaskFromAllLists(taskId)
+    }
+
 
 
     //log

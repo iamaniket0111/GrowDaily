@@ -176,13 +176,12 @@ class AddTaskViewModel(
 
 
     private suspend fun updateTaskLists(taskId: String, listIds: List<String>) {
-        // First, remove from all lists
-        val allLists = repository.getAllLists().value ?: emptyList()
-        allLists.forEach { list ->
-            repository.removeTaskFromList(list.id, taskId)
-        }
+        // Remove all existing list memberships for this task in one shot.
+        // This avoids relying on LiveData.value (which can be null inside a coroutine)
+        // and prevents UNIQUE constraint crashes on re-insert.
+        repository.removeTaskFromAllLists(taskId)
 
-        // Then add to selected lists
+        // Then add to the newly selected lists
         listIds.forEach { listId ->
             repository.addTaskToList(listId, taskId)
         }
@@ -201,9 +200,11 @@ class AddTaskViewModel(
     fun clearError() {
         _uiState.value = _uiState.value?.copy(errorMessage = null)
     }
-
-
     //delete task
+
+    fun insertList(list: ListEntity) = viewModelScope.launch {
+        repository.insertList(list)
+    }
 
     fun deleteTask(task: TaskEntity) = viewModelScope.launch {
         repository.deleteTask(task)

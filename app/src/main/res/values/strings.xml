@@ -28,4 +28,10 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
+    <!-- Task Types -->
+    <string name="task_type_daily">Daily</string>
+    <string name="task_type_today">Today</string>
+    <string name="task_type_until_done">Until Done</string>
+
+
 </resources>

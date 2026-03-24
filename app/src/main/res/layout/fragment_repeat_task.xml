@@ -3,14 +3,52 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragment.RepeatTaskFragment"
-    >
+    tools:context=".fragment.RepeatTaskFragment">
 
-    <!-- TODO: Update blank fragment layout -->
+    <!-- Main list -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/analysisListRv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="8dp"/>
+        android:paddingBottom="8dp"
+        android:visibility="gone" />
+
+    <!-- Empty state — shown when list is loaded but empty -->
+
+    <FrameLayout
+        android:id="@+id/emptyState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <include
+            layout="@layout/no_day_task_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+    </FrameLayout>
+
+
+    <!-- Loading state — shown until first data arrives -->
+    <LinearLayout
+        android:id="@+id/loadingState"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Loading tasks…"
+            android:textSize="14sp"
+            android:textColor="@color/black" />
+
+    </LinearLayout>
 
 </FrameLayout>

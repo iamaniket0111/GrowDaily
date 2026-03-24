@@ -29,7 +29,9 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Enable Schedule" />
+                    android:text="Enable Schedule"
+                    android:textStyle="bold"
+                    android:textSize="16sp" />
 
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/switchSchedule"
@@ -91,7 +93,9 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Enable Reminder" />
+                    android:text="Enable Reminder"
+                    android:textStyle="bold"
+                    android:textSize="16sp" />
 
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/switchReminder"
@@ -126,12 +130,7 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <CheckBox
-                    android:id="@+id/checkSameAsSchedule"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Same as schedule time"
-                    android:visibility="gone" />
+
             </LinearLayout>
 
         </LinearLayout>

@@ -1,25 +1,36 @@
 package com.anitech.growdaily.adapter
 
-import android.util.Log
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.R
 import com.anitech.growdaily.data_class.TaskEntity
+import com.anitech.growdaily.enum_class.TaskColor
+import com.anitech.growdaily.enum_class.TaskIcon
+import com.anitech.growdaily.enum_class.TaskType
 
 class TaskForListAdapter(
-    private var allTasks: List<TaskEntity>,
+    allTasks: List<TaskEntity>,
     private val selectedTaskIds: MutableSet<String>,
     private val listener: OnItemClickListener
-) : RecyclerView.Adapter<TaskForListAdapter.ViewHolder>() {
+) : ListAdapter<TaskEntity, TaskForListAdapter.ViewHolder>(TaskForListDiffCallback()) {
 
     interface OnItemClickListener {
         fun onTaskSelected(taskId: String)
         fun onTaskUnSelected(taskId: String)
+    }
+
+    init {
+        // seed initial list passed from the fragment
+        submitList(allTasks.toList())
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -29,21 +40,39 @@ class TaskForListAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(allTasks[position])
+        holder.bind(getItem(position))
     }
 
-    override fun getItemCount(): Int = allTasks.size
-
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+
+         private val imageProfile: ImageView = itemView.findViewById(R.id.imageProfile)
+        private val taskType: TextView = itemView.findViewById(R.id.taskType)
+        private val taskTitle: TextView = itemView.findViewById(R.id.taskTitle)
         private val doneContainer: FrameLayout = itemView.findViewById(R.id.doneContainer)
         private val doneImg: ImageView = itemView.findViewById(R.id.done)
-        private val taskTitle: TextView = itemView.findViewById(R.id.taskTitle)
 
         fun bind(task: TaskEntity) {
+            val color = TaskColor.valueOf(task.colorCode).toColorInt(itemView.context)
+            val white = Color.WHITE
+
+            // Icon
+            val icon = runCatching { TaskIcon.valueOf(task.iconResId) }
+                .getOrDefault(TaskIcon.entries.first())
+            imageProfile.setImageResource(icon.resId)
+            imageProfile.backgroundTintList = ColorStateList.valueOf(color)
+            imageProfile.setColorFilter(white)
+
+            // Type label
+            taskType.text = itemView.context.getString(task.taskType.labelRes)
+            taskType.setTextColor(color)
+
+            // Title
             taskTitle.text = task.title
 
-            updateCheck(task.id)
+            // Selection state
+            applySelectionState(task.id, color, white)
 
+            // Click — toggle selection
             doneContainer.setOnClickListener {
                 if (selectedTaskIds.contains(task.id)) {
                     selectedTaskIds.remove(task.id)
@@ -52,22 +81,38 @@ class TaskForListAdapter(
                     selectedTaskIds.add(task.id)
                     listener.onTaskSelected(task.id)
                 }
-                updateCheck(task.id)
+                applySelectionState(task.id, color, white)
             }
         }
 
-        private fun updateCheck(taskId: String) {
-            if (selectedTaskIds.contains(taskId)) {
+        private fun applySelectionState(taskId: String, color: Int, white: Int) {
+            val isSelected = selectedTaskIds.contains(taskId)
+
+            // doneContainer background uses task color always
+            doneContainer.backgroundTintList = ColorStateList.valueOf(color)
+
+            if (isSelected) {
+                // Show check; inner circle uses task color so check is white-on-color
+                doneImg.visibility = View.VISIBLE
                 doneImg.setImageResource(R.drawable.ic_check)
-            } else {
-                doneImg.setImageResource(0)
-            }
+                doneImg.backgroundTintList = ColorStateList.valueOf(color)
+                doneImg.setColorFilter(white)
+              } else {
+                // Hide check; inner circle is white
+                doneImg.visibility = View.VISIBLE
+                doneImg.setImageResource(0)          // clear icon
+                doneImg.backgroundTintList = ColorStateList.valueOf(white)
+                doneImg.clearColorFilter()
+              }
         }
-    }
 
-    fun submitList(list: List<TaskEntity>) {
-        allTasks = list
-        notifyDataSetChanged()
-        Log.e("ListSize:",allTasks.size.toString())
     }
+}
+
+class TaskForListDiffCallback : DiffUtil.ItemCallback<TaskEntity>() {
+    override fun areItemsTheSame(oldItem: TaskEntity, newItem: TaskEntity) =
+        oldItem.id == newItem.id
+
+    override fun areContentsTheSame(oldItem: TaskEntity, newItem: TaskEntity) =
+        oldItem == newItem
 }

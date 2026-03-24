@@ -94,18 +94,12 @@ class TaskAdapter(
         }
 
         private fun setTaskType(task: TaskEntity) = with(binding) {
-            when (task.taskType) {
-                TaskType.DAY -> taskType.text = "Today"
-                TaskType.DAILY -> taskType.text = "Daily"
-                TaskType.UNTIL_COMPLETE -> taskType.text = "Until Done"
-            }
+            taskType.text = binding.root.context.getString(task.taskType.labelRes)
         }
 
         private fun setTaskData(task: TaskEntity,currentStreak:Int) = with(binding) {
             taskTitle.text = task.title
-            val icon = runCatching { TaskIcon.valueOf(task.iconResId) }
-                .getOrDefault(TaskIcon.entries.first())
-            imageProfile.setImageResource(icon.resId)
+            imageProfile.setImageResource(TaskIcon.fromName(task.iconResId).resId)
             taskWeight.text =
                 root.context.getString(R.string.task_weight_prefix, task.weight.weight)
 

@@ -2,11 +2,16 @@ package com.anitech.growdaily.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,6 +20,7 @@ import com.anitech.growdaily.adapter.TaskForListAdapter
 import com.anitech.growdaily.data_class.ListEntity
 import com.anitech.growdaily.database.AppViewModel
 import com.anitech.growdaily.databinding.FragmentEditListBinding
+import com.anitech.growdaily.dialog.DeleteListDialog
 import java.util.UUID
 
 class EditListFragment : Fragment() {
@@ -32,6 +38,9 @@ class EditListFragment : Fragment() {
 
     private lateinit var listId: String
     private var isEditMode = false
+
+    // Keep a reference so the delete menu item can use it
+    private var currentListEntity: ListEntity? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -60,6 +69,7 @@ class EditListFragment : Fragment() {
             // EDIT MODE
             isEditMode = true
             listId = condition.id
+            currentListEntity = condition
 
             binding.defName.text = condition.listTitle
             binding.edListName.setText(condition.listTitle)
@@ -72,12 +82,48 @@ class EditListFragment : Fragment() {
                 tempSelectedTaskIds.addAll(ids)
                 adapter.notifyDataSetChanged()
             }
-
         }
 
         setupRecycler()
         observeAllTasks()
         setupSaveButton()
+        setupMenu()
+    }
+
+    private fun setupMenu() {
+        requireActivity().addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                // Only show delete in edit mode
+                if (isEditMode) {
+                    menu.add(Menu.NONE, MENU_DELETE_ID, Menu.NONE, "Delete List").apply {
+                        setIcon(R.drawable.ic_delete) // use any delete icon you have
+                        setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+                    }
+                }
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return if (menuItem.itemId == MENU_DELETE_ID) {
+                    showDeleteListDialog()
+                    true
+                } else {
+                    false
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    private fun showDeleteListDialog() {
+        val listToDelete = currentListEntity ?: return
+        DeleteListDialog(
+            context = requireContext(),
+            list = listToDelete,
+            onDeleteList = { list ->
+                viewModel.deleteList(list)
+                Toast.makeText(requireContext(), "List deleted", Toast.LENGTH_SHORT).show()
+                findNavController().popBackStack()
+            }
+        ).show()
     }
 
     private fun setupRecycler() {
@@ -131,7 +177,6 @@ class EditListFragment : Fragment() {
                 taskIds = tempSelectedTaskIds.toList()
             )
 
-
             Toast.makeText(requireContext(), "Saved successfully", Toast.LENGTH_SHORT).show()
             findNavController().popBackStack()
         }
@@ -140,5 +185,9 @@ class EditListFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+        private const val MENU_DELETE_ID = 1001
     }
 }

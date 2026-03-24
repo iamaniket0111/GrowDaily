@@ -53,12 +53,13 @@ enum class TaskIcon(val resId: Int) {
     LIGHTNING_BOLT(R.drawable.ic_lightning_bolt);
 
     companion object {
+        val DEFAULT = BELL
+
+        fun fromName(name: String): TaskIcon =
+            entries.find { it.name == name } ?: DEFAULT
+
         fun fromResId(resId: Int): TaskIcon? {
             return entries.find { it.resId == resId }
-        }
-
-        fun fromName(name: String): TaskIcon? {
-            return entries.find { it.name == name }
         }
     }
 }

@@ -157,45 +157,8 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
     }
 
 
-    val heatmapUiList = MediatorLiveData<List<RepeatTaskUi>>().apply {
-        var latestTasks: List<TaskEntity>? = null
-        var latestCompletions: List<TaskCompletionEntity>? = null
-
-        fun combineAndPublish() {
-
-            viewModelScope.launch {
-
-                val result = withContext(Dispatchers.Default) {
-
-                    val tasks = latestTasks ?: return@withContext emptyList()
-                    val completions = latestCompletions ?: emptyList()
-
-                    val completionMap = groupCompletions(completions)
-
-                    tasks.map { task ->
-                        val normalizedTaskId = task.id.trim().lowercase()
-                        RepeatTaskUi(
-                            task = task,
-                            completedDates = completionMap[normalizedTaskId] ?: emptySet()
-                        )
-                    }
-                }
-
-                value = result
-            }
-        }
 
 
-        addSource(repository.getAllDailyTasks()) { tasks ->
-            latestTasks = tasks
-            combineAndPublish()
-        }
-
-        addSource(repository.getAllCompletionsTaskData()) { completions ->
-            latestCompletions = completions
-            combineAndPublish()
-        }
-    }
 
 
     // somewhere common (object DateUtils or companion)
@@ -397,6 +360,12 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
     fun saveTasksForList(listId: String, taskIds: List<String>) {
         viewModelScope.launch {
             repository.syncTasksForList(listId, taskIds)
+        }
+    }
+
+    fun deleteList(list: ListEntity) {
+        viewModelScope.launch {
+            repository.deleteList(list)
         }
     }
 

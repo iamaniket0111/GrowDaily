@@ -51,59 +51,75 @@
                     app:tint="@color/category_green" />
             </FrameLayout>
 
-            <androidx.appcompat.widget.SwitchCompat
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:layout_marginTop="16dp"
-                android:checked="true"
-                android:text="Repeat Daily"
-                android:visibility="gone" />
 
             <Space
                 android:layout_width="wrap_content"
                 android:layout_height="32dp" />
 
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+                <include
+                    android:id="@+id/titleNoteLayout"
+                    layout="@layout/add_task_title_note_layout" />
+            </FrameLayout>
+
             <!-- Title && Note-->
-            <include
-                android:id="@+id/titleNoteLayout"
-
-                layout="@layout/add_task_title_note_layout" />
 
 
-            <Space
-                android:layout_width="wrap_content"
-                android:layout_height="16dp" />
 
-            <include
-                android:id="@+id/taskWeightPriorityLayout"
-                layout="@layout/task_weight_priority_layout" />
 
-            <Space
-                android:layout_width="wrap_content"
-                android:layout_height="16dp" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+                <include
+                    android:id="@+id/taskWeightPriorityLayout"
+                    layout="@layout/task_weight_priority_layout" />
+            </FrameLayout>
+
+
+
 
             <!-- List view -->
-            <include
-                android:id="@+id/addToListLayout"
-                layout="@layout/task_add_to_list_layout" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+                <include
+                    android:id="@+id/addToListLayout"
+                    layout="@layout/task_add_to_list_layout" />
+            </FrameLayout>
 
 
-            <Space
-                android:layout_width="wrap_content"
-                android:layout_height="16dp" />
 
-            <include
-                android:id="@+id/startDateLayout"
-                layout="@layout/task_start_date_layout" />
 
-            <Space
-                android:layout_width="wrap_content"
-                android:layout_height="16dp" />
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+                <include
+                    android:id="@+id/startDateLayout"
+                    layout="@layout/task_start_date_layout" />
+            </FrameLayout>
 
-            <include
-                android:id="@+id/repeatLayout"
-                layout="@layout/task_repeat_layout" />
+
+
+
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+                <include
+                    android:id="@+id/repeatLayout"
+                    layout="@layout/task_repeat_layout" />
+            </FrameLayout>
+
+
 
 
 
@@ -113,22 +129,26 @@
             <!-- Reminder Switch -->
 
 
-            <Space
-                android:layout_width="wrap_content"
-                android:layout_height="16dp" />
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+                <include
+                    android:id="@+id/scheduleReminderLayout"
+                    layout="@layout/layout_schedule_reminder" />
+            </FrameLayout>
 
-            <include
-                android:id="@+id/scheduleReminderLayout"
-                layout="@layout/layout_schedule_reminder" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+                <include
+                    android:id="@+id/deletePauseLayout"
+                    layout="@layout/layout_delete_pause" />
+            </FrameLayout>
 
 
-            <Space
-                android:layout_width="wrap_content"
-                android:layout_height="16dp" />
-
-            <include
-                android:id="@+id/deletePauseLayout"
-                layout="@layout/layout_delete_pause" />
 
             <!-- Save Button -->
 

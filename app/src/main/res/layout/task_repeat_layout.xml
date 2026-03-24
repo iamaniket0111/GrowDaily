@@ -32,5 +32,5 @@
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:src="@drawable/ic_right_arrow"
-        app:tint="@android:color/black" />
+      />
 </LinearLayout>

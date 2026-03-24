@@ -1,7 +1,10 @@
 package com.anitech.growdaily.enum_class
 
-enum class TaskType {
-    DAILY,          // Har din repeat hone wala task
-    DAY,            // Specific day ka task
-    UNTIL_COMPLETE  // Tab tak repeat jab tak user complete na kare
+import androidx.annotation.StringRes
+import com.anitech.growdaily.R
+
+enum class TaskType(@StringRes val labelRes: Int) {
+    DAILY(R.string.task_type_daily),
+    DAY(R.string.task_type_today),
+    UNTIL_COMPLETE(R.string.task_type_until_done)
 }
