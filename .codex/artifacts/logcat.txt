@@ -1,0 +1,325 @@
+--------- beginning of system
+03-31 19:14:54.940  1909  3496 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.anitech.growdaily/.MainActivity} from uid 2000
+--------- beginning of main
+03-31 19:14:53.780  2345  2345 D NavBarTintController: onSampleCollected 0.05490196
+03-31 19:14:54.940  1909  3496 D MiuiMultiWindowAdapter: MiuiMultiWindowAdapter::getFreeformBlackList::sSmallWindowBlackList = [com.miui.securitycenter, com.miui.weather2, com.miui.miservice, com.android.calendar, com.xiaomi.calendar, com.android.contacts, com.miui.mishare.connectivity, com.android.settings, com.android.printspooler, com.miui.backup, com.miui.huanji, com.miui.calculator, com.android.deskclock, com.android.thememanager, com.mfashiongallery.emag, com.miui.virtualsim, com.miui.smarttravel, com.mi.health, com.android.camera, com.lbe.security.miui, com.miui.cleanmaster, com.miui.newhome, com.miui.voiceassist, com.android.phone, com.miui.yellowpage, com.android.updater, com.miui.tsmclient, com.miui.securitycore, com.xiaomi.account, com.xiaomi.shop, com.mipay.wallet, com.xiaomi.youpin, com.xiaomi.hm.health, com.miui.bugreport, com.xiaomi.mibrain.speech, com.xiaomi.mimoji, com.xiaomi.scanner, com.duokan.phone.remotecontroller, com.miui.hybrid, com.android.incallui, com.miui.video, com.miui.videoplayer, com.miui.player, com.miui.fm, com.miui.packageinstaller, com.mi.android.globallauncher, com.google.android.dialer, com.google.android.apps.magazines, com.miui.compass, com.miui.greenguard, com.kiteguard, com.google.android.apps.prodcasts, com.google.ar.lens, com.xiangkan.android, com.android.bankabc, com.sohu.inputmethod.sogou, com.tencent.mtt, com.shyz.toutiao, com.netease.mc.mi, com.outfit7.talkingtomgoldrun.mi, com.doudz.mi, com.wepie.snake.new.mi, cn.jj, com.standddz002.mi, com.miHoYo.bh3.mi, com.qqgame.hlddz, com.happyelements.AndroidAnimal, com.minitech.miniworld.TMobile.mi, com.mfp.jelly.xiaomi, com.lilithgames.afk.mi, com.tencent.peng, com.teenpatti.hd.gold, blockpuzzle.jewelgames.jewelslegend, com.playgendary.tanks, com.chillingo.robberybobfree.android.row, com.episodeinteractive.android.catalog, com.playrix.township, com.ansangha.drdriving, com.google.android.youtube, com.gbits.atm.mi]
+03-31 19:14:54.947  1909  3496 E ANDR-PERF-JNI: com_qualcomm_qtiperformance_native_perf_io_prefetch_start
+03-31 19:14:54.947   739   844 E ANDR-PERF-UTIL: Failed to read /proc/sys/kernel/sched_busy_hyst_ns
+03-31 19:14:54.947   739   844 E ANDR-PERF-OPTSHANDLER: Failed to read /proc/sys/kernel/sched_busy_hyst_ns
+03-31 19:14:54.947   739   844 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [1, 2]
+03-31 19:14:54.948   739   844 E ANDR-PERF-UTIL: Failed to read /sys/module/lpm_levels/parameters/ref_stddev
+03-31 19:14:54.948   739   844 E ANDR-PERF-OPTSHANDLER: Failed to read /sys/module/lpm_levels/parameters/ref_stddev
+03-31 19:14:54.948   739   844 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [1, 3]
+03-31 19:14:54.949   739   844 E ANDR-PERF-UTIL: Failed to read /sys/module/lpm_levels/parameters/tmr_add
+03-31 19:14:54.949   739   844 E ANDR-PERF-OPTSHANDLER: Failed to read /sys/module/lpm_levels/parameters/tmr_add
+03-31 19:14:54.949   739   844 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [1, 4]
+03-31 19:14:54.954  1909  3496 D CompatibilityInfo: mCompatibilityFlags - 0
+03-31 19:14:54.954  1909  3496 D CompatibilityInfo: applicationDensity - 440
+03-31 19:14:54.954  1909  3496 D CompatibilityInfo: applicationScale - 1.0
+03-31 19:14:54.956  1909  3496 D ActivityTrigger: ActivityTrigger activityPauseTrigger 
+03-31 19:14:54.959  2651  2651 W ActivityThread: SCHED: com.miui.home/.launcher.Launcher [56, r=35ms, a=27ms, w=34129ms]
+03-31 19:14:54.959  2651  2651 D Launcher.Lifecycle: onPause:UserHandle{0},e418cc,true
+03-31 19:14:54.959  2651  2651 D Launcher_UnlockAnimationStateMachine: setState:PAUSE_WAIT
+03-31 19:14:54.962  1570  1584 E ANDR-IOP: io prefetch is disabled
+03-31 19:14:54.966  2345  2345 D NavBarTintController: onSampleCollected 0.05490196
+03-31 19:14:54.966  1909  1968 E system_server: Invalid ID 0x00000000.
+03-31 19:14:54.969  1909  2186 I MiuiNetworkPolicy: updateUidState uid = 10277, uidState = 20
+03-31 19:14:54.973  2651  2651 I RenderVsyncUpdater: All controllers paused.
+03-31 19:14:54.974  2651  2766 D StatusBarController: handleMessage: flag 800000  disable false
+03-31 19:14:54.974  2651  2651 D Launcher_WallpaperUtils: changeStatusBarMode:false
+03-31 19:14:54.996   613   613 D Zygote  : Forked child process 5721
+03-31 19:14:54.997  2651  2651 D Launcher.Lifecycle: onWindowFocusChanged:false,UserHandle{0},e418cc,true
+03-31 19:14:54.998   612  2379 D OemNetd : setPidForPackage: packageName=com.anitech.growdaily, pid=5721, pid=10277
+03-31 19:14:54.998  1909  1991 I ActivityManager: Start proc 5721:com.anitech.growdaily/u0a277 for activity {com.anitech.growdaily/com.anitech.growdaily.MainActivity} caller=com.android.shell
+03-31 19:14:55.005  5721  5721 I itech.growdail: Late-enabling -Xcheck:jni
+03-31 19:14:55.023  5721  5721 E itech.growdail: Unknown bits set in runtime_flags: 0x8000
+03-31 19:14:55.034   510   510 I hwservicemanager: getTransport: Cannot find entry vendor.qti.hardware.servicetracker@1.0::IServicetracker/default in either framework or device manifest.
+03-31 19:14:55.037  1909  2757 D CompatibilityInfo: mCompatibilityFlags - 0
+03-31 19:14:55.037  1909  2757 D CompatibilityInfo: applicationDensity - 440
+03-31 19:14:55.037  1909  2757 D CompatibilityInfo: applicationScale - 1.0
+03-31 19:14:55.038   510   510 I hwservicemanager: getTransport: Cannot find entry vendor.qti.hardware.servicetracker@1.0::IServicetracker/default in either framework or device manifest.
+03-31 19:14:55.040 12632 12632 D BoundBrokerSvc: onBind: Intent { act=com.google.android.gms.measurement.START pkg=com.google.android.gms }
+03-31 19:14:55.040 12632 12632 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.gms.measurement.START pkg=com.google.android.gms }
+03-31 19:14:55.059  2345  2345 D NavBarTintController: onSampleCollected 0.05490196
+03-31 19:14:55.064  3668  3692 I SCTaskStackListener: onTaskStackChanged! inSplit = false
+03-31 19:14:55.065  3668  3691 I SCTaskStackListener: onTaskStackChanged! inSplit = false
+03-31 19:14:55.065  1909  3496 D CompatibilityInfo: mCompatibilityFlags - 0
+03-31 19:14:55.065  1909  3496 D CompatibilityInfo: applicationDensity - 440
+03-31 19:14:55.065  1909  3496 D CompatibilityInfo: applicationScale - 1.0
+03-31 19:14:55.068  1909  3496 D CompatibilityInfo: mCompatibilityFlags - 0
+03-31 19:14:55.068  1909  3496 D CompatibilityInfo: applicationDensity - 440
+03-31 19:14:55.068  1909  3496 D CompatibilityInfo: applicationScale - 1.0
+03-31 19:14:55.069  5053  5114 I GST     : forePkg: com.anitech.growdaily, preForePkg: com.miui.home
+03-31 19:14:55.070  5025  7147 D PerfEngineController: ForegroundInfo{mForegroundPackageName='com.anitech.growdaily', mForegroundUid=10277, mForegroundPid=5721, mLastForegroundPackageName='com.miui.home', mLastForegroundUid=10095, mLastForegroundPid=2651, mMultiWindowForegroundPackageName='null', mMultiWindowForegroundUid=-1, mFlags=1}
+03-31 19:14:55.070  1909  3496 I qspmsvc-client: inside perf_hint_qspm
+03-31 19:14:55.072  1909  4398 W ActivityTaskManager: getTaskSnapshot: taskId=513 not found
+03-31 19:14:55.072  3668  3691 I ProcessMonitor: onForegroundInfoChanged: ForegroundInfo{mForegroundPackageName='com.anitech.growdaily', mForegroundUid=10277, mForegroundPid=5721, mLastForegroundPackageName='com.miui.home', mLastForegroundUid=10095, mLastForegroundPid=2651, mMultiWindowForegroundPackageName='null', mMultiWindowForegroundUid=-1, mFlags=1}
+03-31 19:14:55.073  3668  3691 I GameBoosterService: onForegroundInfoChanged: Cur=com.anitech.growdaily	 last=com.miui.home
+03-31 19:14:55.083  1909  1968 I Timeline: Timeline: App_transition_ready time:74672534
+03-31 19:14:55.085  2345  2345 D StatusBar: disable<e i a s b h r c s > disable2<q i n g r >
+03-31 19:14:55.087  3668  3691 D GameBoosterService: onGameStatusChange foreground:ForegroundInfo{mForegroundPackageName='com.anitech.growdaily', mForegroundUid=10277, mForegroundPid=5721, mLastForegroundPackageName='com.miui.home', mLastForegroundUid=10095, mLastForegroundPid=2651, mMultiWindowForegroundPackageName='null', mMultiWindowForegroundUid=-1, mFlags=1}
+03-31 19:14:55.087  3668  3691 I VideoBoxUtils: isSupportVideoBox: false
+03-31 19:14:55.087  3668  3691 I VideoToolBoxService: vtb is closed!!!
+03-31 19:14:55.091  2345  2345 D PhoneStatusBar/NavigationBarView: setDisabledFlags back:false home:false recent:false
+03-31 19:14:55.091  2345  2345 D StatusBarClock:  isNormalMode= true clock visible=true
+03-31 19:14:55.092  1909  2186 I MiuiNetworkPolicy: updateUidState uid = 10277, uidState = 2
+03-31 19:14:55.093  4778  4631 D PMonitor:  onForegroundActivitiesChanged:pid = 5721,activity-uid=10277,foregroundActivities=true
+03-31 19:14:55.100  2345  2345 D PhoneStatusBar/NavigationBarView: onDraw
+03-31 19:14:55.118   510   510 I hwservicemanager: getTransport: Cannot find entry vendor.qti.hardware.servicetracker@1.0::IServicetracker/default in either framework or device manifest.
+03-31 19:14:55.168  2345  2345 D NavBarTintController: onSampleCollected 0.039215688
+03-31 19:14:55.260  2651  2651 D Launcher_UnlockAnimationStateMachine: mResetIdleStateRunnable
+03-31 19:14:55.284  2345  2345 D NavBarTintController: onSampleCollected 0.019607844
+03-31 19:14:55.358  5721  5721 I Perf    : Connecting to perf service.
+03-31 19:14:55.402  2345  2345 D NavBarTintController: onSampleCollected 0.0
+03-31 19:14:55.402  2345  2345 D NavBarTintController:  updateTint White
+03-31 19:14:55.404  5721  5721 I FeatureParser: can't find violet.xml in assets/device_features/,it may be in /system/etc/device_features
+03-31 19:14:55.412  5721  5721 E libc    : Access denied finding property "ro.vendor.df.effect.conflict"
+03-31 19:14:55.399  5721  5721 W itech.growdaily: type=1400 audit(0.0:21643): avc: denied { read } for name="u:object_r:vendor_default_prop:s0" dev="tmpfs" ino=17340 scontext=u:r:untrusted_app:s0:c21,c257,c512,c768 tcontext=u:object_r:vendor_default_prop:s0 tclass=file permissive=0
+03-31 19:14:55.461  1909  1967 D ActivityManager: thread tid=2651, priority is set to -10
+03-31 19:14:55.461  1909  1967 D ActivityManager: thread tid=2838, priority is set to -10
+03-31 19:14:55.503  5721  5756 E Perf    : Fail to get file list com.anitech.growdaily
+03-31 19:14:55.503  5721  5756 E Perf    : getFolderSize() : Exception_1 = java.lang.NullPointerException: Attempt to get length of null array
+03-31 19:14:55.516  2345  2345 D EventBus: [2345, u0] send(AppTransitionFinishedEvent)
+03-31 19:14:55.517  2345  2345 D EventBus: [2345, u0]  -> ForcedResizableInfoActivityController [0xef1f557, P1] onBusEvent(AppTransitionFinishedEvent)
+03-31 19:14:55.517  2345  2345 D EventBus: [2345, u0] onBusEvent(AppTransitionFinishedEvent) duration: 13 microseconds, avg: 340
+03-31 19:14:55.517  2345  2345 D NavBarTintController: onSampleCollected 0.0
+03-31 19:14:55.546  5721  5721 D AppCompatDelegate: Checking for metadata for AppLocalesMetadataHolderService : Service not found
+03-31 19:14:55.597  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:55.633  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:55.633  2345  2345 D NavBarTintController:  updateTint Black
+03-31 19:14:55.634  2345  2345 D NavigationBarTransitions: applyDarkIntensity 0.0
+03-31 19:14:55.645  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:55.648  2345  2345 D NavigationBarTransitions: applyDarkIntensity 0.0
+03-31 19:14:55.665  2345  2345 D NavigationBarTransitions: applyDarkIntensity 0.05827403
+03-31 19:14:55.669  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:55.682  2345  2345 D NavigationBarTransitions: applyDarkIntensity 0.3219697
+03-31 19:14:55.698  2345  2345 D NavigationBarTransitions: applyDarkIntensity 0.64377797
+03-31 19:14:55.715  2345  2345 D NavigationBarTransitions: applyDarkIntensity 0.8394938
+03-31 19:14:55.732  2345  2345 D NavigationBarTransitions: applyDarkIntensity 0.9378363
+03-31 19:14:55.736  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:55.746  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:55.749  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:55.749  2345  2345 D NavigationBarTransitions: applyDarkIntensity 0.9826073
+03-31 19:14:55.755  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:55.756  5721  5721 I chatty  : uid=10277(com.anitech.growdaily) identical 1 line
+03-31 19:14:55.758  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:55.760  5721  5721 W itech.growdail: Accessing hidden method Landroid/view/ViewGroup;->makeOptionalFitsSystemWindows()V (greylist, reflection, allowed)
+03-31 19:14:55.765  2345  2345 D NavigationBarTransitions: applyDarkIntensity 0.9990056
+03-31 19:14:55.782  2345  2345 D NavigationBarTransitions: applyDarkIntensity 1.0
+03-31 19:14:55.803  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:55.812  5721  5721 I chatty  : uid=10277(com.anitech.growdaily) identical 2 lines
+03-31 19:14:55.822  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:55.834  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:55.840  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:55.867  1909  1968 I Timeline: Timeline: App_transition_stopped time:74673318
+03-31 19:14:55.861  5721  5721 I chatty  : uid=10277(com.anitech.growdaily) identical 2 lines
+03-31 19:14:55.862  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:55.868  2345  2345 D EventBus: [2345, u0] send(AppTransitionFinishedEvent)
+03-31 19:14:55.868  2345  2345 D EventBus: [2345, u0]  -> ForcedResizableInfoActivityController [0xef1f557, P1] onBusEvent(AppTransitionFinishedEvent)
+03-31 19:14:55.868  2345  2345 D EventBus: [2345, u0] onBusEvent(AppTransitionFinishedEvent) duration: 18 microseconds, avg: 340
+03-31 19:14:55.871  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:55.923  5721  5721 I chatty  : uid=10277(com.anitech.growdaily) identical 13 lines
+03-31 19:14:55.924  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:55.933  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:55.941  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:55.992  5721  5721 W Activity: Slow Operation: Activity com.anitech.growdaily/.MainActivity onStart took 190ms
+03-31 19:14:56.006  1909  3506 E WindowManager: App trying to use insecure INPUT_FEATURE_NO_INPUT_CHANNEL flag. Ignoring
+03-31 19:14:55.968  5721  5721 I chatty  : uid=10277(com.anitech.growdaily) identical 22 lines
+03-31 19:14:55.969  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.009  2651  2651 D RecentsImpl: mActivityStateObserver com.anitech.growdaily.MainActivity
+03-31 19:14:56.009  2651  2651 W RecentsImpl: onResumed className=com.anitech.growdaily.MainActivity   mIsInAnotherPro=false
+03-31 19:14:56.009  5721  5721 W Looper  : Slow Looper main: Activity com.anitech.growdaily/.MainActivity is 395ms late (wall=518ms running=475ms ClientTransaction{ callbacks=[android.app.servertransaction.LaunchActivityItem] lifecycleRequest=android.app.servertransaction.ResumeActivityItem }) because of 2 msg, msg 2 took 391ms (seq=2 running=363ms runnable=5ms io=3ms late=9ms h=android.app.ActivityThread$H w=110)
+03-31 19:14:56.010  5721  5721 W Looper  : Slow Looper main: Activity com.anitech.growdaily/.MainActivity is 913ms late (wall=0ms running=0ms ClientTransaction{ callbacks=[android.app.servertransaction.TopResumedActivityChangeItem] }) because of 3 msg, msg 2 took 391ms (seq=2 running=363ms runnable=5ms io=3ms late=9ms h=android.app.ActivityThread$H w=110), msg 3 took 518ms (seq=3 running=475ms runnable=11ms late=395ms h=android.app.ActivityThread$H w=159)
+03-31 19:14:56.010  2651  2824 W RecentsImpl: disableBackStubWindow    disableTouch=false
+03-31 19:14:56.010  5721  5721 I Choreographer: Skipped 36 frames!  The application may be doing too much work on its main thread.
+03-31 19:14:56.010  2651  2824 D RecentsImpl: showBackStubWindow  mHasNavigationBar=true   mDisabledByDriveMode=false
+03-31 19:14:56.011  2651  2825 D RecentsImpl: showNavStubView
+03-31 19:14:56.011  2651  2824 W GestureStubView: adaptRotation   currentRotation=0   mRotation=0
+03-31 19:14:56.011  2651  2824 D GestureStubView: resetRenderProperty: showGestureStub
+03-31 19:14:56.011  2651  2824 D GestureStubView: showGestureStub
+03-31 19:14:56.012  2651  2824 W GestureStubView: adaptRotation   currentRotation=0   mRotation=0
+03-31 19:14:56.012  2651  2824 D GestureStubView: resetRenderProperty: showGestureStub
+03-31 19:14:56.012  2651  2824 D GestureStubView: showGestureStub
+03-31 19:14:56.021  2651  2824 D GestureStubView: gatherTransparentRegion: need render w:54  h:1404
+03-31 19:14:56.025  2651  2824 D GestureStubView: gatherTransparentRegion: need render w:54  h:1404
+03-31 19:14:56.037  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:56.051  5721  5757 I AdrenoGLES: QUALCOMM build                   : af4b174, I386ada412e
+03-31 19:14:56.051  5721  5757 I AdrenoGLES: Build Date                       : 09/10/20
+03-31 19:14:56.051  5721  5757 I AdrenoGLES: OpenGL ES Shader Compiler Version: EV031.27.05.01
+03-31 19:14:56.051  5721  5757 I AdrenoGLES: Local Branch                     : 
+03-31 19:14:56.051  5721  5757 I AdrenoGLES: Remote Branch                    : refs/tags/AU_LINUX_ANDROID_LA.UM.8.9.R1.10.00.00.558.044
+03-31 19:14:56.051  5721  5757 I AdrenoGLES: Remote Branch                    : NONE
+03-31 19:14:56.051  5721  5757 I AdrenoGLES: Reconstruct Branch               : NOTHING
+03-31 19:14:56.051  5721  5757 I AdrenoGLES: Build Config                     : S P 8.0.11 AArch64
+03-31 19:14:56.054  5721  5757 I AdrenoGLES: PFP: 0x016ee187, ME: 0x00000000
+03-31 19:14:56.058  5721  5757 W AdrenoUtils: <ReadGpuID_from_sysfs:194>: Failed to open /sys/class/kgsl/kgsl-3d0/gpu_model
+03-31 19:14:56.058  5721  5757 W AdrenoUtils: <ReadGpuID:218>: Failed to read chip ID from gpu_model. Fallback to use the GSL path
+03-31 19:14:56.039  5721  5721 W RenderThread: type=1400 audit(0.0:21644): avc: denied { search } for name="kgsl" dev="sysfs" ino=43936 scontext=u:r:untrusted_app:s0:c21,c257,c512,c768 tcontext=u:object_r:sysfs_kgsl:s0 tclass=dir permissive=0
+03-31 19:14:56.061  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.156  5721  5721 I chatty  : uid=10277(com.anitech.growdaily) identical 30 lines
+03-31 19:14:56.157  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.163  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:56.165  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.201  5721  5721 I chatty  : uid=10277(com.anitech.growdaily) identical 14 lines
+03-31 19:14:56.204  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.208  5721  5721 W itech.growdail: Accessing hidden method Landroid/animation/ValueAnimator;->getDurationScale()F (greylist, linking, allowed)
+03-31 19:14:56.215  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.225  5721  5721 I chatty  : uid=10277(com.anitech.growdaily) identical 4 lines
+03-31 19:14:56.230  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.259   510   510 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@3.0::IMapper/default in either framework or device manifest.
+03-31 19:14:56.259  5721  5757 W Gralloc3: mapper 3.x is not supported
+03-31 19:14:56.362  5721  5721 W Looper  : Slow Looper main: doFrame is 612ms late because of 3 msg, msg 1 took 391ms (seq=2 running=363ms runnable=5ms io=3ms late=9ms h=android.app.ActivityThread$H w=110), msg 2 took 518ms (seq=3 running=475ms runnable=11ms late=395ms h=android.app.ActivityThread$H w=159)
+03-31 19:14:56.367  5721  5721 W Looper  : Slow Looper main: doFrame is 349ms late because of 13 msg, msg 1 took 352ms (seq=5 running=226ms runnable=5ms io=5ms late=612ms h=android.view.Choreographer$FrameHandler c=android.view.Choreographer$FrameDisplayEventReceiver)
+03-31 19:14:56.367  1909  1968 I Timeline: Timeline: Activity_windows_visible id: ActivityRecord{2210acc u0 com.anitech.growdaily/.MainActivity t515} time:74673819
+03-31 19:14:56.369  1909  1989 I ActivityTaskManager: Displayed com.anitech.growdaily/.MainActivity: +1s425ms
+03-31 19:14:56.375  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:56.426  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.439  3274  3274 I CNSS    : Failed to send nl message
+03-31 19:14:56.439  3274  3274 I CNSS    : Failed to send nl message
+03-31 19:14:56.466  1909  4398 D ActivityTrigger: ActivityTrigger activityStopTrigger 
+03-31 19:14:56.468  2651  2651 D Launcher.Lifecycle: onStop:UserHandle{0},e418cc,false
+03-31 19:14:56.469  1909  2186 I MiuiNetworkPolicy: updateUidState uid = 10185, uidState = 3
+03-31 19:14:56.469  1909  2186 I MiuiNetworkPolicy: updateUidState uid = 10095, uidState = 6
+03-31 19:14:56.473   510   510 I hwservicemanager: getTransport: Cannot find entry vendor.qti.hardware.servicetracker@1.0::IServicetracker/default in either framework or device manifest.
+03-31 19:14:56.477  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:56.485  4778  4631 D PMonitor:  onForegroundActivitiesChanged:pid = 2651,activity-uid=10095,foregroundActivities=false
+03-31 19:14:56.522 15445 20042 I FontLog : (REDACTED) Received query %s, URI %s
+03-31 19:14:56.522 15445 20042 I FontLog : (REDACTED) Query [%s] resolved to %s
+03-31 19:14:56.523  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.524 15445 20042 I FontLog : (REDACTED) Fetch %s end status %s
+03-31 19:14:56.524  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.525  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.531 15445 20042 I FontLog : (REDACTED) Pulling font file for id = %d, cache size = %d
+03-31 19:14:56.531  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.533  5721  5721 I chatty  : uid=10277(com.anitech.growdaily) identical 2 lines
+03-31 19:14:56.538  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.539 15445 20042 I FontLog : (REDACTED) Pulling font file for id = %d, cache size = %d
+03-31 19:14:56.539  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.587  5721  5721 I chatty  : uid=10277(com.anitech.growdaily) identical 16 lines
+03-31 19:14:56.589  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.591  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:56.592  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.652  5721  5721 I chatty  : uid=10277(com.anitech.growdaily) identical 27 lines
+03-31 19:14:56.653  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.654  3274  3274 I CNSS    : Failed to send nl message
+03-31 19:14:56.655  3274  3274 I chatty  : uid=1000(system) /system/vendor/bin/cnss_diag identical 7 lines
+03-31 19:14:56.655  3274  3274 I CNSS    : Failed to send nl message
+03-31 19:14:56.656  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.658  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.660  3274  3274 I CNSS    : Failed to send nl message
+03-31 19:14:56.661  3274  3274 I CNSS    : Failed to send nl message
+03-31 19:14:56.661  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.662  3274  3274 I CNSS    : Failed to send nl message
+03-31 19:14:56.662  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.663  3274  3274 I CNSS    : Failed to send nl message
+03-31 19:14:56.664  3274  3274 I chatty  : uid=1000(system) /system/vendor/bin/cnss_diag identical 2 lines
+03-31 19:14:56.664  3274  3274 I CNSS    : Failed to send nl message
+03-31 19:14:56.664  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.665  3274  3274 I CNSS    : Failed to send nl message
+03-31 19:14:56.665  3274  3274 I CNSS    : Failed to send nl message
+03-31 19:14:56.679  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.710  5721  5721 I chatty  : uid=10277(com.anitech.growdaily) identical 23 lines
+03-31 19:14:56.712  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.714  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:56.727  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.875  5721  5721 I chatty  : uid=10277(com.anitech.growdaily) identical 58 lines
+03-31 19:14:56.876  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.890  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:56.891  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:56.909  5721  5721 I chatty  : uid=10277(com.anitech.growdaily) identical 14 lines
+03-31 19:14:56.912  5721  5721 D ForceDarkHelper: updateByCheckExcludeList: pkg: com.anitech.growdaily activity: com.anitech.growdaily.MainActivity@7648e00
+03-31 19:14:57.005  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:57.044  2651  5537 I FA      : Application backgrounded at: timestamp_millis: 1774964695042
+03-31 19:14:57.122  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:57.132   612  2379 D OemNetd : setLimit: disable, rate=0
+03-31 19:14:57.222  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:57.338  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:57.405   510   510 I hwservicemanager: getTransport: Cannot find entry vendor.qti.hardware.servicetracker@1.0::IServicetracker/default in either framework or device manifest.
+03-31 19:14:57.438  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:57.672  2345  2345 I chatty  : uid=1000(system) com.android.systemui identical 2 lines
+03-31 19:14:57.771  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:57.786   953  1032 D ThermalEngine: zone:68 sensor:sdm-therm temp:44143 trip:0 event:0
+03-31 19:14:57.786   953  1059 D ThermalEngine: sensor_monitor: sdm-therm Reading 44143 .
+03-31 19:14:57.786   953  1059 I ThermalEngine: Sensor:sdm-therm:44143 mC
+03-31 19:14:57.786   953  1059 D ThermalEngine: thresh_notify: SS Id SS-QUIET-THERM-SILVER, Update recieved sdm-therm 44143
+03-31 19:14:57.786   953  1059 D ThermalEngine: update_active_thresh: sdm-therm Active(1), Hi(1) 45000, Lo(0) -2147483648, desc(0) Interval(1) 1000
+03-31 19:14:57.786   953  1059 D ThermalEngine: Setting up thresholds high: 45000
+03-31 19:14:57.786   953  1072 E ThermalEngine: read_thermal_config
+03-31 19:14:57.787   953  1059 D ThermalEngine: writing:45000 in fd:50 bytes:5
+03-31 19:14:57.787   953  1072 D ThermalEngine: algo_monitor: Thresh EVT
+03-31 19:14:57.788   953  1059 D ThermalEngine: sensor_monitor: sdm-therm Sensor wait.
+03-31 19:14:57.788   953  1072 I ThermalEngine: Sensor:sdm-therm:44143 mC
+03-31 19:14:57.788   953  1072 D ThermalEngine: handle_thresh_sig: SS Id SS-QUIET-THERM-SILVER, Read sdm-therm 44143mC
+03-31 19:14:57.788   953  1072 I ThermalEngine: handle_thresh_sig: SS Id SS-QUIET-THERM-SILVER Transition State 2
+03-31 19:14:57.788   953  1072 D ThermalEngine: sensors_manager_set_thresh_lvl: sdm-therm Hi(0) 0, Lo(1) 42000, desc:0 Interval(0) 0
+03-31 19:14:57.788   953  1072 D ThermalEngine: update_active_thresh: sdm-therm Active(1), Hi(1) 45000, Lo(1) 42000, desc(0) Interval(1) 1000
+03-31 19:14:57.788   953  1072 D ThermalEngine: Setting up hysteresis: 3000
+03-31 19:14:57.788   953  1032 D ThermalEngine: zone:68 sensor:sdm-therm temp:44146 trip:0 event:0
+03-31 19:14:57.788   953  1072 D ThermalEngine: writing:3000 in fd:50 bytes:4
+03-31 19:14:57.788   953  1072 I ThermalEngine: settimer: Start timer 2.000(sec)
+03-31 19:14:57.788   953  1072 D ThermalEngine: algo_monitor: Timer EVT
+03-31 19:14:57.789   953  1072 I ThermalEngine: Sensor:sdm-therm:44150 mC
+03-31 19:14:57.789   953  1072 D ThermalEngine: handle_timer_sig: SS Id SS-QUIET-THERM-SILVER Read sdm-therm 44150mC, Err -150mC, SampleCnt 0
+03-31 19:14:57.789   953  1072 D ThermalEngine: handle_timer_sig: SS Id SS-QUIET-THERM-SILVER, E0 -150mC, E1 0mC
+03-31 19:14:57.789   953  1072 D ThermalEngine: devices_manager_set_op_value: DEV cpu0, op_value 1593600
+03-31 19:14:57.789   953  1072 I ThermalEngine: cpu_action: cpu0 freq=1593600 state=1
+03-31 19:14:57.789   953  1072 I ThermalEngine: ACTION: CPU - Setting CPU[0] to 1
+03-31 19:14:57.790   953  1072 D ThermalEngine: writing:1 in fd:50 bytes:1
+03-31 19:14:57.790   953  1072 D ThermalEngine: CPU[0] frequency limited to 1
+03-31 19:14:57.790   953  1072 I ThermalEngine: Mitigation:CPU[0]:1 Khz
+03-31 19:14:57.790   953  1072 I ThermalEngine: increase_mitigation_lvl: SS Id SS-QUIET-THERM-SILVER, Device cpu0, Req. 1593600kHz, Applied  1593600kHz, TC delay 0
+03-31 19:14:57.790   953  1072 I ThermalEngine: settimer: Start timer 2.000(sec)
+03-31 19:14:57.790   953  1072 D ThermalEngine: algo_monitor: Wait for EV
+03-31 19:14:57.790   953  1059 D ThermalEngine: sensor_monitor: sdm-therm Reading 44146 .
+03-31 19:14:57.790   953  1059 I ThermalEngine: Sensor:sdm-therm:44146 mC
+03-31 19:14:57.790   953  1059 D ThermalEngine: update_active_thresh: sdm-therm Active(1), Hi(1) 45000, Lo(1) 42000, desc(0) Interval(1) 1000
+03-31 19:14:57.790   953  1059 D ThermalEngine: sensor_monitor: sdm-therm Sensor wait.
+03-31 19:14:57.873  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:58.290  2345  2345 I chatty  : uid=1000(system) com.android.systemui identical 4 lines
+03-31 19:14:58.406  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:58.460  3668  3668 I PowerSaveService: onReceive: android.intent.action.BATTERY_CHANGED
+03-31 19:14:58.461  2621  2621 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+03-31 19:14:58.461  5025  5227 D PowerCheckerService: onBatteryChanged, mBatteryLevel = 100, status = 2, level = 100, plug = 2, scale = 100
+03-31 19:14:58.462  3668  3668 I PowerNoticeUI: handleBatteryChanged oldPlugType 2 mPlugType 2 oldBatteryLevel 100 mBatteryLevel 100 temperature 370
+03-31 19:14:58.462  3668  3668 I ChargerBatteryIntelligenceReceiver: onBatteryChanged temperature:37,plugType:2
+03-31 19:14:58.462  3668  3668 I ChargerBatteryIntelligenceReceiver: dissmissTempFastChargeReminder not support
+03-31 19:14:58.462  3668  3668 I PowerFeatureUtils: getVendorName:qcom
+03-31 19:14:58.463  2345  2345 D KeyguardUpdateMonitor: received broadcast android.intent.action.BATTERY_CHANGED
+03-31 19:14:58.507  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:58.578  1909  1990 D CompatibilityInfo: mCompatibilityFlags - 0
+03-31 19:14:58.578  1909  1990 D CompatibilityInfo: applicationDensity - 440
+03-31 19:14:58.578  1909  1990 D CompatibilityInfo: applicationScale - 1.0
+03-31 19:14:58.582  1909  4398 D CompatibilityInfo: mCompatibilityFlags - 0
+03-31 19:14:58.582  1909  4398 D CompatibilityInfo: applicationDensity - 440
+03-31 19:14:58.582  1909  4398 D CompatibilityInfo: applicationScale - 1.0
+03-31 19:14:58.583   510   510 I hwservicemanager: getTransport: Cannot find entry vendor.qti.hardware.servicetracker@1.0::IServicetracker/default in either framework or device manifest.
+03-31 19:14:58.622  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:58.753  2345  2345 I chatty  : uid=1000(system) com.android.systemui identical 1 line
+03-31 19:14:59.178  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:59.502   510   510 I hwservicemanager: getTransport: Cannot find entry vendor.qti.hardware.servicetracker@1.0::IServicetracker/default in either framework or device manifest.
+03-31 19:14:59.503  1909  4398 D CompatibilityInfo: mCompatibilityFlags - 0
+03-31 19:14:59.503  1909  4398 D CompatibilityInfo: applicationDensity - 440
+03-31 19:14:59.503  1909  4398 D CompatibilityInfo: applicationScale - 1.0
+03-31 19:14:59.504   510   510 I hwservicemanager: getTransport: Cannot find entry vendor.qti.hardware.servicetracker@1.0::IServicetracker/default in either framework or device manifest.
+03-31 19:14:59.528  3274  3274 I CNSS    : Failed to send nl message
+03-31 19:14:59.677  3274  3274 I chatty  : uid=1000(system) /system/vendor/bin/cnss_diag identical 20 lines
+03-31 19:14:59.677  3274  3274 I CNSS    : Failed to send nl message
+03-31 19:14:59.697   510   510 I hwservicemanager: getTransport: Cannot find entry vendor.qti.hardware.servicetracker@1.0::IServicetracker/default in either framework or device manifest.
+03-31 19:14:59.699   510   510 I hwservicemanager: getTransport: Cannot find entry vendor.qti.hardware.servicetracker@1.0::IServicetracker/default in either framework or device manifest.
+03-31 19:14:59.702  4766  4810 E FirebaseMessaging: Topic operation failed: SERVICE_NOT_AVAILABLE. Will retry Topic operation.
+03-31 19:14:59.707  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:59.732  3274  3274 I CNSS    : Failed to send nl message
+03-31 19:14:59.790   953  1072 E ThermalEngine: read_thermal_config
+03-31 19:14:59.790   953  1072 D ThermalEngine: algo_monitor: Timer EVT
+03-31 19:14:59.795   953  1072 I ThermalEngine: Sensor:sdm-therm:44354 mC
+03-31 19:14:59.795   953  1072 D ThermalEngine: handle_timer_sig: SS Id SS-QUIET-THERM-SILVER Read sdm-therm 44354mC, Err -354mC, SampleCnt 1
+03-31 19:14:59.795   953  1072 D ThermalEngine: handle_timer_sig: SS Id SS-QUIET-THERM-SILVER, E0 -354mC, E1 0mC
+03-31 19:14:59.795   953  1072 D ThermalEngine: Already at device mitigation max limit
+03-31 19:14:59.795   953  1072 I ThermalEngine: settimer: Start timer 2.000(sec)
+03-31 19:14:59.795   953  1072 D ThermalEngine: algo_monitor: Wait for EV
+03-31 19:14:59.814  2345  2345 D NavBarTintController: onSampleCollected 1.0
+03-31 19:14:59.834  3274  3274 I CNSS    : Failed to send nl message
+03-31 19:14:59.978  3274  3274 I chatty  : uid=1000(system) /system/vendor/bin/cnss_diag identical 3 lines
+03-31 19:14:59.982  3274  3274 I CNSS    : Failed to send nl message
+03-31 19:15:00.002  2345  2345 D KeyguardUpdateMonitor: handleTimeUpdate
+03-31 19:15:00.052  2345  2345 D NavBarTintController: onSampleCollected 1.0
