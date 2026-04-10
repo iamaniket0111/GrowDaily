@@ -1,6 +1,7 @@
 package com.anitech.growdaily.adapter
 
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.data_class.ListEntity
@@ -41,8 +42,10 @@ class ListVerticalAdapter(
         }
 
         // start drag
-        holder.binding.imgDrag.setOnTouchListener { _, _ ->
-            dragStart(holder)
+        holder.binding.imgDrag.setOnTouchListener { _, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                dragStart(holder)
+            }
             false
         }
     }

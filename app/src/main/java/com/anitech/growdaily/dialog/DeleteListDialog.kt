@@ -1,12 +1,6 @@
 package com.anitech.growdaily.dialog
 
-import android.app.Dialog
 import android.content.Context
-import android.graphics.Color
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.core.graphics.drawable.toDrawable
 import com.anitech.growdaily.R
 import com.anitech.growdaily.data_class.ListEntity
 
@@ -16,29 +10,15 @@ class DeleteListDialog(
     private val onDeleteList: (ListEntity) -> Unit
 ) {
     fun show() {
-        val dialog = Dialog(context)
-        val inflater = LayoutInflater.from(context)
-
-        val warningView = inflater.inflate(R.layout.dialog_delete_warning, null)
-
-        val deleteBtn = warningView.findViewById<View>(R.id.deleteButton)
-        val cancelBtn = warningView.findViewById<View>(R.id.cancelButton)
-
-        deleteBtn.setOnClickListener {
-            onDeleteList(list)
-            dialog.dismiss()
-        }
-
-        cancelBtn.setOnClickListener { dialog.dismiss() }
-
-        dialog.setContentView(warningView)
-
-        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
-        dialog.window?.setLayout(
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        )
-
-        dialog.show()
+        TaskActionDialog(
+            context = context,
+            title = "Delete list?",
+            message = "This will remove the list. Tasks stay available, but the list itself cannot be recovered.",
+            primaryLabel = "Delete",
+            iconRes = R.drawable.ic_warning,
+            accentColor = context.getColor(R.color.category_red),
+            iconBubbleColor = 0x50EF5350,
+            onPrimaryAction = { onDeleteList(list) }
+        ).show()
     }
 }

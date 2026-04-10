@@ -3,6 +3,7 @@ package com.anitech.growdaily
 import com.anitech.growdaily.data_class.DailyScore
 import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.enum_class.DateMode
+import com.anitech.growdaily.enum_class.RepeatType
 import com.anitech.growdaily.enum_class.TaskType
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
@@ -102,8 +103,7 @@ class CommonMethods {
                 when (task.taskType) {
 
                     TaskType.DAILY ->
-                        task.taskAddedDate <= dateString &&
-                                (task.taskRemovedDate == null || task.taskRemovedDate >= dateString)
+                        isTaskActiveOnDate(task, dateString)
 
                     TaskType.DAY ->
                         task.taskAddedDate == dateString
@@ -189,8 +189,7 @@ class CommonMethods {
                 when (task.taskType) {
 
                     TaskType.DAILY ->
-                        task.taskAddedDate <= date &&
-                                (task.taskRemovedDate == null || task.taskRemovedDate >= date)
+                        isTaskActiveOnDate(task, date)
 
                     TaskType.DAY ->
                         task.taskAddedDate == date
@@ -200,6 +199,190 @@ class CommonMethods {
                                 (task.taskRemovedDate == null || task.taskRemovedDate >= date)
                 }
             }
+        }
+
+        fun isTaskActiveOnDate(task: TaskEntity, dateString: String): Boolean {
+            if (task.taskAddedDate > dateString) return false
+            if (task.taskRemovedDate != null && task.taskRemovedDate < dateString) return false
+            if (task.taskType != TaskType.DAILY) return true
+            return matchesRepeatPattern(task, dateString)
+        }
+
+        fun isWithinTaskLifetime(task: TaskEntity, dateString: String): Boolean {
+            if (task.taskAddedDate > dateString) return false
+            if (task.taskRemovedDate != null && task.taskRemovedDate < dateString) return false
+            return true
+        }
+
+        fun previousScheduledDate(task: TaskEntity, dateString: String): String? {
+            if (task.taskType != TaskType.DAILY) return null
+            val current = runCatching { LocalDate.parse(dateString, sdf) }.getOrNull() ?: return null
+            var cursor = current.minusDays(1)
+            val start = runCatching { LocalDate.parse(task.taskAddedDate, sdf) }.getOrNull() ?: return null
+
+            while (!cursor.isBefore(start)) {
+                val candidate = cursor.format(sdf)
+                if (isTaskActiveOnDate(task, candidate)) {
+                    return candidate
+                }
+                cursor = cursor.minusDays(1)
+            }
+            return null
+        }
+
+        fun matchesRepeatPattern(task: TaskEntity, dateString: String): Boolean {
+            if (task.taskType != TaskType.DAILY) return true
+
+            val repeatType = task.repeatType ?: RepeatType.DAILY
+            if (repeatType == RepeatType.DAILY) return true
+
+            val date = runCatching { LocalDate.parse(dateString, sdf) }.getOrNull() ?: return true
+            val values = parseRepeatDays(task.repeatDays)
+
+            return when (repeatType) {
+                RepeatType.DAILY -> true
+                RepeatType.DAYS_OF_WEEK -> values.contains(date.dayOfWeek.value)
+                RepeatType.DAYS_OF_MONTH -> values.contains(date.dayOfMonth)
+            }
+        }
+
+        fun parseRepeatDays(raw: String?): List<Int> {
+            if (raw.isNullOrBlank()) return emptyList()
+            return raw.split(",")
+                .mapNotNull { it.trim().toIntOrNull() }
+                .distinct()
+                .sorted()
+        }
+
+        fun formatRepeatSummary(repeatType: RepeatType?, repeatDays: String?): String {
+            return when (repeatType ?: RepeatType.DAILY) {
+                RepeatType.DAILY -> "Every day"
+                RepeatType.DAYS_OF_WEEK -> {
+                    val labels = parseRepeatDays(repeatDays)
+                        .mapNotNull { value ->
+                            DayOfWeek.entries.firstOrNull { it.value == value }
+                                ?.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
+                        }
+                    if (labels.isEmpty()) "Specific weekdays" else labels.joinToString(", ")
+                }
+                RepeatType.DAYS_OF_MONTH -> {
+                    val days = parseRepeatDays(repeatDays)
+                    if (days.isEmpty()) "Specific month days"
+                    else days.joinToString(", ") { ordinalDay(it) }
+                }
+            }
+        }
+
+        fun serializeRepeatDays(days: List<Int>): String? {
+            val cleaned = days.distinct().sorted()
+            return if (cleaned.isEmpty()) null else cleaned.joinToString(",")
+        }
+
+        fun scheduledDatesBetween(
+            task: TaskEntity,
+            startInclusive: LocalDate,
+            endInclusive: LocalDate
+        ): Set<LocalDate> {
+            if (endInclusive.isBefore(startInclusive)) return emptySet()
+
+            val scheduled = mutableSetOf<LocalDate>()
+            var date = startInclusive
+            while (!date.isAfter(endInclusive)) {
+                if (isTaskActiveOnDate(task, date.format(sdf))) {
+                    scheduled.add(date)
+                }
+                date = date.plusDays(1)
+            }
+            return scheduled
+        }
+
+        fun calculateCurrentStreak(
+            taskStart: LocalDate,
+            completedDates: Set<LocalDate>,
+            scheduledDates: Set<LocalDate>? = null
+        ): Int {
+
+            val allScheduledDates = scheduledDates ?: buildSet {
+                var date = taskStart
+                val today = LocalDate.now()
+                while (!date.isAfter(today)) {
+                    add(date)
+                    date = date.plusDays(1)
+                }
+            }
+
+            val today = LocalDate.now()
+            val latestScheduled = allScheduledDates
+                .filter { !it.isAfter(today) }
+                .maxOrNull() ?: return 0
+
+            var date = if (completedDates.contains(latestScheduled)) {
+                latestScheduled
+            } else {
+                previousScheduledDate(latestScheduled, allScheduledDates) ?: return 0
+            }
+
+            var streak = 0
+            while (!date.isBefore(taskStart) && allScheduledDates.contains(date)) {
+                if (!completedDates.contains(date)) break
+                streak++
+                date = previousScheduledDate(date, allScheduledDates) ?: break
+            }
+
+            return streak
+        }
+
+        fun calculateBestStreak(
+            taskStart: LocalDate,
+            completedDates: Set<LocalDate>,
+            scheduledDates: Set<LocalDate>? = null
+        ): Int {
+
+            val datesToCheck = (scheduledDates ?: buildSet {
+                var date = taskStart
+                val today = LocalDate.now()
+                while (!date.isAfter(today)) {
+                    add(date)
+                    date = date.plusDays(1)
+                }
+            }).filter { !it.isBefore(taskStart) }.sorted()
+
+            var best = 0
+            var current = 0
+
+            datesToCheck.forEach { date ->
+                if (completedDates.contains(date)) {
+                    current++
+                    best = maxOf(best, current)
+                } else {
+                    current = 0
+                }
+            }
+
+            return best
+        }
+
+        private fun previousScheduledDate(
+            current: LocalDate,
+            scheduledDates: Set<LocalDate>
+        ): LocalDate? {
+            return scheduledDates
+                .filter { it.isBefore(current) }
+                .maxOrNull()
+        }
+
+        private fun ordinalDay(day: Int): String {
+            val suffix = if (day % 100 in 11..13) {
+                "th"
+            } else {
+                when (day % 10) {
+                    1 -> "st"
+                    2 -> "nd"
+                    3 -> "rd"
+                    else -> "th"
+                }
+            }
+            return "$day$suffix"
         }
 
         fun calculateScoreForDate(
@@ -213,25 +396,25 @@ class CommonMethods {
 
             val completionForDate = completionMap[date] ?: emptyMap()
 
-            var totalWeight = 0
-            var completedWeight = 0
+            var totalWeight = 0f
+            var achievedWeight = 0f
 
             for (task in tasksForDate) {
 
-                totalWeight += task.weight.weight
+                val taskWeight = task.weight.weight.toFloat()
+                totalWeight += taskWeight
 
                 val count = completionForDate[task.id] ?: 0
                 val target = task.dailyTargetCount.coerceAtLeast(1)
+                val progressRatio = (count.coerceAtMost(target).toFloat() / target.toFloat())
 
-                if (count >= target) {
-                    completedWeight += task.weight.weight
-                }
+                achievedWeight += taskWeight * progressRatio
             }
 
-            if (totalWeight == 0) return 0f
+            if (totalWeight == 0f) return 0f
 
             val rawScore =
-                (completedWeight.toFloat() / totalWeight.toFloat()) * 10f
+                (achievedWeight / totalWeight) * 10f
 
             return ((rawScore * 10).roundToInt()) / 10f
         }
@@ -247,18 +430,21 @@ class CommonMethods {
 
             val dailyScores = mutableListOf<Float>()
             var currentDate = startDate
+            val today = LocalDate.now()
 
             while (!currentDate.isAfter(endDate)) {
-
-                val dateStr = currentDate.toString()
-
-                val score = calculateScoreForDate(
-                    tasks,
-                    dateStr,
-                    completionMap
-                )
-
-                if (score > 0f) dailyScores.add(score)
+                if (!currentDate.isAfter(today)) {
+                    val dateStr = currentDate.toString()
+                    val tasksForDate = filterTasksForDate(tasks, dateStr)
+                    if (tasksForDate.isNotEmpty()) {
+                        val score = calculateScoreForDate(
+                            tasks,
+                            dateStr,
+                            completionMap
+                        )
+                        dailyScores.add(score)
+                    }
+                }
 
                 currentDate = currentDate.plusDays(1)
             }
@@ -279,54 +465,6 @@ class CommonMethods {
             } catch (e: Exception) {
                 ""
             }
-        }
-
-        // FIXME: ensure this is not checking other than daily task 
-        fun calculateCurrentStreak(
-            taskStart: LocalDate,
-            completedDates: Set<LocalDate>
-        ): Int {
-
-            var streak = 0
-            var date = LocalDate.now()
-
-            while (!date.isBefore(taskStart)) {
-
-                if (completedDates.contains(date)) {
-                    streak++
-                    date = date.minusDays(1)
-                } else {
-                    break
-                }
-            }
-
-            return streak
-        }
-
-        fun calculateBestStreak(
-            taskStart: LocalDate,
-            completedDates: Set<LocalDate>
-        ): Int {
-
-            var best = 0
-            var current = 0
-
-            var date = taskStart
-            val today = LocalDate.now()
-
-            while (!date.isAfter(today)) {
-
-                if (completedDates.contains(date)) {
-                    current++
-                    best = maxOf(best, current)
-                } else {
-                    current = 0
-                }
-
-                date = date.plusDays(1)
-            }
-
-            return best
         }
 
         fun applySmartTimeOrder(tasks: List<TaskEntity>): List<TaskEntity> {

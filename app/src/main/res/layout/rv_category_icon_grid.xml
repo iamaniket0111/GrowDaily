@@ -2,10 +2,11 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="?attr/actionBarSize"
-    android:background="?attr/selectableItemBackground"
-    android:clickable="true"
-    android:focusable="true"
+    android:layout_height="42dp"
+    android:background="@drawable/completion_dialog_row_bg"
+    android:foreground="?attr/selectableItemBackgroundBorderless"
+    android:layout_margin="4dp"
+    android:paddingVertical="4dp"
     >
 
     <ImageView
@@ -14,7 +15,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:src="@drawable/ic_bell"
-        app:tint="@color/off_text_color" />
+        app:tint="@color/task_text_secondary" />
 
     <ImageView
         android:id="@+id/isSelectedImg"
@@ -22,8 +23,6 @@
         android:layout_height="32dp"
         android:layout_gravity="center"
         android:background="@drawable/circular"
-        android:backgroundTint="#D53F51B5"
-        android:padding="4dp"
         android:src="@drawable/ic_check"
         app:tint="@color/white" />
 </FrameLayout>

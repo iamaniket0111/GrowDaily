@@ -11,14 +11,12 @@ import androidx.viewpager2.widget.ViewPager2
 import com.anitech.growdaily.CommonMethods
 import com.anitech.growdaily.R
 import com.anitech.growdaily.adapter.ViewPagerAdapter
-import com.anitech.growdaily.database.AppViewModel
 import com.anitech.growdaily.databinding.FragmentMainBinding
 import com.anitech.growdaily.dialog.TaskTypeDialog
 
 class MainFragment : Fragment() {
     private var _binding: FragmentMainBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: AppViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

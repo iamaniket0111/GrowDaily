@@ -6,16 +6,10 @@
     <string name="none">none</string>
     <string name="task_weight_prefix">%1$d/4</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="st1">Don’t just live the day, score it. Add a task</string>
-    <string name="st2">and boost your</string>
-    <string name="st3">\tScore My Day</string>
-    <string name="menu_diary">Diary</string>
-    <string name="menu_day_log">Day Log</string>
     <string name="today">Today</string>
     <string name="tomorrow">Tomorrow</string>
     <string name="yesterday">Yesterday</string>
     <string name="mood_history">Mood History</string>
-    <string name="time">10:26 AM</string>
     <string name="holiday">Holiday</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="list_message">
@@ -26,12 +20,37 @@
     <string name="condition1">Work Day</string>
     <string name="new_list">New list</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 
     <!-- Task Types -->
     <string name="task_type_daily">Daily</string>
     <string name="task_type_today">Today</string>
     <string name="task_type_until_done">Until Done</string>
 
+    <!-- TaskFragment strings -->
+    <string name="date_format_d_mmm">d MMM</string>
+    <string name="week_range_format">%1$s–%2$s</string>
+
+    <!-- TaskListBottomSheet strings -->
+    <string name="organize_task_title">Organize this task</string>
+    <string name="organize_task_hint">Choose one or more lists to group it better.</string>
+    <string name="lists_header">Lists</string>
+    <string name="add_new_list">+ New list</string>
+    <string name="no_lists_empty_state">No lists yet. Create one and it will appear here.</string>
+    <string name="list_name_hint">List name</string>
+    <string name="create_button">Create</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="apply_lists">Apply Lists</string>
+    <string name="apply_one_list">Apply 1 List</string>
+    <string name="apply_multiple_lists">Apply %1$d Lists</string>
+    <string name="creating_status">Creating...</string>
+    <string name="first_list_hint">Create your first list to start organizing tasks.</string>
+    <string name="one_list_added_hint">This task will be added to 1 list.</string>
+    <string name="multiple_lists_added_hint">This task will be added to %1$d lists.</string>
+
+    <!-- ListCheckAdapter strings -->
+    <string name="list_selected_meta">This task will appear in this list</string>
+    <string name="list_unselected_meta">Tap to add this task here</string>
+    <string name="state_selected">Selected</string>
+    <string name="state_add">Add</string>
 
 </resources>

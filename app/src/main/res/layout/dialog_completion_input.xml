@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="332dp"
+    android:layout_height="wrap_content"
+    android:background="@drawable/dialog_surface_card"
+    android:orientation="vertical"
+    android:padding="18dp">
+
+    <View
+        android:id="@+id/viewAccent"
+        android:layout_width="38dp"
+        android:layout_height="5dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="14dp"
+        android:background="@drawable/completion_dialog_chip_bg" />
+
+    <!-- Title row -->
+    <TextView
+        android:id="@+id/tvDialogTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"
+        android:gravity="center"
+        android:textSize="20sp"
+        android:textColor="@color/dialog_text_primary"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvDialogSubtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="14dp"
+        android:gravity="center"
+        android:textColor="@color/dialog_text_secondary"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/tvChecklistDoneCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/completion_dialog_chip_bg"
+        android:gravity="center"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp"
+        android:text="0 / 0 done"
+        android:textColor="@color/brand_blue"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <!-- ── SECTION: TIMER + COUNT (seekbar + steppers) ───────────────────── -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <include
+            android:id="@+id/timerCountLayout"
+            layout="@layout/layout_timer_count" />
+    </FrameLayout>
+
+    <!-- ── SECTION: CHECKLIST ─────────────────────────────────────────────── -->
+    <LinearLayout
+        android:id="@+id/checklistHeaderSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/checklistProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:indeterminate="false"
+            app:trackCornerRadius="6dp"
+            app:trackThickness="8dp" />
+
+        <com.anitech.growdaily.view.MaxHeightScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fillViewport="true"
+            app:maxHeight="350dp">
+
+            <LinearLayout
+            android:id="@+id/checklistContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/completion_dialog_section_bg"
+            android:orientation="vertical"
+            android:padding="6dp" />
+
+        </com.anitech.growdaily.view.MaxHeightScrollView>
+
+    </LinearLayout>
+
+    <!-- ── Close button -->
+    <Button
+        android:id="@+id/btnClose"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="@color/brand_blue"
+        android:text="Done"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textStyle="bold" />
+
+</LinearLayout>

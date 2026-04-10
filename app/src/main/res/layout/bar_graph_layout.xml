@@ -8,8 +8,7 @@
     >
 
     <!-- Background lines -->
-    <com.anitech.growdaily.ScoreBarBackground
-        android:id="@+id/scoreBackground"
+    <com.anitech.growdaily.view.ScoreBarBackground
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_marginTop="15dp"
@@ -38,8 +37,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:background="@drawable/circular"
-        android:backgroundTint="@color/white"
+        android:backgroundTint="@color/task_bar_button_bg"
         android:visibility="invisible"
-        app:tint="@color/black"
+        app:tint="@color/task_bar_button_icon"
         />
 </androidx.constraintlayout.widget.ConstraintLayout>

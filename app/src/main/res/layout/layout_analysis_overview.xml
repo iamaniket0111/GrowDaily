@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/layoutOverview"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/circular_corners"
+    android:background="@drawable/task_fragment_card"
     android:padding="20dp">
 
     <!-- Section Title -->
@@ -13,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="ACTIVITY OVERVIEW"
-        android:textColor="@color/black"
+        android:textColor="@color/task_text_primary"
         android:textSize="12sp"
         android:textStyle="normal"
         android:letterSpacing="0.05"
@@ -22,7 +21,6 @@
 
     <!-- Stats Grid -->
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layoutStatsGrid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -55,17 +53,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Current streak"
-                android:textColor="#9E9E9E"
+                android:textColor="@color/task_text_secondary"
                 android:textSize="13sp"
                 android:layout_marginTop="4dp"
                 android:layout_gravity="center_horizontal" />
 
             <TextView
-                android:id="@+id/txtCurrentStreakDays"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="days"
-                android:textColor="#9E9E9E"
+                android:textColor="@color/task_text_secondary"
                 android:textSize="11sp"
                 android:layout_gravity="center_horizontal" />
         </LinearLayout>
@@ -75,7 +72,7 @@
             android:id="@+id/divider1"
             android:layout_width="1dp"
             android:layout_height="40dp"
-            android:background="#E0E0E0"
+            android:background="@color/task_card_stroke"
             app:layout_constraintStart_toEndOf="@id/layoutCurrentStreak"
             app:layout_constraintEnd_toStartOf="@id/layoutBestStreak"
             app:layout_constraintTop_toTopOf="@id/layoutCurrentStreak"
@@ -106,17 +103,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Best streak"
-                android:textColor="#9E9E9E"
+                android:textColor="@color/task_text_secondary"
                 android:textSize="13sp"
                 android:layout_marginTop="4dp"
                 android:layout_gravity="center_horizontal" />
 
             <TextView
-                android:id="@+id/txtBestStreakDays"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="days"
-                android:textColor="#9E9E9E"
+                android:textColor="@color/task_text_secondary"
                 android:textSize="11sp"
                 android:layout_gravity="center_horizontal" />
         </LinearLayout>
@@ -126,7 +122,7 @@
             android:id="@+id/divider2"
             android:layout_width="1dp"
             android:layout_height="40dp"
-            android:background="#E0E0E0"
+            android:background="@color/task_card_stroke"
             app:layout_constraintStart_toEndOf="@id/layoutBestStreak"
             app:layout_constraintEnd_toStartOf="@id/layoutDates"
             app:layout_constraintTop_toTopOf="@id/layoutCurrentStreak"
@@ -156,7 +152,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Mar 4, 2026"
-                    android:textColor="#2E7D32"
+                    android:textColor="@color/task_text_primary"
                     android:textSize="14sp"
                      />
 
@@ -164,7 +160,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Last completed"
-                    android:textColor="#9E9E9E"
+                    android:textColor="@color/task_text_secondary"
                     android:textSize="11sp"
                     android:layout_marginTop="2dp" />
             </LinearLayout>
@@ -180,7 +176,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Feb 28, 2026"
-                    android:textColor="#C62828"
+                    android:textColor="@color/task_text_primary"
                     android:textSize="14sp"
                      />
 
@@ -188,7 +184,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Last missed"
-                    android:textColor="#9E9E9E"
+                    android:textColor="@color/task_text_secondary"
                     android:textSize="11sp"
                     android:layout_marginTop="2dp" />
             </LinearLayout>

@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.Visibility
 import com.anitech.growdaily.R
+import com.anitech.growdaily.setSolidBackgroundColorCompat
 import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.databinding.RvTaskItemBinding
 import com.anitech.growdaily.enum_class.TaskColor
@@ -59,10 +60,9 @@ class TaskReorderAdapter(
             val color = TaskColor.valueOf(task.colorCode)
 
             binding.imageProfile.setImageResource(icon.resId)
-            binding.imageProfile.backgroundTintList =
-                ColorStateList.valueOf(
-                    ContextCompat.getColor(binding.root.context, color.resId)
-                )
+            binding.imageProfile.setSolidBackgroundColorCompat(
+                ContextCompat.getColor(binding.root.context, color.resId)
+            )
 
             binding.weightContainer.visibility = View.GONE
             binding.streakContainer.visibility = View.GONE

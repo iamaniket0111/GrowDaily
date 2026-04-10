@@ -2,7 +2,8 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="ring"
     android:thickness=".5dp"
-    android:useLevel="false">
+    android:useLevel="false"
+    >
 
 
     <solid android:color="@android:color/transparent" />

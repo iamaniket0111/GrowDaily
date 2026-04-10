@@ -7,7 +7,8 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "task_order_change_log",
     indices = [Index(value = ["dateOfChange"], unique = true)]
-)data class TaskOrderChangeLog(
+)
+data class TaskOrderChangeLog(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val dateOfChange: String,  // Reorder kab hua: e.g., "2025-10-23"

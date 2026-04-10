@@ -2,13 +2,11 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
         android:paddingHorizontal="16dp"
         android:scrollbars="none"
         app:layout_constraintBottom_toTopOf="@id/buttonSave"
@@ -44,119 +42,149 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom|end"
                     android:background="@drawable/circular"
-                    android:backgroundTint="#77FFEB3B"
+                    android:backgroundTint="@color/add_form_muted_surface"
                     android:contentDescription="@string/none"
                     android:padding="4dp"
                     android:src="@drawable/ic_add"
                     app:tint="@color/category_green" />
             </FrameLayout>
 
-
             <Space
                 android:layout_width="wrap_content"
                 android:layout_height="32dp" />
 
-            <FrameLayout
+            <!-- Title & Note (Variable Height) -->
+            <include
+                android:id="@+id/titleNoteLayout"
+                layout="@layout/add_task_title_note_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
-                <include
-                    android:id="@+id/titleNoteLayout"
-                    layout="@layout/add_task_title_note_layout" />
-            </FrameLayout>
+                android:layout_marginBottom="16dp" />
 
-            <!-- Title && Note-->
-
-
-
-
-
-            <FrameLayout
+            <LinearLayout
+                android:id="@+id/tvVersioningHint"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
-                <include
-                    android:id="@+id/taskWeightPriorityLayout"
-                    layout="@layout/task_weight_priority_layout" />
-            </FrameLayout>
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/add_task_info_card"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="12dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="10dp"
+                android:visibility="gone">
 
+                <ImageView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/circular"
+                    android:backgroundTint="@color/task_filter_selected_bg"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_warning"
+                    app:tint="@color/brand_blue" />
 
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Changes apply going forward"
+                        android:textColor="@color/add_form_text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
 
-            <!-- List view -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:lineSpacingExtra="1dp"
+                        android:text="Priority, tracking, and repeat changes apply from today onward only. Past progress stays unchanged."
+                        android:textColor="@color/add_form_text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
 
-            <FrameLayout
+            <!-- Priority (Fixed 56dp) -->
+            <include
+                android:id="@+id/taskWeightPriorityLayout"
+                layout="@layout/task_weight_priority_layout"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Tracking Type (Variable Height) -->
+            <include
+                android:id="@+id/taskTrackingType"
+                layout="@layout/layout_tracking_type"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
-                <include
-                    android:id="@+id/addToListLayout"
-                    layout="@layout/task_add_to_list_layout" />
-            </FrameLayout>
+                android:layout_marginBottom="16dp" />
 
+            <!-- Add to List (Fixed 56dp) -->
+            <include
+                android:id="@+id/addToListLayout"
+                layout="@layout/task_add_to_list_layout"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="16dp" />
 
+            <!-- Start Date (Fixed 56dp) -->
+            <include
+                android:id="@+id/startDateLayout"
+                layout="@layout/task_start_date_layout"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="16dp" />
 
-
-            <FrameLayout
+            <!-- Until Complete (Variable Height) -->
+            <include
+                android:id="@+id/untilCompleteLayout"
+                layout="@layout/layout_day_until_complete"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
-                <include
-                    android:id="@+id/startDateLayout"
-                    layout="@layout/task_start_date_layout" />
-            </FrameLayout>
+                android:layout_marginBottom="16dp" />
 
+            <!-- Repeat (Fixed 56dp) -->
+            <include
+                android:id="@+id/repeatLayout"
+                layout="@layout/task_repeat_layout"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="16dp" />
 
-
-
-
-            <FrameLayout
+            <!-- Schedule (Variable Height) -->
+            <include
+                android:id="@+id/scheduleLayout"
+                layout="@layout/layout_schedule"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
-                <include
-                    android:id="@+id/repeatLayout"
-                    layout="@layout/task_repeat_layout" />
-            </FrameLayout>
+                android:layout_marginBottom="16dp" />
 
-
-
-
-
-            <!-- Scheduled Time, date -->
-
-
-            <!-- Reminder Switch -->
-
-
-            <FrameLayout
+            <!-- Reminder (Variable Height) -->
+            <include
+                android:id="@+id/reminderLayoutMain"
+                layout="@layout/layout_reminder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
-                <include
-                    android:id="@+id/scheduleReminderLayout"
-                    layout="@layout/layout_schedule_reminder" />
-            </FrameLayout>
+                android:layout_marginBottom="16dp" />
 
-
-            <FrameLayout
+            <!-- Delete/Pause (Fixed 56dp) -->
+            <include
+                android:id="@+id/deletePauseLayout"
+                layout="@layout/layout_delete_pause"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
-                <include
-                    android:id="@+id/deletePauseLayout"
-                    layout="@layout/layout_delete_pause" />
-            </FrameLayout>
-
-
-
-            <!-- Save Button -->
-
-
+                android:layout_height="56dp"
+                android:layout_marginBottom="32dp" />
 
         </LinearLayout>
     </ScrollView>
-    <!-- Add this inside your root layout, e.g., after buttonSave -->
+
     <ProgressBar
         android:id="@+id/progressBarSave"
         android:layout_width="wrap_content"
@@ -169,19 +197,47 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <LinearLayout
+        android:id="@+id/navigationLoadingOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/task_screen_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/brand_blue" />
+
+        <TextView
+            android:id="@+id/tvNavigationLoading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Going back..."
+            android:textColor="@color/task_text_secondary"
+            android:textSize="14sp" />
+    </LinearLayout>
+
     <Button
         android:id="@+id/buttonSave"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
         android:backgroundTint="@color/brand_blue"
         android:text="Save Task"
         android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
-
-

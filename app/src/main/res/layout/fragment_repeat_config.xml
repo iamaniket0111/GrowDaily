@@ -1,62 +1,300 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:tools="http://schemas.android.com/tools"
-android:layout_width="match_parent"
-android:layout_height="match_parent"
-android:orientation="vertical"
-android:padding="16dp"
-tools:context=".fragment.RepeatConfigFragment"
-    >
-
-<TextView
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="Repeats"
-    android:textSize="20sp"
-    android:textStyle="bold" />
-
-<Space
-    android:layout_width="wrap_content"
-    android:layout_height="16dp" />
-
-<RadioGroup
-    android:id="@+id/repeatTypeGroup"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/task_screen_bg"
+    tools:context=".fragment.RepeatConfigFragment">
 
-    <RadioButton
-        android:id="@+id/radioEveryDay"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Every day"
-        android:checked="true" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <RadioButton
-        android:id="@+id/radioWeekly"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Specific days of week" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Repeat schedule"
+            android:textColor="@color/task_text_primary"
+            android:textSize="22sp"
+            android:textStyle="bold" />
 
-    <RadioButton
-        android:id="@+id/radioMonthly"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Specific days of month" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Choose when this daily task should appear."
+            android:textColor="@color/task_text_secondary"
+            android:textSize="14sp" />
 
-    <RadioButton
-        android:id="@+id/radioCustom"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Every X days" />
-</RadioGroup>
+        <TextView
+            android:id="@+id/tvRepeatEditHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Edits apply from today onward. Past progress stays unchanged, and current streak follows the new schedule."
+            android:textColor="@color/task_text_secondary"
+            android:textSize="12sp"
+            android:visibility="gone" />
 
-<Space
-    android:layout_width="wrap_content"
-    android:layout_height="24dp" />
+        <RadioGroup
+            android:id="@+id/repeatTypeGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/task_fragment_card"
+            android:orientation="vertical"
+            android:padding="14dp">
 
-<Button
-    android:id="@+id/btnDone"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:text="Done" />
-</LinearLayout>
+            <RadioButton
+                android:id="@+id/radioEveryDay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:buttonTint="@color/brand_blue"
+                android:text="Every day"
+                android:textColor="@color/task_text_primary" />
+
+            <RadioButton
+                android:id="@+id/radioWeekly"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:buttonTint="@color/brand_blue"
+                android:text="Specific days of week"
+                android:textColor="@color/task_text_primary" />
+
+            <RadioButton
+                android:id="@+id/radioMonthly"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:buttonTint="@color/brand_blue"
+                android:text="Specific days of month"
+                android:textColor="@color/task_text_primary" />
+        </RadioGroup>
+
+        <LinearLayout
+            android:id="@+id/weekDaysContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/task_fragment_card"
+            android:orientation="vertical"
+            android:padding="14dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Choose weekdays"
+                android:textColor="@color/task_text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal"
+                android:weightSum="7">
+
+                <CheckBox
+                    android:id="@+id/checkMon"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:buttonTint="@color/brand_blue"
+                    android:text="M"
+                    android:textColor="@color/task_text_primary" />
+
+                <CheckBox
+                    android:id="@+id/checkTue"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:buttonTint="@color/brand_blue"
+                    android:text="T"
+                    android:textColor="@color/task_text_primary" />
+
+                <CheckBox
+                    android:id="@+id/checkWed"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:buttonTint="@color/brand_blue"
+                    android:text="W"
+                    android:textColor="@color/task_text_primary" />
+
+                <CheckBox
+                    android:id="@+id/checkThu"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:buttonTint="@color/brand_blue"
+                    android:text="T"
+                    android:textColor="@color/task_text_primary" />
+
+                <CheckBox
+                    android:id="@+id/checkFri"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:buttonTint="@color/brand_blue"
+                    android:text="F"
+                    android:textColor="@color/task_text_primary" />
+
+                <CheckBox
+                    android:id="@+id/checkSat"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:buttonTint="@color/brand_blue"
+                    android:text="S"
+                    android:textColor="@color/task_text_primary" />
+
+                <CheckBox
+                    android:id="@+id/checkSun"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:buttonTint="@color/brand_blue"
+                    android:text="S"
+                    android:textColor="@color/task_text_primary" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Show missed work on gap days"
+                        android:textColor="@color/task_text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="If a scheduled day is missed, show it on the next non-repeat day until the next repeat day arrives."
+                        android:textColor="@color/task_text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <Switch
+                    android:id="@+id/switchGapCarryWeekly"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/monthDaysContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/task_fragment_card"
+            android:orientation="vertical"
+            android:padding="14dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Choose days of month"
+                android:textColor="@color/task_text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Tap the dates you want this task to appear on."
+                android:textColor="@color/task_text_secondary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/txtMonthDaySummary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/task_filter_chip"
+                android:backgroundTint="@color/task_filter_selected_bg"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="8dp"
+                android:text="No dates selected"
+                android:textColor="@color/brand_blue"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <GridLayout
+                android:id="@+id/monthDaysGrid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:columnCount="7"
+                android:useDefaultMargins="true" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Show missed work on gap days"
+                        android:textColor="@color/task_text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Carry missed work into dates between repeat occurrences, but stop once the next repeat date arrives."
+                        android:textColor="@color/task_text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <Switch
+                    android:id="@+id/switchGapCarryMonthly"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnDone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:backgroundTint="@color/brand_blue"
+            android:text="Save repeat settings"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+
+</ScrollView>

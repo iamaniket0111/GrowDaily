@@ -5,8 +5,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.anitech.growdaily.BarView
 import com.anitech.growdaily.R
+import com.anitech.growdaily.view.BarView
 import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.enum_class.PeriodType
 import java.time.LocalDate
@@ -19,6 +19,7 @@ class BarAdapter2(
 
     private var periodType: PeriodType = PeriodType.WEEK
     private var anchorDate: LocalDate = LocalDate.now()
+    private var barColor: Int = android.graphics.Color.parseColor("#708CFF")
 
     private var barDates: List<LocalDate> = emptyList()
     private var barScores: List<Float> = emptyList()
@@ -41,6 +42,9 @@ class BarAdapter2(
         val date = barDates[position]
         val score = barScores.getOrNull(position) ?: 0f
 
+        holder.barView.setUseProgressPalette(false)
+        holder.barView.setUseSolidBarColor(true)
+        holder.barView.setBarColor(barColor)
         holder.barView.setScore(score)
 
         holder.textDate.text = when (periodType) {
@@ -67,6 +71,11 @@ class BarAdapter2(
     fun setAnchorDate(date: LocalDate) {
         anchorDate = date
         // anchor sirf title ke liye hai, data VM se aata hai
+    }
+
+    fun setBarColor(color: Int) {
+        barColor = color
+        notifyDataSetChanged()
     }
 
     fun submitData(

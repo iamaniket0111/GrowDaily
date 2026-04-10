@@ -14,8 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.R
 import com.anitech.growdaily.adapter.ListVerticalAdapter
 import com.anitech.growdaily.data_class.ListEntity
-import com.anitech.growdaily.database.AppViewModel
-import com.anitech.growdaily.database.TaskViewModel
+import com.anitech.growdaily.database.viewmodel.AppViewModel
 import com.anitech.growdaily.databinding.FragmentManageListBinding
 
 class ManageListFragment : Fragment() {
@@ -27,6 +26,8 @@ class ManageListFragment : Fragment() {
 
     private lateinit var adapter: ListVerticalAdapter
     private lateinit var itemTouchHelper: ItemTouchHelper
+    private var isReordering = false
+    private var pendingLists: List<ListEntity>? = null
 
 
     override fun onCreateView(
@@ -43,6 +44,10 @@ class ManageListFragment : Fragment() {
 
         setupRecycler()
         observeLists()
+
+        binding.btnAddList.setOnClickListener {
+            findNavController().navigate(R.id.editList)
+        }
 
         binding.btnClose.setOnClickListener {
             findNavController().popBackStack()
@@ -76,6 +81,7 @@ class ManageListFragment : Fragment() {
                 viewHolder: RecyclerView.ViewHolder,
                 target: RecyclerView.ViewHolder
             ): Boolean {
+                isReordering = true
 
                 adapter.moveItem(
                     viewHolder.adapterPosition,
@@ -97,6 +103,11 @@ class ManageListFragment : Fragment() {
 
                 // drag finished → save order
                 saveNewOrder()
+                isReordering = false
+                pendingLists?.let {
+                    adapter.updateList(it)
+                    pendingLists = null
+                }
             }
         }
 
@@ -109,7 +120,14 @@ class ManageListFragment : Fragment() {
 
     private fun observeLists() {
         viewModel.allLists.observe(viewLifecycleOwner) { lists ->
-            adapter.updateList(lists)
+            binding.txtCount.text = if (lists.size == 1) "1 list" else "${lists.size} lists"
+            binding.emptyStateContainer.visibility = if (lists.isEmpty()) View.VISIBLE else View.GONE
+            binding.RvCondition.visibility = if (lists.isEmpty()) View.GONE else View.VISIBLE
+            if (isReordering) {
+                pendingLists = lists
+            } else {
+                adapter.updateList(lists)
+            }
         }
     }
 

@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -11,7 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.CommonMethods
 import com.anitech.growdaily.adapter.TaskReorderAdapter
-import com.anitech.growdaily.database.AppViewModel
+import com.anitech.growdaily.database.viewmodel.AppViewModel
 import com.anitech.growdaily.databinding.FragmentReorderTaskBinding
 
 class ReorderTaskFragment : Fragment() {
@@ -37,6 +39,7 @@ class ReorderTaskFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupRecycler()
+        setupEmptyState()
         observeTasks()
     }
 
@@ -99,12 +102,30 @@ class ReorderTaskFragment : Fragment() {
     private fun observeTasks() {
 
         viewModel.allTasks.observe(viewLifecycleOwner) { tasks ->
+            if (tasks.isEmpty()) {
+                adapter.updateList(emptyList())
+                binding.taskReorderRv.visibility = View.GONE
+                binding.emptyState.visibility = View.VISIBLE
+                return@observe
+            }
+
             // Reorder screen me sirf manual order follow kare
             val orderedTasks =
                 CommonMethods.applySmartTimeOrder(tasks)
 
             adapter.updateList(orderedTasks)
+            binding.taskReorderRv.visibility = View.VISIBLE
+            binding.emptyState.visibility = View.GONE
         }
+    }
+
+    private fun setupEmptyState() {
+        binding.emptyState.findViewById<ImageView>(com.anitech.growdaily.R.id.ivEmptyStateImage)
+            ?.setImageResource(com.anitech.growdaily.R.drawable.ic_to_do_list)
+        binding.emptyState.findViewById<TextView>(com.anitech.growdaily.R.id.tvEmptyStateTitle)
+            ?.text = "No tasks to reorder"
+        binding.emptyState.findViewById<TextView>(com.anitech.growdaily.R.id.tvEmptyStateSubtitle)
+            ?.text = "Add a few tasks first, then you can organize their order here."
     }
 
     override fun onDestroyView() {

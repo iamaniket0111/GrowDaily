@@ -37,7 +37,7 @@
             android:id="@+id/shDivider"
             android:layout_width="1dp"
             android:layout_height="0dp"
-            android:background="@color/brand_blue"
+            android:background="@color/task_timeline_line"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -55,19 +55,19 @@
             android:layout_height="wrap_content"
             android:paddingStart="6dp"
             android:paddingEnd="0dp"
-            android:text="08:00 AM" />
+            android:text="08:00 AM"
+            android:textColor="@color/task_text_secondary" />
 
         <LinearLayout
             android:id="@+id/body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="6dp"
-            android:background="@drawable/circular_corners"
-            android:backgroundTint="@color/white"
+            android:background="@drawable/task_fragment_card"
             android:baselineAligned="false"
             android:gravity="center"
             android:orientation="horizontal"
-            android:paddingHorizontal="6dp">
+            android:paddingHorizontal="8dp">
 
             <FrameLayout
                 android:layout_width="36dp"
@@ -144,7 +144,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:background="@drawable/circular_corners_less"
-                        android:backgroundTint="@color/lightBackground"
+                        android:backgroundTint="@color/task_done_track"
                         android:gravity="center"
                         android:orientation="horizontal"
                         android:paddingHorizontal="4dp">
@@ -154,7 +154,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="0"
-                            android:textColor="@color/default_text_color"
+                            android:textColor="@color/task_text_secondary"
                             android:textSize="12sp" />
 
                         <ImageView
@@ -180,7 +180,7 @@
                     android:maxLines="2"
                     android:minLines="1"
                     android:text="Start the Day"
-                    android:textColor="@color/black"
+                    android:textColor="@color/task_text_primary"
                     android:textSize="16sp" />
 
                 <TextView
@@ -189,19 +189,45 @@
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
                     android:maxLines="5"
-                    android:textColor="@color/default_text_color"
+                    android:textColor="@color/task_text_secondary"
                     android:text="be ready for the day" />
+
+                <TextView
+                    android:id="@+id/taskPendingText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Pending from Mar 28"
+                    android:textColor="@color/brand_blue"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <FrameLayout
                 android:id="@+id/doneContainer"
                 android:layout_width="38dp"
                 android:layout_height="38dp"
-                android:background="@drawable/circular2"
-                android:backgroundTint="@color/brand_blue"
-
                 >
+                <!-- fixme have to ada full stroke thickness .5-->
 
+
+                <!-- Progress Arc -->
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/doneView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:indeterminate="false"
+                    app:indicatorSize="28dp"
+                    app:trackThickness="2dp"
+                    app:indicatorColor="@color/brand_blue"
+                    app:trackColor="@color/task_done_track"
+                    android:layout_gravity="center"
+                    />
+
+
+
+                <!-- Center Icon -->
                 <ImageView
                     android:id="@+id/done"
                     android:layout_width="wrap_content"
@@ -209,20 +235,9 @@
                     android:src="@drawable/ic_check"
                     android:layout_gravity="center"
                     app:tint="@color/white"
-                    android:backgroundTint="@color/white"
                     android:background="@drawable/circular"
                     />
 
-                <TextView
-                    android:id="@+id/doneCount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0/4"
-                    android:textSize="11sp"
-                    android:textColor="@color/default_text_color"
-                    android:layout_gravity="center"
-                    android:visibility="gone"
-                    />
             </FrameLayout>
 
         </LinearLayout>

@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/addToListRow"
     android:layout_width="match_parent"
     android:layout_height="56dp"
     android:orientation="horizontal"
     android:gravity="center_vertical"
     android:paddingHorizontal="16dp"
-    android:background="@drawable/circular_corners"
+    android:background="@drawable/add_form_surface_card"
     android:clickable="true"
     android:focusable="true">
 
@@ -17,6 +18,8 @@
         android:layout_weight="1"
         android:text="Add to List"
         android:textStyle="bold"
+
+        android:textColor="@color/add_form_text_secondary"
         android:textSize="16sp" />
 
     <!-- Selected list summary -->
@@ -26,7 +29,7 @@
         android:layout_height="wrap_content"
         android:text="None"
         android:textSize="15sp"
-        android:textColor="@android:color/darker_gray"
+        android:textColor="@color/add_form_text_secondary"
         android:paddingEnd="8dp" />
 
     <!-- Arrow -->
@@ -36,5 +39,6 @@
         android:layout_height="24dp"
         android:contentDescription="Open priority selector"
         android:src="@drawable/ic_right_arrow"
+        app:tint="@color/add_form_icon"
       />
 </LinearLayout>

@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/add_form_surface_card"
+    android:padding="12dp">
+
+    <!-- ── Row 1: 4 type selector buttons ─────────────────────────────── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:weightSum="4">
+
+        <TextView
+            android:id="@+id/binaryType"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:background="@drawable/circular_corners"
+            android:backgroundTint="@color/add_form_muted_surface"
+            android:gravity="center"
+            android:text="Binary"
+            android:textColor="@color/add_form_text_secondary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/countType"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="4dp"
+            android:background="@drawable/circular_corners"
+            android:backgroundTint="@color/add_form_muted_surface"
+            android:gravity="center"
+            android:text="Count"
+            android:textColor="@color/add_form_text_secondary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/timerType"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="4dp"
+            android:background="@drawable/circular_corners"
+            android:backgroundTint="@color/add_form_muted_surface"
+            android:gravity="center"
+            android:text="Timer"
+            android:textColor="@color/add_form_text_secondary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/checklistType"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:background="@drawable/circular_corners"
+            android:backgroundTint="@color/add_form_muted_surface"
+            android:gravity="center"
+            android:text="Checklist"
+            android:textColor="@color/add_form_text_secondary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- ── Row 2: COUNT extra — target count input ─────────────────────── -->
+    <LinearLayout
+        android:id="@+id/countExtraContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Daily target count"
+            android:textColor="@color/add_form_text_primary"
+            android:textSize="14sp" />
+
+        <ImageButton
+            android:id="@+id/btnCountMinus"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/add_form_surface_card"
+            android:contentDescription="Decrease"
+            android:src="@drawable/ic_minus"
+            app:tint="@color/add_form_icon" />
+
+        <TextView
+            android:id="@+id/txtCountValue"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="1"
+            android:textColor="@color/add_form_text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/btnCountPlus"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/add_form_surface_card"
+            android:contentDescription="Increase"
+            android:src="@drawable/ic_add"
+            app:tint="@color/add_form_icon" />
+
+    </LinearLayout>
+
+    <!-- ── Row 3: TIMER extra — target duration picker ─────────────────── -->
+    <LinearLayout
+        android:id="@+id/timerExtraContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Target duration"
+            android:textColor="@color/add_form_text_primary"
+            android:textSize="14sp" />
+
+        <!-- Minutes -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnMinutesMinus"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@drawable/add_form_surface_card"
+                android:contentDescription="Decrease minutes"
+                android:src="@drawable/ic_minus"
+                app:tint="@color/add_form_icon" />
+
+            <TextView
+                android:id="@+id/txtMinutesValue"
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="10"
+                android:textColor="@color/add_form_text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/btnMinutesPlus"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@drawable/add_form_surface_card"
+                android:contentDescription="Increase minutes"
+                android:src="@drawable/ic_add"
+                app:tint="@color/add_form_icon" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="min"
+                android:textColor="@color/add_form_text_secondary"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- ── Row 4: CHECKLIST extra — add items ──────────────────────────── -->
+    <LinearLayout
+        android:id="@+id/checklistExtraContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <!-- Existing items list (populated programmatically) -->
+        <LinearLayout
+            android:id="@+id/checklistItemsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <!-- Add item row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/etChecklistItem"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Add checklist item"
+                android:imeOptions="actionDone"
+                android:inputType="text"
+                android:maxLines="1"
+                android:textColor="@color/add_form_text_primary"
+                android:textColorHint="@color/add_form_hint"
+                android:textSize="14sp" />
+
+            <ImageButton
+                android:id="@+id/btnAddChecklistItem"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/circular_corners"
+                android:backgroundTint="@color/brand_blue"
+                android:contentDescription="Add item"
+                android:src="@drawable/ic_add"
+                app:tint="@color/white" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -5,6 +5,6 @@
     android:id="@+id/monthText"
     android:text="Jan"
     android:textSize="11sp"
-    android:textColor="@android:color/darker_gray"
+    android:textColor="@color/task_text_secondary"
     android:gravity="center"
     android:paddingHorizontal="4dp" />

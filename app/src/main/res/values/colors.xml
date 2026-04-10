@@ -11,7 +11,6 @@
 
     <!-- Backgrounds -->
     <color name="background_color">#F0F0F0</color>
-    <color name="background_color2">#E0E0E0</color>
     <color name="high_light_dark">#6C6A6D</color>
     <color name="light_surface">#F1F1F3</color>
     <color name="lightBackground">#F4F6F8</color>
@@ -36,5 +35,66 @@
 <!--    light icon task-->
 
     <color name="iconTint">#C2C8E2</color>
+
+    <!-- Task screen semantic colors -->
+    <color name="task_surface">#FFFFFF</color>
+    <color name="task_surface_stroke">#E4E4E4</color>
+    <color name="task_text_primary">#111111</color>
+    <color name="task_text_secondary">#747474</color>
+    <color name="task_screen_bg">#F3F5F9</color>
+    <color name="task_card_surface">#FFFFFF</color>
+    <color name="task_card_stroke">#E8EBF2</color>
+    <color name="task_chip_surface">#FFFFFF</color>
+    <color name="task_chip_stroke">#E8EBF2</color>
+    <color name="task_timeline_line">#4F79FF</color>
+    <color name="task_done_track">#EDF0F5</color>
+    <color name="task_filter_surface">#FFFFFF</color>
+    <color name="task_filter_selected_bg">#E9F0FF</color>
+    <color name="task_filter_icon">#111111</color>
+    <color name="task_bar_text">#111111</color>
+    <color name="task_bar_today_text">@color/category_dark_blue</color>
+    <color name="task_bar_grid_line">#808080</color>
+    <color name="task_bar_average_line">#ADD8E6</color>
+    <color name="task_bar_button_bg">#FFFFFF</color>
+    <color name="task_bar_button_icon">#111111</color>
+    <color name="task_bar_fill">#5F7FFF</color>
+    <color name="task_bar_fill_complete">#40C972</color>
+    <color name="task_bar_selected_surface">#FFFFFF</color>
+    <color name="task_bar_selected_stroke">#E4E4E4</color>
+
+    <!-- Add task semantic colors -->
+    <color name="add_form_surface">#FFFFFF</color>
+    <color name="add_form_text_primary">#111111</color>
+    <color name="add_form_text_secondary">#747474</color>
+    <color name="add_form_hint">#9AA1AF</color>
+    <color name="add_form_muted_surface">#F4F6F8</color>
+    <color name="add_form_icon">#111111</color>
+    <color name="add_task_info_bg">#F7F9FD</color>
+    <color name="add_task_info_stroke">#E2E8F2</color>
+    <color name="dialog_surface">#FFFFFF</color>
+    <color name="dialog_text_primary">#111111</color>
+    <color name="dialog_text_secondary">#8A8A8A</color>
+    <color name="dialog_secondary_action">#111111</color>
+    <color name="completion_dialog_inner_surface">#F7F8FC</color>
+    <color name="completion_dialog_center_surface">#FFFFFF</color>
+    <color name="completion_dialog_chip_surface">#FAFBFE</color>
+    <color name="completion_dialog_button_secondary">#EEF2F7</color>
+    <color name="completion_dialog_button_secondary_text">#1B2230</color>
+    <color name="completion_dialog_row_surface">#FCFCFE</color>
+    <color name="completion_dialog_value_pending">#111111</color>
+    <color name="completion_dialog_stroke">#E5EAF2</color>
+    <color name="completion_dialog_chip_stroke">#DEE5EF</color>
+    <color name="completion_dialog_center_stroke">#EEF2F7</color>
+
+    <!-- App bar -->
+    <color name="app_bar_surface">#F3F5F9</color>
+    <color name="app_bar_content">#111111</color>
+
+    <!-- Main / bottom navigation -->
+    <color name="main_bottom_bar_surface">#FFFFFF</color>
+    <color name="main_bottom_bar_icon">#7B8392</color>
+    <color name="main_bottom_bar_icon_active">@color/category_dark_blue</color>
+    <color name="main_bottom_nav_selected_bg">#E9F0FF</color>
+    <color name="main_mini_fab_bg">#FFFFFF</color>
 
 </resources>

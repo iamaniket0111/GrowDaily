@@ -2,7 +2,6 @@ package com.anitech.growdaily.adapter
 
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -11,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.R
+import com.anitech.growdaily.setSolidBackgroundColorCompat
 import com.anitech.growdaily.data_class.RepeatTaskUi
 import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.data_class.WeekHabit
@@ -19,6 +19,7 @@ import com.anitech.growdaily.enum_class.TaskColor
 import com.anitech.growdaily.enum_class.TaskIcon
 import com.anitech.growdaily.enum_class.TaskType
 import java.time.LocalDate
+import java.time.format.DateTimeParseException
 
 class RepeatTaskAdapter(
     private val listener: OnItemClickListener
@@ -29,26 +30,17 @@ class RepeatTaskAdapter(
         fun onTaskCompleteClick(taskId: String, date: String)
     }
 
-    // ---- DiffUtil ----
     class RepeatTaskDiffCallback : DiffUtil.ItemCallback<RepeatTaskUi>() {
-
         override fun areItemsTheSame(oldItem: RepeatTaskUi, newItem: RepeatTaskUi): Boolean {
-            // Same task ID = same "row"
-            return oldItem.task.id == newItem.task.id
+            return oldItem.task.seriesId.ifBlank { oldItem.task.id } ==
+                newItem.task.seriesId.ifBlank { newItem.task.id }
         }
 
         override fun areContentsTheSame(oldItem: RepeatTaskUi, newItem: RepeatTaskUi): Boolean {
-            // Only redraw if something the UI actually shows has changed.
-            // Comparing the full data class (which includes completedDates Set)
-            // is correct here since RepeatTaskUi is a data class.
             return oldItem == newItem
         }
-
-        // Optional: return a payload so onBindViewHolder can do a partial update
-        // instead of a full rebind. Add later if needed for extra smoothness.
     }
 
-    // ---- ViewHolder ----
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
         val binding = RvRepeatTaskItemBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
@@ -64,66 +56,53 @@ class RepeatTaskAdapter(
         private val binding: RvRepeatTaskItemBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        // Cache the HistoryAdapter so we never re-create it on re-bind;
-        // we just call updateData() instead.
         private var historyAdapter: HistoryAdapter? = null
-
-        // Track the last taskId bound so we know when the row is being
-        // recycled for a completely different task (requires fresh adapter state).
-        private var lastBoundTaskId: String? = null
+        private var lastBoundSignature: String? = null
 
         fun bind(item: RepeatTaskUi) = with(binding) {
-
             val task = item.task
+            val bindSignature = buildHistorySignature(item)
 
-            // ---------- BASIC DATA ----------
             taskTitle.text = task.title
-
             taskType.text = binding.root.context.getString(task.taskType.labelRes)
-
             imageProfile.setImageResource(TaskIcon.fromName(task.iconResId).resId)
-
             taskWeight.text = root.context.getString(
                 R.string.task_weight_prefix,
                 task.weight.weight
             )
+            taskWeight.visibility = if (task.taskType == TaskType.UNTIL_COMPLETE) {
+                android.view.View.GONE
+            } else {
+                android.view.View.VISIBLE
+            }
 
-            taskWeight.visibility = if (task.taskType == TaskType.UNTIL_COMPLETE)
-                android.view.View.GONE else android.view.View.VISIBLE
-
-            // ---------- COLOR SETUP ----------
             val colorInt = TaskColor.fromName(task.colorCode)
                 ?.toColorInt(root.context)
                 ?: ContextCompat.getColor(root.context, R.color.brand_blue)
+            val cardSurface = ContextCompat.getColor(root.context, R.color.task_card_surface)
 
-            imageProfile.backgroundTintList = ColorStateList.valueOf(colorInt)
+            imageProfile.setSolidBackgroundColorCompat(colorInt)
             taskType.setTextColor(colorInt)
-            body.backgroundTintList = ColorStateList.valueOf(Color.WHITE)
+            body.backgroundTintList = ColorStateList.valueOf(cardSurface)
 
-            // ---------- STATS ----------
             txtStreakCount.text = "${item.currentStreak}"
-
-            val scoreFormatted = String.format("%.1f", item.completionOutOf10)
-            txtScoreOutOf10.text = scoreFormatted
+            txtScoreOutOf10.text = formatScoreOutOf10(item.completionOutOf10)
             txtScoreOutOf10.setTextColor(colorInt)
 
             val progressPercent = ((item.completionOutOf10 / 10f) * 100).toInt()
             progressBar.setIndicatorColor(colorInt)
+            progressBar.trackColor = adjustAlpha(colorInt, 0.18f)
             progressBar.progress = progressPercent
 
-            // ---------- HEATMAP ----------
-            val addedDate = LocalDate.parse(task.taskAddedDate)
-
-            Log.e("completedDatesSize", "adapter size:" + item.completedDates.size.toString())
-
+            val today = LocalDate.now()
             heatmapView.bindHeatmap(
-                taskAddedDate = addedDate,
-                completedDates = item.completedDates.keys,
+                taskAddedDate = item.seriesStartDate,
+                progressByDate = item.progressByDate,
+                unavailableDates = buildUnavailableDates(item, today),
                 activeColor = colorInt
             )
 
-            // Scroll heatmap to end only once per task (not every re-bind)
-            if (lastBoundTaskId != task.id) {
+            if (lastBoundSignature != bindSignature) {
                 heatmapScroll.post {
                     heatmapScroll.getChildAt(0)?.let { child ->
                         heatmapScroll.scrollTo(child.measuredWidth, 0)
@@ -131,68 +110,106 @@ class RepeatTaskAdapter(
                 }
             }
 
-            // ---------- WEEK LIST (built once per task, reused on re-bind) ----------
-            val weekList: List<WeekHabit>
-            val today = LocalDate.now()
-
-            if (lastBoundTaskId != task.id) {
-                // Row is being used for a new/different task — rebuild the week list.
-                val list = mutableListOf<WeekHabit>()
-                var cursor = addedDate
-                while (!cursor.isAfter(today)) {
-                    list.add(
-                        WeekHabit(
-                            date = cursor,
-                            dayLetter = cursor.dayOfWeek.name.first().toString()
-                        )
-                    )
-                    cursor = cursor.plusDays(1)
-                }
-                weekList = list
+            val weekList = if (lastBoundSignature != bindSignature) {
+                buildHistoryItems(item)
             } else {
-                // Same task re-bound (e.g. completion toggled) — no need to rebuild dates.
-                weekList = emptyList() // historyAdapter.updateData() handles it below
+                emptyList()
             }
 
-            // ---------- WEEK RECYCLER ----------
-            if (historyAdapter == null || lastBoundTaskId != task.id) {
-                // First bind or recycled to a different task — create fresh adapter.
+            if (historyAdapter == null || lastBoundSignature != bindSignature) {
                 historyAdapter = HistoryAdapter(
-                    taskId = task.id,
-                    taskAddedDate = addedDate,
-                    completedDates = item.completedDates,
+                    taskAddedDate = item.seriesStartDate,
+                    progressByDate = item.progressByDate,
                     taskColor = colorInt,
                     weekList = weekList,
                     listener = object : HistoryAdapter.OnItemClickListener {
-                        override fun onTaskCompleteClick(taskId: String, date: String) {
-                            listener.onTaskCompleteClick(taskId, date)
+                        override fun onTaskCompleteClick(date: String) {
+                            listener.onTaskCompleteClick(resolveTaskIdForDate(item, date), date)
                         }
                     }
                 )
 
                 weekRecycler.apply {
                     layoutManager = LinearLayoutManager(
-                        context, LinearLayoutManager.HORIZONTAL, false
+                        context,
+                        LinearLayoutManager.HORIZONTAL,
+                        false
                     )
                     adapter = historyAdapter
                 }
             } else {
-                // Same task, data changed (e.g. a date was toggled) — update in place.
                 historyAdapter?.updateData(
-                    completedDates = item.completedDates,
+                    progressByDate = item.progressByDate,
                     taskColor = colorInt
                 )
             }
 
-            // Always scroll to the last item so today is visible.
-            historyAdapter?.let { ha ->
-                if (ha.itemCount > 0) weekRecycler.scrollToPosition(ha.itemCount - 1)
+            historyAdapter?.let { adapter ->
+                if (adapter.itemCount > 0) {
+                    weekRecycler.scrollToPosition(adapter.itemCount - 1)
+                }
             }
 
-            lastBoundTaskId = task.id
-
-            // ---------- CLICK ----------
+            lastBoundSignature = bindSignature
             root.setOnClickListener { listener.moveToEditListener(task) }
+        }
+
+        private fun buildHistorySignature(item: RepeatTaskUi): String {
+            return listOf(
+                item.task.seriesId.ifBlank { item.task.id },
+                item.seriesStartDate.toString(),
+                item.taskIdByDate.size.toString(),
+                item.taskIdByDate.keys.minOrNull()?.toString().orEmpty(),
+                item.taskIdByDate.keys.maxOrNull()?.toString().orEmpty()
+            ).joinToString("|")
+        }
+
+        private fun buildUnavailableDates(
+            item: RepeatTaskUi,
+            endDate: LocalDate
+        ): Set<LocalDate> {
+            val unavailable = mutableSetOf<LocalDate>()
+            val scheduledDates = item.taskIdByDate.keys
+            var date = item.seriesStartDate
+            while (!date.isAfter(endDate)) {
+                if (!scheduledDates.contains(date)) {
+                    unavailable.add(date)
+                }
+                date = date.plusDays(1)
+            }
+            return unavailable
+        }
+
+        private fun buildHistoryItems(item: RepeatTaskUi): List<WeekHabit> {
+            return item.taskIdByDate.keys
+                .sorted()
+                .map { date ->
+                    WeekHabit(
+                        date = date,
+                        dayLetter = date.dayOfWeek.name.first().toString()
+                    )
+                }
+        }
+
+        private fun formatScoreOutOf10(score: Float): String {
+            return if (score % 1f == 0f) {
+                score.toInt().toString()
+            } else {
+                String.format("%.1f", score)
+            }
+        }
+
+        private fun resolveTaskIdForDate(item: RepeatTaskUi, date: String): String {
+            return try {
+                item.taskIdByDate[LocalDate.parse(date)] ?: item.task.id
+            } catch (_: DateTimeParseException) {
+                item.task.id
+            }
+        }
+
+        private fun adjustAlpha(color: Int, factor: Float): Int {
+            val alpha = (Color.alpha(color) * factor).toInt().coerceIn(0, 255)
+            return Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color))
         }
     }
 }

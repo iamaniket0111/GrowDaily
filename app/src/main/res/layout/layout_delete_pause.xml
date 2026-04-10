@@ -17,7 +17,7 @@
 
         android:gravity="center_vertical"
         android:paddingHorizontal="16dp"
-        android:background="@drawable/circular_corners"
+        android:background="@drawable/add_form_surface_card"
         android:clickable="true"
         android:focusable="true">
 
@@ -26,19 +26,21 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Delete"
+            android:textColor="@color/add_form_text_secondary"
             android:textStyle="bold"
             android:textSize="16sp" />
 
         <ImageView
-            android:id="@+id/ivDelete"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:contentDescription="Delete"
-            android:src="@drawable/ic_delete" />
+            android:src="@drawable/ic_delete"
+            android:tint="@color/add_form_icon" />
     </LinearLayout>
 
     <!-- Spacer -->
     <View
+        android:id="@+id/deletePauseSpacer"
         android:layout_width="8dp"
         android:layout_height="match_parent" />
 
@@ -51,15 +53,17 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingHorizontal="16dp"
-        android:background="@drawable/circular_corners"
+        android:background="@drawable/add_form_surface_card"
         android:clickable="true"
         android:focusable="true">
 
         <TextView
+            android:id="@+id/tvPauseAction"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Pause"
+            android:textColor="@color/add_form_text_secondary"
             android:textStyle="bold"
             android:textSize="16sp" />
 
@@ -68,7 +72,8 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:contentDescription="Pause"
-            android:src="@drawable/ic_pause" />
+            android:src="@drawable/ic_pause"
+            android:tint="@color/add_form_icon" />
     </LinearLayout>
 
 </LinearLayout>

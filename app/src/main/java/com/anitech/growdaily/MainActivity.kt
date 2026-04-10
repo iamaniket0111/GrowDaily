@@ -3,7 +3,6 @@ package com.anitech.growdaily
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
@@ -11,8 +10,9 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
-import com.anitech.growdaily.database.AppRepository
-import com.anitech.growdaily.database.AppViewModel
+import com.anitech.growdaily.database.repository.AppRepository
+import com.anitech.growdaily.database.viewmodel.AppViewModel
+import com.anitech.growdaily.database.viewmodel.DailyTaskViewModelFactory
 import com.anitech.growdaily.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -74,18 +74,9 @@ class MainActivity : AppCompatActivity() {
 
         return when (item.itemId) {
             R.id.menu_settings -> {
-                Toast.makeText(this, "Settings clicked", Toast.LENGTH_SHORT).show()
+                navController.navigate(R.id.settingsFragment)
                 true
             }
-
-            R.id.menu_analyse -> {
-                // Handle analyse
-                navController
-                    .navigate(R.id.nav_diary)
-
-                true
-            }
-
 
             R.id.menu_reorder_task -> {
                 navController.navigate(R.id.reorderDailyTaskFragment)

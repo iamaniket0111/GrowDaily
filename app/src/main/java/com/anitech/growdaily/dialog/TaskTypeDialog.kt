@@ -2,11 +2,11 @@ package com.anitech.growdaily.dialog
 
 import android.app.Dialog
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.DialogFragment
 import com.anitech.growdaily.R
 import com.anitech.growdaily.enum_class.TaskType
@@ -23,9 +23,7 @@ class TaskTypeDialog(
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         dialog.setContentView(view)
 
-        dialog.window?.setBackgroundDrawable(
-            ColorDrawable(Color.TRANSPARENT)
-        )
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
 
         dialog.setCancelable(true)
         dialog.setCanceledOnTouchOutside(true)
@@ -40,13 +38,8 @@ class TaskTypeDialog(
             dismiss()
         }
 
-        view.findViewById<View>(R.id.optionUntil).setOnClickListener {
-            onTypeSelected(TaskType.UNTIL_COMPLETE)
-            dismiss()
-        }
-
         dialog.window?.setLayout(
-            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ((resources.displayMetrics.widthPixels) * 0.9f).toInt(),
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
 

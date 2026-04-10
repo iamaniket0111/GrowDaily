@@ -3,19 +3,18 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:background="@drawable/circular_corners"
+    android:background="@drawable/task_fragment_card"
     android:padding="16dp">
 
     <!-- YEAR HEADER -->
 
     <TextView
-        android:id="@+id/txtProgressTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="HEATMAP"
         android:textStyle="normal"
         android:layout_marginBottom="12dp"
-        android:textColor="@color/black"
+        android:textColor="@color/task_text_primary"
         android:letterSpacing="0.05"
       />
     <LinearLayout
@@ -32,7 +31,7 @@
              android:src="@drawable/ic_left_arrow"
             android:contentDescription="Previous year"
             android:background="@drawable/circular"
-            android:backgroundTint="@color/lightBackground"
+            android:backgroundTint="@color/task_done_track"
             app:tint="@color/brand_blue"
             />
 
@@ -47,7 +46,7 @@
             android:textAlignment="center"
             android:layout_weight="1"
             android:textFontWeight="@integer/material_motion_duration_medium_1"
-            android:textColor="#424242"/>
+            android:textColor="@color/task_text_primary"/>
 
 
 
@@ -58,7 +57,7 @@
             android:layout_height="28dp"
              android:src="@drawable/ic_right_arrow"
             android:background="@drawable/circular"
-            android:backgroundTint="@color/lightBackground"
+            android:backgroundTint="@color/task_done_track"
             android:contentDescription="Next year"
             app:tint="@color/brand_blue"
             />
@@ -66,7 +65,6 @@
 
     <!-- EXISTING HEATMAP CARD -->
     <LinearLayout
-        android:id="@+id/layoutOverview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -91,7 +89,6 @@
 
         <!-- Scrollable heatmap -->
         <HorizontalScrollView
-            android:id="@+id/heatmapScrollView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingVertical="8dp"
@@ -99,7 +96,7 @@
             android:paddingEnd="8dp"
             android:scrollbars="none">
 
-            <com.anitech.growdaily.YearHeatmapLayout
+            <com.anitech.growdaily.view.YearHeatmapLayout
                 android:id="@+id/heatmapLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />

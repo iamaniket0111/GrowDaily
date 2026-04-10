@@ -3,7 +3,6 @@ package com.anitech.growdaily.adapter
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.anitech.growdaily.fragment.DiaryFragment
 import com.anitech.growdaily.fragment.RepeatTaskFragment
 import com.anitech.growdaily.fragment.TaskFragment
 

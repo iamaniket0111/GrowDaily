@@ -3,7 +3,7 @@
     android:shape="rectangle">
 
     <!-- very light neutral background -->
-    <solid android:color="@color/lightBackground"/>
+    <solid android:color="@color/task_done_track"/>
 
     <!-- smooth pill-like corners -->
     <corners android:radius="14dp"/>

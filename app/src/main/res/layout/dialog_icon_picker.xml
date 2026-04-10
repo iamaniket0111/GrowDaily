@@ -3,21 +3,28 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/circular_corners"
+    android:background="@drawable/dialog_surface_card"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:paddingHorizontal="22dp"
+    android:paddingTop="22dp"
+    android:paddingBottom="18dp">
 
-    <!-- Header with Preview - Improved spacing and alignment -->
+    <View
+        android:id="@+id/viewAccent"
+        android:layout_width="38dp"
+        android:layout_height="5dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/completion_dialog_chip_bg" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginBottom="24dp">
+        android:layout_marginBottom="22dp"
+        android:orientation="horizontal">
 
-        <!-- Preview Circle - Slightly larger for better visibility -->
         <FrameLayout
-            android:id="@+id/previewContainer"
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:layout_marginEnd="16dp"
@@ -28,7 +35,7 @@
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:background="@drawable/circular"
-                android:backgroundTint="@color/brand_blue" />
+               />
 
             <ImageView
                 android:id="@+id/imagePreview"
@@ -46,19 +53,19 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Choose Icon &amp; Color"
+            android:textColor="@color/dialog_text_primary"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#202124" />
+            android:lineSpacingExtra="2dp" />
     </LinearLayout>
 
-    <!-- Color Selection - Improved grid layout -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Background Color"
         android:textSize="14sp"
-        android:textColor="#5F6368"
-        android:layout_marginBottom="12dp" />
+        android:textColor="@color/dialog_text_secondary"
+        android:layout_marginBottom="10dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -67,10 +74,8 @@
         android:baselineAligned="false"
         android:weightSum="8"
         android:layout_marginBottom="20dp"
-        android:padding="4dp"
-        android:backgroundTint="#F8F9FA"
-        android:background="@drawable/circular_corners"
-        >
+        android:padding="6dp"
+        android:background="@drawable/completion_dialog_section_bg">
 
         <FrameLayout
             android:id="@+id/frame1"
@@ -84,6 +89,13 @@
                 android:backgroundTint="@color/category_red"
                 android:contentDescription="@string/none" />
             <View style="@style/CategoryStrokeCircle" />
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_check"
+                android:visibility="gone"
+                app:tint="@color/white" />
         </FrameLayout>
 
         <FrameLayout
@@ -98,6 +110,13 @@
                 android:backgroundTint="@color/category_orange"
                 android:contentDescription="@string/none" />
             <View style="@style/CategoryStrokeCircle" />
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_check"
+                 app:tint="@color/white"
+                android:visibility="gone" />
         </FrameLayout>
 
         <FrameLayout
@@ -113,6 +132,13 @@
                 android:contentDescription="@string/none" />
 
             <View style="@style/CategoryStrokeCircle" />
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_check"
+                 app:tint="@color/white"
+                android:visibility="gone" />
         </FrameLayout>
 
         <FrameLayout
@@ -127,6 +153,13 @@
                 android:backgroundTint="@color/category_green"
                 android:contentDescription="@string/none" />
             <View style="@style/CategoryStrokeCircle" />
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_check"
+                 app:tint="@color/white"
+                android:visibility="gone" />
         </FrameLayout>
 
         <FrameLayout
@@ -141,6 +174,13 @@
                 android:backgroundTint="@color/category_teal"
                 android:contentDescription="@string/none" />
             <View style="@style/CategoryStrokeCircle" />
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_check"
+                 app:tint="@color/white"
+                android:visibility="gone" />
         </FrameLayout>
 
         <FrameLayout
@@ -155,6 +195,13 @@
                 android:backgroundTint="@color/category_blue"
                 android:contentDescription="@string/none" />
             <View style="@style/CategoryStrokeCircle" />
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_check"
+                 app:tint="@color/white"
+                android:visibility="gone" />
         </FrameLayout>
 
         <FrameLayout
@@ -169,6 +216,13 @@
                 android:backgroundTint="@color/category_purple"
                 android:contentDescription="@string/none" />
             <View style="@style/CategoryStrokeCircle" />
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_check"
+                 app:tint="@color/white"
+                android:visibility="gone" />
         </FrameLayout>
 
         <FrameLayout
@@ -183,22 +237,28 @@
                 android:backgroundTint="@color/brand_blue"
                 android:contentDescription="@string/none" />
             <View style="@style/CategoryStrokeCircle" />
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_check"
+                 app:tint="@color/white"
+                android:visibility="gone" />
         </FrameLayout>
     </LinearLayout>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#E0E0E0"
+        android:background="@color/task_card_stroke"
         android:layout_marginBottom="20dp" />
 
-    <!-- Icon Selection -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Icons"
         android:textSize="14sp"
-        android:textColor="#5F6368"
+        android:textColor="@color/dialog_text_secondary"
         android:layout_marginBottom="12dp" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -206,43 +266,42 @@
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:layout_marginBottom="24dp"
-        android:backgroundTint="#F8F9FA"
-        android:background="@drawable/circular_corners"
+        android:background="@drawable/completion_dialog_section_bg"
         android:padding="8dp" />
 
-    <!-- Action Buttons - Material Design style -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="end">
 
-        <TextView
+        <Button
             android:id="@+id/cancelBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:gravity="center"
-            android:text="CANCEL"
-            android:textColor="#757575"
-            android:textSize="14sp"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:backgroundTint="@color/completion_dialog_button_secondary"
+            android:text="Cancel"
+            android:textAllCaps="false"
+            android:textColor="@color/completion_dialog_button_secondary_text"
+            android:textSize="15sp"
             android:textStyle="bold"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:background="?attr/selectableItemBackground" />
+            />
 
-        <TextView
+        <Button
             android:id="@+id/doneBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:gravity="center"
-            android:text="DONE"
-            android:textColor="#2196F3"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
             android:layout_marginStart="8dp"
-            android:background="?attr/selectableItemBackground" />
+            android:backgroundTint="@color/brand_blue"
+            android:text="Done"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            />
     </LinearLayout>
 
 </LinearLayout>

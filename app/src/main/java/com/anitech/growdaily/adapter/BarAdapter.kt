@@ -7,9 +7,9 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.anitech.growdaily.BarView
 import com.anitech.growdaily.R
 import com.anitech.growdaily.data_class.DailyScore
+import com.anitech.growdaily.view.BarView
 import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.enum_class.TaskType
 import java.time.LocalDate
@@ -20,16 +20,13 @@ class BarAdapter(
     private val listener: OnBarInteractionListener
 ) : RecyclerView.Adapter<BarAdapter.BarViewHolder>() {
     private var selectedPosition: Int = RecyclerView.NO_POSITION
-    private val today: LocalDate = LocalDate.now()
     private val rangeDays = 91
-     private var startDate: LocalDate = today.minusDays(rangeDays / 2L)
+    private var startDate: LocalDate = LocalDate.now().minusDays(rangeDays / 2L)
     private val totalDays: Int = rangeDays
     private var centerDate: LocalDate = LocalDate.now()
 
-
-
     var isSelectingMode = false
-     private var scoreMap: Map<String, DailyScore> = emptyMap()
+    private var scoreMap: Map<String, DailyScore> = emptyMap()
 
     interface OnBarInteractionListener {
         fun onBarSelected(dailyScore: DailyScore)
@@ -70,12 +67,12 @@ class BarAdapter(
             if (position == selectedPosition) dailyScore.monthDayText else dailyScore.dayText
 
         // Highlight today
-        val colorRes = if (currentDate == today) R.color.category_dark_blue else R.color.black
+        val colorRes = if (currentDate == LocalDate.now()) R.color.task_bar_today_text else R.color.task_bar_text
         holder.textDate.setTextColor(ContextCompat.getColor(holder.view.context, colorRes))
 
         // Highlight selection
         if (position == selectedPosition) {
-            holder.view.setBackgroundResource(R.drawable.circular_corners_stroke)
+            holder.view.setBackgroundResource(R.drawable.task_bar_selected_background)
             holder.textDate.setTypeface(null, Typeface.BOLD)
         } else {
             holder.view.setBackgroundResource(0)
@@ -94,18 +91,17 @@ class BarAdapter(
         }
     }
 
-    fun updateData(newScores: List<DailyScore>) {
+    fun updateData(newScores: List<DailyScore>, selectedDate: LocalDate) {
         scoreMap = newScores.associateBy { it.date }
+        centerDate = selectedDate
+        startDate = newScores.firstOrNull()
+            ?.let { LocalDate.parse(it.date) }
+            ?: selectedDate.minusDays(rangeDays / 2L)
+        selectedPosition = ChronoUnit.DAYS.between(startDate, selectedDate).toInt()
+            .coerceIn(0, itemCount - 1)
+
         notifyDataSetChanged()
-
-        if (selectedPosition == RecyclerView.NO_POSITION) {
-            selectedPosition =
-                ChronoUnit.DAYS.between(startDate, today).toInt()
-                    .coerceIn(0, itemCount - 1)
-        }
     }
-
-
 
     override fun getItemCount(): Int = totalDays
 
@@ -115,6 +111,7 @@ class BarAdapter(
             val firstVisible = layoutManager.findFirstVisibleItemPosition()
             val lastVisible = layoutManager.findLastVisibleItemPosition()
 
+            val today = LocalDate.now()
             val todayIndex = ChronoUnit.DAYS.between(startDate, today).toInt()
             if (todayIndex < firstVisible || todayIndex > lastVisible) {
                 listener.onTodayBarOutOfView()
@@ -126,6 +123,10 @@ class BarAdapter(
         centerDate = date
         startDate = centerDate.minusDays(rangeDays / 2L)
         selectedPosition = rangeDays / 2
+        notifyDataSetChanged()
+    }
+
+    fun refreshTodayHighlight() {
         notifyDataSetChanged()
     }
 

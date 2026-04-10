@@ -6,6 +6,9 @@ import java.time.LocalDate
 // Rebuilt only when task/completions change
 data class AnalysisOverviewState(
     val task: TaskEntity,
+    val seriesStartDate: LocalDate = LocalDate.now(),
+    val scheduledDates: Set<LocalDate> = emptySet(),
+    val progressByDate: Map<LocalDate, Int> = emptyMap(),
     val completedDates: Set<LocalDate>,
     val currentStreak: Int = 0,
     val bestStreak: Int = 0,
@@ -30,7 +33,9 @@ data class AnalysisBarState(
 // Rebuilt only when heatmapYear/completions change
 data class AnalysisHeatmapState(
     val heatmapYear: Int = LocalDate.now().year,
-    val heatmapDates: Set<LocalDate> = emptySet(),
+    val seriesStartDate: LocalDate = LocalDate.now(),
+    val scheduledDates: Set<LocalDate> = emptySet(),
+    val progressByDate: Map<LocalDate, Int> = emptyMap(),
     val isHeatmapNextEnabled: Boolean = true,
     val isHeatmapPrevEnabled: Boolean = true
 )

@@ -4,34 +4,37 @@
     android:id="@+id/startDateRow"
     android:layout_width="match_parent"
     android:layout_height="56dp"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:paddingHorizontal="16dp"
+    android:background="@drawable/add_form_surface_card"
     android:clickable="true"
     android:focusable="true"
-    android:background="@drawable/circular_corners">
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="16dp">
 
     <TextView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="Start Date"
-        android:textStyle="bold"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        android:textColor="@color/add_form_text_secondary"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/txtStartDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
         android:text="--"
-        android:textColor="@android:color/darker_gray"
+        android:textColor="@color/brand_blue"
         android:textSize="14sp"
-        android:layout_marginEnd="8dp" />
+
+        />
 
     <ImageView
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:src="@drawable/ic_right_arrow"
-       />
+        app:tint="@color/add_form_icon" />
 
 </LinearLayout>

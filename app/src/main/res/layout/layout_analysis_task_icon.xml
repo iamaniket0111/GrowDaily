@@ -10,7 +10,9 @@
         android:id="@+id/viewIconBg"
         android:layout_width="72dp"
         android:layout_height="72dp"
-        android:background="@drawable/circular"/>
+        android:background="@drawable/circular"
+        android:layout_gravity="center"
+        />
 
     <!-- Task icon -->
     <ImageView

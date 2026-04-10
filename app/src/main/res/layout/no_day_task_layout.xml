@@ -5,6 +5,7 @@
     android:gravity="center"
     >
     <ImageView
+        android:id="@+id/ivEmptyStateImage"
         android:layout_width="match_parent"
         android:layout_height="150dp"
         android:src="@drawable/add_task_ic"
@@ -12,21 +13,23 @@
         />
 
     <TextView
+        android:id="@+id/tvEmptyStateTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="No tasks for this\n day"
-        android:textColor="@color/black"
+        android:textColor="@color/task_text_primary"
         android:textAlignment="center"
         android:textSize="24dp"
         android:fontFamily="sans-serif-medium"
         />
     <TextView
+        android:id="@+id/tvEmptyStateSubtitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:padding="8dp"
         android:text="Tap + to add one!"
-        android:textColor="@color/black"
+        android:textColor="@color/task_text_secondary"
         android:textSize="16sp"
         android:textStyle="italic" />
 </LinearLayout>

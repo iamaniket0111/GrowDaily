@@ -1,61 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/circular_corners_more"
+    android:background="@drawable/dialog_surface_card"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:paddingHorizontal="22dp"
+    android:paddingTop="22dp"
+    android:paddingBottom="18dp">
 
     <ImageView
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:id="@+id/ivActionIcon"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
         android:layout_gravity="center"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="18dp"
         android:background="@drawable/circular"
-        android:backgroundTint="#50EF5350"
+        android:backgroundTint="@color/category_dark_blue_25"
         android:contentDescription="Warning"
-        android:padding="10dp"
+        android:padding="14dp"
         android:src="@drawable/ic_warning"
-        app:tint="@color/category_red" />
+        app:tint="@color/category_dark_blue" />
 
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/tvActionTitle"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
+        android:gravity="center"
         android:text="Are you sure?"
-        android:textColor="@android:color/black"
-        android:textSize="18sp"
+        android:textColor="@color/dialog_text_primary"
+        android:textSize="22sp"
         android:textStyle="bold" />
 
-    <!-- Message -->
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/tvActionMessage"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
+        android:layout_marginBottom="22dp"
         android:gravity="center"
         android:text="This action cannot be undone.\n All data associated with this task will be lost."
         android:textAlignment="center"
-        android:textColor="#8A8A8A"
-        android:textSize="14sp" />
+        android:textColor="@color/dialog_text_secondary"
+        android:textSize="15sp"
+        android:lineSpacingExtra="2dp" />
 
-    <!-- Delete Button -->
     <Button
-        android:id="@+id/deleteButton"
+        android:id="@+id/primaryButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:backgroundTint="@color/category_red"
+        android:layout_height="52dp"
+        android:layout_marginBottom="10dp"
+        android:backgroundTint="@color/category_dark_blue"
         android:text="Delete"
-        android:textColor="@android:color/white" />
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
-    <!-- Cancel Button -->
     <Button
-        android:id="@+id/cancelButton"
+        android:id="@+id/secondaryButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
         android:text="Cancel"
-        android:textColor="#000000" />
+        android:textAllCaps="false"
+        android:textColor="@color/dialog_secondary_action"
+        android:textSize="15sp"
+        android:textStyle="bold" />
 
 </LinearLayout>

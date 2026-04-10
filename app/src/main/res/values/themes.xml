@@ -2,9 +2,9 @@
     <!-- Base application theme -->
     <style name="Theme.GrowDaily" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <!-- Primary brand color -->
-        <item name="colorPrimary">@color/light_surface</item>
-        <item name="colorPrimaryVariant">@color/light_surface</item>
-        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorPrimary">@color/app_bar_surface</item>
+        <item name="colorPrimaryVariant">@color/app_bar_surface</item>
+        <item name="colorOnPrimary">@color/app_bar_content</item>
 
         <!-- Secondary brand color -->
         <item name="colorSecondary">@color/brand_blue</item>
@@ -12,8 +12,9 @@
         <item name="colorOnSecondary">@color/white</item>
 
         <!-- Status bar -->
-        <item name="android:statusBarColor">@color/light_surface</item>
+        <item name="android:statusBarColor">@color/app_bar_surface</item>
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:forceDarkAllowed">false</item>
     </style>
 
     <style name="Theme.GrowDaily.NoActionBar">
@@ -24,12 +25,12 @@
     <style name="Theme.GrowDaily.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="MyToolbarStyle" parent="Widget.AppCompat.Toolbar">
-        <item name="navigationIconTint">@color/black</item>
-        <item name="titleTextColor">@color/black</item>
+        <item name="navigationIconTint">@color/app_bar_content</item>
+        <item name="titleTextColor">@color/app_bar_content</item>
     </style>
 
     <style name="Theme.GrowDaily.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
         <item name="toolbarStyle">@style/MyToolbarStyle</item>
-        <item name="android:textColorPrimary">@color/black</item>
+        <item name="android:textColorPrimary">@color/app_bar_content</item>
     </style>
 </resources>

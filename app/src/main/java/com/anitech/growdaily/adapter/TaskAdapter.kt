@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import com.anitech.growdaily.setSolidBackgroundColorCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -20,6 +21,7 @@ import com.anitech.growdaily.enum_class.TaskColor
 import com.anitech.growdaily.enum_class.TaskIcon
 import com.anitech.growdaily.enum_class.TaskType
 import com.anitech.growdaily.enum_class.TimeState
+import com.google.android.material.progressindicator.CircularProgressIndicator
 
 class TaskAdapter(
     private val listener: OnItemClickListener
@@ -30,8 +32,8 @@ class TaskAdapter(
 
     interface OnItemClickListener {
         fun moveToEditListener(task: TaskEntity)
-        fun onTaskCompleteClick(taskId: String, date: String)           // increment
-        fun onTaskCompleteLongClick(taskId: String, date: String)       // decrement
+        fun onTaskCompleteClick(taskId: String, date: String)
+        fun onTaskCompleteLongClick(taskId: String, date: String)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskAdapter.ViewHolder {
@@ -58,8 +60,8 @@ class TaskAdapter(
             val isActive = item.isActive
 
             // Basic data setup
-            setTaskData(task, item.currentStreak)
-            setTaskNote(task)
+            setTaskData(item)
+            setTaskNote(task, item.pendingFromText)
             setTaskType(task)
             handleScheduledTime(task)
 
@@ -71,25 +73,29 @@ class TaskAdapter(
             val isToday = !item.isListFiltered && item.dateMode == DateMode.TODAY
             val showTime = isToday && task.isScheduled
 
-            doneContainer.visibility = if (isPastLike || isToday) View.VISIBLE else View.GONE
+            doneView.visibility = if (isPastLike || isToday) View.VISIBLE else View.GONE
             shContainer.visibility = if (isToday) View.VISIBLE else View.GONE
             timeTxt.visibility = if (showTime) View.VISIBLE else View.GONE
 
-
-            val target = task.dailyTargetCount.coerceAtLeast(1)
-            val isCompleted = item.completionCount >= target
-            updateCompletionState(task, item.completionCount, isCompleted)
+            val isCompleted = item.isCompleted
+            updateCompletionState(task, item.completionPercent, isCompleted)
 
             updateColors(task, isActive, color, item.timeState, isCompleted)
-            setupClickListeners(task, currentDate)
+            setupClickListeners(item, task, currentDate)
         }
 
-        private fun setTaskNote(task: TaskEntity) = with(binding) {
+        private fun setTaskNote(task: TaskEntity, pendingFromText: String?) = with(binding) {
             if (!task.note.isNullOrEmpty()) {
                 taskNote.text = task.note
                 taskNote.visibility = View.VISIBLE
             } else {
                 taskNote.visibility = View.GONE
+            }
+            if (!pendingFromText.isNullOrBlank()) {
+                taskPendingText.text = pendingFromText
+                taskPendingText.visibility = View.VISIBLE
+            } else {
+                taskPendingText.visibility = View.GONE
             }
         }
 
@@ -97,11 +103,12 @@ class TaskAdapter(
             taskType.text = binding.root.context.getString(task.taskType.labelRes)
         }
 
-        private fun setTaskData(task: TaskEntity,currentStreak:Int) = with(binding) {
+        private fun setTaskData(item: TaskUiItem) = with(binding) {
+            val task = item.task
             taskTitle.text = task.title
             imageProfile.setImageResource(TaskIcon.fromName(task.iconResId).resId)
             taskWeight.text =
-                root.context.getString(R.string.task_weight_prefix, task.weight.weight)
+                root.context.getString(R.string.task_weight_prefix, item.trackingSettings.weightValue)
 
             taskWeight.visibility = if (task.taskType == TaskType.UNTIL_COMPLETE) {
                 View.GONE
@@ -112,7 +119,7 @@ class TaskAdapter(
             // Show streak only for DAILY tasks
             if (task.taskType == TaskType.DAILY ) {
                 streakContainer.visibility = View.VISIBLE
-                taskStreak.text = "${currentStreak}"
+                taskStreak.text = "${item.currentStreak}"
             } else {
                 streakContainer.visibility = View.GONE
             }
@@ -132,20 +139,13 @@ class TaskAdapter(
 
         private fun updateCompletionState(
             task: TaskEntity,
-            completionCount: Int,
+            completionPercent: Int,
             isCompleted: Boolean
         ) = with(binding) {
-            val target = task.dailyTargetCount.coerceAtLeast(1)
-            // icon
+            doneView.max = 100
+            doneView.progress = completionPercent.coerceIn(0, 100)
             done.setImageResource(if (isCompleted) R.drawable.ic_check else 0)
-
-            // doneCount text
-            if (task.dailyTargetCount > 1 && completionCount < target) {
-                doneCount.visibility = View.VISIBLE
-                doneCount.text = "$completionCount/${task.dailyTargetCount}"
-            } else {
-                doneCount.visibility = View.GONE
-            }
+            done.alpha = if (isCompleted) 1f else 0f
         }
 
 
@@ -162,9 +162,10 @@ class TaskAdapter(
             isCompleted: Boolean
         ) = with(binding) {
             val context = root.context
-            val defaultTextColor = ContextCompat.getColor(context, R.color.default_text_color)
-            val black = ContextCompat.getColor(context, R.color.black)
-            val lightBg = ContextCompat.getColor(context, R.color.lightBackground)
+            val primaryText = ContextCompat.getColor(context, R.color.task_text_primary)
+            val secondaryText = ContextCompat.getColor(context, R.color.task_text_secondary)
+            val cardSurface = ContextCompat.getColor(context, R.color.task_card_surface)
+            val mutedSurface = ContextCompat.getColor(context, R.color.task_done_track)
             val iconTint = ContextCompat.getColor(context, R.color.iconTint)
 
 
@@ -173,20 +174,26 @@ class TaskAdapter(
                 // TEXT COLORS
                 taskTitle.setTextColor(white)
                 taskNote.setTextColor(white)
+                taskPendingText.setTextColor(white)
                 taskType.setTextColor(white)
                 taskWeight.setTextColor(white)
                 taskStreak.setTextColor(white)
 
                 // ICON
-                imageProfile.backgroundTintList = getCachedColorStateList(white)
+                imageProfile.setSolidBackgroundColorCompat(white)
                 imageProfile.setColorFilter(color)
                 flag.setColorFilter(white)
                 fire.setColorFilter(white)
 
 
                 // DONE
-                doneContainer.backgroundTintList = getCachedColorStateList(white)
-                done.backgroundTintList = getCachedColorStateList(color)
+                styleDoneProgress(
+                    progressView = doneView,
+                    indicatorColor = white,
+                    trackColor = adjustAlpha(white, 0.28f)
+                )
+                done.setSolidBackgroundColorCompat(if (isCompleted) color else white)
+                done.imageTintList = getCachedColorStateList(white)
 
                 // BACKGROUND
                 body.backgroundTintList = getCachedColorStateList(color)
@@ -198,28 +205,33 @@ class TaskAdapter(
             } else {
 
                 // TEXT COLORS
-                taskTitle.setTextColor(black)
-                taskNote.setTextColor(defaultTextColor)
+                taskTitle.setTextColor(primaryText)
+                taskNote.setTextColor(secondaryText)
+                taskPendingText.setTextColor(color)
                 taskType.setTextColor(color)
-                taskWeight.setTextColor(defaultTextColor)
-                taskStreak.setTextColor(defaultTextColor)
+                taskWeight.setTextColor(secondaryText)
+                taskStreak.setTextColor(secondaryText)
 
 
                 // ICON
-                imageProfile.backgroundTintList = getCachedColorStateList(color)
+                imageProfile.setSolidBackgroundColorCompat(color)
                 imageProfile.setColorFilter(white)
                 flag.setColorFilter(iconTint)
                 fire.setColorFilter(iconTint)
 
                 // DONE
-                doneContainer.backgroundTintList = getCachedColorStateList(color)
-                done.backgroundTintList =
-                    getCachedColorStateList(if (isCompleted) color else white)
+                styleDoneProgress(
+                    progressView = doneView,
+                    indicatorColor = color,
+                    trackColor = adjustAlpha(color, 0.18f)
+                )
+                done.setSolidBackgroundColorCompat(if (isCompleted) color else cardSurface)
+                done.imageTintList = getCachedColorStateList(white)
 
                 // BACKGROUND
-                body.backgroundTintList = getCachedColorStateList(white)
-                weightContainer.backgroundTintList = getCachedColorStateList(lightBg)
-                streakContainer.backgroundTintList = getCachedColorStateList(lightBg)
+                body.backgroundTintList = getCachedColorStateList(cardSurface)
+                weightContainer.backgroundTintList = getCachedColorStateList(mutedSurface)
+                streakContainer.backgroundTintList = getCachedColorStateList(mutedSurface)
             }
 
             // shView update
@@ -251,8 +263,24 @@ class TaskAdapter(
             shDivider.backgroundTintList = getCachedColorStateList(color)
         }
 
+        private fun styleDoneProgress(
+            progressView: CircularProgressIndicator,
+            indicatorColor: Int,
+            trackColor: Int
+        ) {
+            progressView.setIndicatorColor(indicatorColor)
+            progressView.trackColor = trackColor
+        }
+
+        private fun adjustAlpha(color: Int, factor: Float): Int {
+            val alpha = (Color.alpha(color) * factor).toInt().coerceIn(0, 255)
+            return Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color))
+        }
+
         private fun setupClickListeners(
-            task: TaskEntity, currentDate: String
+            item: TaskUiItem,
+            task: TaskEntity,
+            currentDate: String
         ) = with(binding) {
             root.setOnClickListener {
                 listener.moveToEditListener(task)
@@ -264,11 +292,11 @@ class TaskAdapter(
             }
 
             doneContainer.setOnClickListener {
-                listener.onTaskCompleteClick(task.id, currentDate)
+                listener.onTaskCompleteClick(task.id, item.completionDate)
             }
 
             doneContainer.setOnLongClickListener {
-                listener.onTaskCompleteLongClick(task.id, currentDate)
+                listener.onTaskCompleteLongClick(task.id, item.completionDate)
                 true
             }
         }
@@ -293,8 +321,12 @@ class TaskDiffCallback : DiffUtil.ItemCallback<TaskUiItem>() {
                 oldItem.isActive == newItem.isActive &&
                 oldItem.timeState == newItem.timeState &&
                 oldItem.dateMode == newItem.dateMode &&
-                oldItem.completionCount == newItem.completionCount&&
-                oldItem.isListFiltered == newItem.isListFiltered
+                oldItem.completionPercent == newItem.completionPercent &&
+                oldItem.trackingSettings == newItem.trackingSettings &&
+                oldItem.isCompleted == newItem.isCompleted &&
+                oldItem.isListFiltered == newItem.isListFiltered &&
+                oldItem.completionDate == newItem.completionDate &&
+                oldItem.pendingFromText == newItem.pendingFromText
 
     }
 }

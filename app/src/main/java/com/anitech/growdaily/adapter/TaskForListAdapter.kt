@@ -11,11 +11,12 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import androidx.core.content.ContextCompat
+import com.anitech.growdaily.setSolidBackgroundColorCompat
 import com.anitech.growdaily.R
 import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.enum_class.TaskColor
 import com.anitech.growdaily.enum_class.TaskIcon
-import com.anitech.growdaily.enum_class.TaskType
 
 class TaskForListAdapter(
     allTasks: List<TaskEntity>,
@@ -29,7 +30,6 @@ class TaskForListAdapter(
     }
 
     init {
-        // seed initial list passed from the fragment
         submitList(allTasks.toList())
     }
 
@@ -45,35 +45,32 @@ class TaskForListAdapter(
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-         private val imageProfile: ImageView = itemView.findViewById(R.id.imageProfile)
+        private val body: View = itemView.findViewById(R.id.body)
+        private val imageProfile: ImageView = itemView.findViewById(R.id.imageProfile)
         private val taskType: TextView = itemView.findViewById(R.id.taskType)
         private val taskTitle: TextView = itemView.findViewById(R.id.taskTitle)
         private val doneContainer: FrameLayout = itemView.findViewById(R.id.doneContainer)
         private val doneImg: ImageView = itemView.findViewById(R.id.done)
 
         fun bind(task: TaskEntity) {
-            val color = TaskColor.valueOf(task.colorCode).toColorInt(itemView.context)
+            val color = runCatching { TaskColor.valueOf(task.colorCode) }
+                .getOrDefault(TaskColor.BLUE)
+                .toColorInt(itemView.context)
             val white = Color.WHITE
 
-            // Icon
             val icon = runCatching { TaskIcon.valueOf(task.iconResId) }
                 .getOrDefault(TaskIcon.entries.first())
             imageProfile.setImageResource(icon.resId)
-            imageProfile.backgroundTintList = ColorStateList.valueOf(color)
+            imageProfile.setSolidBackgroundColorCompat(color)
             imageProfile.setColorFilter(white)
 
-            // Type label
             taskType.text = itemView.context.getString(task.taskType.labelRes)
             taskType.setTextColor(color)
-
-            // Title
             taskTitle.text = task.title
 
-            // Selection state
             applySelectionState(task.id, color, white)
 
-            // Click — toggle selection
-            doneContainer.setOnClickListener {
+            val toggleSelection = {
                 if (selectedTaskIds.contains(task.id)) {
                     selectedTaskIds.remove(task.id)
                     listener.onTaskUnSelected(task.id)
@@ -83,29 +80,31 @@ class TaskForListAdapter(
                 }
                 applySelectionState(task.id, color, white)
             }
+
+            body.setOnClickListener { toggleSelection() }
+            doneContainer.setOnClickListener { toggleSelection() }
         }
 
         private fun applySelectionState(taskId: String, color: Int, white: Int) {
             val isSelected = selectedTaskIds.contains(taskId)
-
-            // doneContainer background uses task color always
-            doneContainer.backgroundTintList = ColorStateList.valueOf(color)
+            val cardSurface = ContextCompat.getColor(itemView.context, R.color.task_card_surface)
+            val mutedSurface = ContextCompat.getColor(itemView.context, R.color.task_done_track)
+            doneContainer.backgroundTintList = ColorStateList.valueOf(if (isSelected) color else mutedSurface)
 
             if (isSelected) {
-                // Show check; inner circle uses task color so check is white-on-color
                 doneImg.visibility = View.VISIBLE
                 doneImg.setImageResource(R.drawable.ic_check)
-                doneImg.backgroundTintList = ColorStateList.valueOf(color)
+                doneImg.setSolidBackgroundColorCompat(color)
                 doneImg.setColorFilter(white)
-              } else {
-                // Hide check; inner circle is white
+                body.alpha = 1f
+            } else {
                 doneImg.visibility = View.VISIBLE
-                doneImg.setImageResource(0)          // clear icon
-                doneImg.backgroundTintList = ColorStateList.valueOf(white)
+                doneImg.setImageResource(0)
+                doneImg.setSolidBackgroundColorCompat(cardSurface)
                 doneImg.clearColorFilter()
-              }
+                body.alpha = 0.96f
+            }
         }
-
     }
 }
 

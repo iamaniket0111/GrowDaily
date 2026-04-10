@@ -2,10 +2,9 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/layoutTotalCompletion"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/circular_corners"
+    android:background="@drawable/task_fragment_card"
     android:padding="20dp">
 
     <!-- Section Title -->
@@ -16,7 +15,7 @@
         android:text="COMPLETION RATE"
         android:textSize="12sp"
         android:textStyle="normal"
-        android:textColor="@color/black"
+        android:textColor="@color/task_text_primary"
         android:letterSpacing="0.05"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
@@ -32,7 +31,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <com.anitech.growdaily.SemiCircleProgressView
+    <com.anitech.growdaily.view.SemiCircleProgressView
             android:id="@+id/progressOverall"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
@@ -50,7 +49,7 @@
                 android:id="@+id/txtMainPercentage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="78"
+                android:text="0"
                 android:textColor="@color/brand_blue"
                 android:textSize="48sp"
                 android:textStyle="bold"
@@ -72,7 +71,6 @@
 
     <!-- Stats Row - Simplified -->
     <LinearLayout
-        android:id="@+id/layoutStats"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
@@ -90,17 +88,17 @@
 
             <TextView
                 android:id="@+id/txtTotalAchieved"
-                android:text="42"
-                android:textColor="#2E7D32"
+                android:text="0"
+                android:textColor="@color/task_text_primary"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
             <TextView
-                android:text="Achieved"
+                android:text="Completed"
                 android:textSize="12sp"
-                android:textColor="#9E9E9E"
+                android:textColor="@color/task_text_secondary"
                 android:layout_marginTop="4dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
@@ -110,7 +108,7 @@
         <View
             android:layout_width="1dp"
             android:layout_height="32dp"
-            android:background="#E0E0E0"/>
+            android:background="@color/task_card_stroke"/>
 
         <!-- Missed -->
         <LinearLayout
@@ -122,17 +120,17 @@
 
             <TextView
                 android:id="@+id/txtTotalMissed"
-                android:text="12"
-                android:textColor="#C62828"
+                android:text="0"
+                android:textColor="@color/task_text_primary"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
             <TextView
-                android:text="Missed"
+                android:text="Incomplete"
                 android:textSize="12sp"
-                android:textColor="#9E9E9E"
+                android:textColor="@color/task_text_secondary"
                 android:layout_marginTop="4dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
@@ -142,7 +140,7 @@
         <View
             android:layout_width="1dp"
             android:layout_height="32dp"
-            android:background="#E0E0E0"/>
+            android:background="@color/task_card_stroke"/>
 
         <!-- Total -->
         <LinearLayout
@@ -154,17 +152,17 @@
 
             <TextView
                 android:id="@+id/txtTotalDays"
-                android:text="54"
-                android:textColor="#1976D2"
+                android:text="0"
+                android:textColor="@color/task_text_primary"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
             <TextView
-                android:text="Total"
+                android:text="Scheduled"
                 android:textSize="12sp"
-                android:textColor="#9E9E9E"
+                android:textColor="@color/task_text_secondary"
                 android:layout_marginTop="4dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>

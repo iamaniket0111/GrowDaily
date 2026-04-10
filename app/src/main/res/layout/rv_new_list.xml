@@ -3,8 +3,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_margin="6dp"
-    android:background="@drawable/circular_corners"
-    android:backgroundTint="@color/white"
+    android:background="@drawable/task_filter_chip"
     android:orientation="horizontal"
     android:paddingHorizontal="12dp"
     android:paddingVertical="6dp"
@@ -15,6 +14,7 @@
         android:layout_height="18dp"
         android:src="@drawable/ic_add"
         android:layout_marginEnd="4dp"
+        android:tint="@color/task_filter_icon"
         />
 
     <TextView
@@ -23,7 +23,7 @@
         android:layout_height="wrap_content"
         android:checked="true"
         android:text="@string/new_list"
-        android:textColor="@color/black"
+        android:textColor="@color/task_text_primary"
         android:textSize="14sp" />
 
 </LinearLayout>

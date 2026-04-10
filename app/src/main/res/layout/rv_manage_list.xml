@@ -5,12 +5,11 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_margin="6dp"
-    android:background="@drawable/circular_corners"
-    android:backgroundTint="@color/white"
+    android:background="@drawable/task_filter_chip"
     android:checked="true"
     android:paddingHorizontal="12dp"
     android:paddingVertical="6dp"
     android:textSize="14sp"
     android:src="@drawable/ic_manage_list"
-    app:tint="@color/black" />
+    app:tint="@color/task_filter_icon" />
 

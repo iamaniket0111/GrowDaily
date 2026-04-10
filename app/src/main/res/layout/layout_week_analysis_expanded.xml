@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/circular_corners"
+    android:background="@drawable/task_fragment_card"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -14,7 +14,7 @@
         android:layout_marginBottom="12dp"
         android:letterSpacing="0.05"
         android:text="HISTORY"
-        android:textColor="@color/black"
+        android:textColor="@color/task_text_primary"
         android:textStyle="normal"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -29,8 +29,8 @@
             android:id="@+id/scrollToStartDay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/circular_corners"
-            android:backgroundTint="@color/lightBackground"
+            android:background="@drawable/task_filter_chip"
+            android:backgroundTint="@color/task_done_track"
             android:orientation="horizontal"
             android:paddingHorizontal="6dp"
             android:paddingVertical="2dp">
@@ -49,7 +49,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:text="start day"
-                android:textColor="#9E9E9E" />
+                android:textColor="@color/task_text_secondary" />
 
 
         </LinearLayout>
@@ -63,8 +63,8 @@
             android:id="@+id/scrollToCurrentDay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/circular_corners"
-            android:backgroundTint="@color/lightBackground"
+            android:background="@drawable/task_filter_chip"
+            android:backgroundTint="@color/task_done_track"
             android:orientation="horizontal"
             android:paddingHorizontal="6dp"
             android:paddingVertical="2dp">
@@ -74,7 +74,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:text="current day"
-                android:textColor="#9E9E9E" />
+                android:textColor="@color/task_text_secondary" />
 
             <ImageView
                 android:id="@+id/btnNextYear"
@@ -90,7 +90,7 @@
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/week_expanded_rv"
+        android:id="@+id/weekExpandedRv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 </LinearLayout>

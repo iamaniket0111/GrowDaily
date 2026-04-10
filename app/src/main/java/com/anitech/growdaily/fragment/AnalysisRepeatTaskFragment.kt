@@ -12,21 +12,28 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.anitech.growdaily.CommonMethods
 import com.anitech.growdaily.MyApp
 import com.anitech.growdaily.R
+import com.anitech.growdaily.setSolidBackgroundColorCompat
 import com.anitech.growdaily.adapter.BarAdapter2
-import com.anitech.growdaily.adapter.HistoryAdapterAnalysis
+import com.anitech.growdaily.adapter.HistoryAdapter
+import com.anitech.growdaily.data_class.WeekHabit
 import com.anitech.growdaily.data_class.TaskEntity
-import com.anitech.growdaily.database.AnalysisViewModel
-import com.anitech.growdaily.database.AnalysisViewModelFactory
+import com.anitech.growdaily.database.viewmodel.AnalysisViewModel
+import com.anitech.growdaily.database.viewmodel.AnalysisViewModelFactory
 import com.anitech.growdaily.databinding.FragmentAnalysisRepeatTaskBinding
 import com.anitech.growdaily.enum_class.PeriodType
 import com.anitech.growdaily.enum_class.TaskColor
 import com.anitech.growdaily.enum_class.TaskIcon
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
@@ -38,7 +45,10 @@ class AnalysisRepeatTaskFragment : Fragment() {
     private val args: AnalysisRepeatTaskFragmentArgs by navArgs()
 
     private lateinit var barAdapter: BarAdapter2
-    private lateinit var historyAdapter: HistoryAdapterAnalysis
+    private lateinit var historyAdapter: HistoryAdapter
+    private var hasAutoScrolledHistory = false
+    private var heatmapBindJob: Job? = null
+    private var isHeatmapDeferredFirstBind = true
 
     private val viewModel: AnalysisViewModel by viewModels {
         AnalysisViewModelFactory(
@@ -62,9 +72,9 @@ class AnalysisRepeatTaskFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.setTaskId(args.taskId)
         setupHistoryAdapter()
         setupBarAdapter()
+        viewModel.setTaskId(args.taskId)
         setClickListeners()
         observeViewModel()
     }
@@ -74,17 +84,20 @@ class AnalysisRepeatTaskFragment : Fragment() {
     // --------------------------------------------------
 
     private fun setupHistoryAdapter() {
-
-        historyAdapter = HistoryAdapterAnalysis(
-            startDate = LocalDate.now(),
-            completedDates = emptySet(),
-            taskColor = ContextCompat.getColor(requireContext(), R.color.brand_blue)
+        historyAdapter = HistoryAdapter(
+            taskAddedDate = LocalDate.now(),
+            progressByDate = emptyMap(),
+            taskColor = ContextCompat.getColor(requireContext(), R.color.brand_blue),
+            weekList = emptyList(),
+            listener = null
         )
-
         binding.weekExpanded.weekExpandedRv.apply {
             layoutManager =
                 LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
             adapter = historyAdapter
+            itemAnimator = null
+            isNestedScrollingEnabled = false
+            setHasFixedSize(true)
         }
     }
 
@@ -97,6 +110,9 @@ class AnalysisRepeatTaskFragment : Fragment() {
             layoutManager =
                 LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
             adapter = barAdapter
+            itemAnimator = null
+            isNestedScrollingEnabled = false
+            setHasFixedSize(true)
         }
     }
 
@@ -115,9 +131,10 @@ class AnalysisRepeatTaskFragment : Fragment() {
             val task = state.task
             val color = TaskColor.fromName(task.colorCode)?.toColorInt(requireContext())
                 ?: ContextCompat.getColor(requireContext(), R.color.brand_blue)
-            val taskStart = LocalDate.parse(task.taskAddedDate)
+            val taskStart = state.seriesStartDate
+            val historyItems = buildHistoryItems(state.scheduledDates)
 
-            bindHeader(task)
+            bindHeader(task, taskStart)
             bindTaskIcon(task, color)
 
             binding.overview.txtCurrentStreakValue.text = "${state.currentStreak}"
@@ -133,18 +150,22 @@ class AnalysisRepeatTaskFragment : Fragment() {
             binding.totalCompletion.txtTotalAchieved.text = "${state.completedCount}"
             binding.totalCompletion.txtTotalMissed.text = "${state.totalDays - state.completedCount}"
             binding.totalCompletion.txtTotalDays.text = "${state.totalDays}"
-            binding.totalCompletion.txtTotalDays.setTextColor(color)
             binding.totalCompletion.progressOverall.setProgressColor(color)
             binding.totalCompletion.progressOverall.setProgress(state.completionPercent)
 
-            // History — only auto-scroll on first load
-            val isFirstLoad = historyAdapter.itemCount == 0
-            historyAdapter.updateData(taskStart, state.completedDates, color)
+            historyAdapter.replaceData(
+                taskAddedDate = taskStart,
+                progressByDate = state.progressByDate,
+                taskColor = color,
+                weekList = historyItems
+            )
             binding.weekExpanded.btnPrevYear.setColorFilter(color)
             binding.weekExpanded.btnNextYear.setColorFilter(color)
+            if (!hasAutoScrolledHistory && historyAdapter.itemCount > 0) {
                 binding.weekExpanded.weekExpandedRv.post {
                     binding.weekExpanded.weekExpandedRv.scrollToPosition(historyAdapter.itemCount - 1)
-
+                }
+                hasAutoScrolledHistory = true
             }
         }
 
@@ -155,6 +176,7 @@ class AnalysisRepeatTaskFragment : Fragment() {
                 ?: ContextCompat.getColor(requireContext(), R.color.brand_blue)
 
             barAdapter.setPeriod(state.period)
+            barAdapter.setBarColor(color)
             barAdapter.submitData(dates = state.barDates, scores = state.barScores)
             binding.progressBar.txtCurrentPeriod.text = state.periodTitle
             updateTabUI(state.period)
@@ -169,23 +191,56 @@ class AnalysisRepeatTaskFragment : Fragment() {
         // ---- HEATMAP: rebuilds only on heatmapYear change ----
         viewModel.heatmapState.observe(viewLifecycleOwner) { state ->
             val task = viewModel.overviewState.value?.task ?: return@observe
-            val taskStart = LocalDate.parse(task.taskAddedDate)
+            val taskStart = state.seriesStartDate
             val color = TaskColor.fromName(task.colorCode)?.toColorInt(requireContext())
                 ?: ContextCompat.getColor(requireContext(), R.color.brand_blue)
+            val unavailableDates = buildUnavailableDatesForYear(
+                seriesStartDate = state.seriesStartDate,
+                scheduledDates = state.scheduledDates,
+                year = state.heatmapYear
+            )
 
             binding.yearHeapMap.txtYear.text = state.heatmapYear.toString()
-            binding.yearHeapMap.heatmapLayout.setYear(state.heatmapYear)
-            binding.yearHeapMap.heatmapLayout.bindHeatmap(
-                taskAddedDate = taskStart,
-                completedDates = state.heatmapDates,
-                activeColor = color
-            )
             binding.yearHeapMap.btnNextYear.setColorFilter(color)
             binding.yearHeapMap.btnPrevYear.setColorFilter(color)
             binding.yearHeapMap.btnNextYear.isEnabled = state.isHeatmapNextEnabled
             binding.yearHeapMap.btnNextYear.alpha = if (state.isHeatmapNextEnabled) 1f else 0.3f
             binding.yearHeapMap.btnPrevYear.isEnabled = state.isHeatmapPrevEnabled
             binding.yearHeapMap.btnPrevYear.alpha = if (state.isHeatmapPrevEnabled) 1f else 0.3f
+
+            scheduleHeatmapBind(
+                heatmapYear = state.heatmapYear,
+                taskStart = taskStart,
+                progressByDate = state.progressByDate,
+                unavailableDates = unavailableDates,
+                color = color
+            )
+        }
+    }
+
+    private fun scheduleHeatmapBind(
+        heatmapYear: Int,
+        taskStart: LocalDate,
+        progressByDate: Map<LocalDate, Int>,
+        unavailableDates: Set<LocalDate>,
+        color: Int
+    ) {
+        heatmapBindJob?.cancel()
+        heatmapBindJob = viewLifecycleOwner.lifecycleScope.launch {
+            // Let the screen become interactive before binding the heaviest custom view.
+            delay(if (isHeatmapDeferredFirstBind) 320 else 120)
+            if (_binding == null) return@launch
+            binding.yearHeapMap.heatmapLayout.post {
+                if (_binding == null) return@post
+                binding.yearHeapMap.heatmapLayout.setYear(heatmapYear)
+                binding.yearHeapMap.heatmapLayout.bindHeatmap(
+                    taskAddedDate = taskStart,
+                    progressByDate = progressByDate,
+                    unavailableDates = unavailableDates,
+                    activeColor = color
+                )
+                isHeatmapDeferredFirstBind = false
+            }
         }
     }
 
@@ -239,14 +294,14 @@ class AnalysisRepeatTaskFragment : Fragment() {
 
     private fun updateTabUI(period: PeriodType) {
 
-        val activeTextColor = ContextCompat.getColor(requireContext(), R.color.black)
-        val inactiveTextColor = ContextCompat.getColor(requireContext(), R.color.gray)
+        val activeTextColor = ContextCompat.getColor(requireContext(), R.color.task_text_primary)
+        val inactiveTextColor = ContextCompat.getColor(requireContext(), R.color.task_text_secondary)
 
         fun styleTab(view: TextView, isActive: Boolean) {
             view.setTextColor(if (isActive) activeTextColor else inactiveTextColor)
 
             if (isActive) {
-                view.setBackgroundResource(R.drawable.circular_corners)
+                view.setBackgroundResource(R.drawable.analysis_segment_active_bg)
             } else {
                 view.background = null
             }
@@ -261,7 +316,7 @@ class AnalysisRepeatTaskFragment : Fragment() {
     // HEADER + ICON
     // --------------------------------------------------
 
-    private fun bindHeader(task: TaskEntity) {
+    private fun bindHeader(task: TaskEntity, taskStart: LocalDate) {
         val header = binding.header
         header.txtTaskTitle.text = task.title
 
@@ -280,14 +335,13 @@ class AnalysisRepeatTaskFragment : Fragment() {
         header.txtWeight.text =
             "Priority: ${task.weight.name.lowercase().replaceFirstChar { it.uppercase() }}"
 
-        val startDate = LocalDate.parse(task.taskAddedDate)
         val today = LocalDate.now()
 
         header.txtStartedSince.text =
-            "Started since ${startDate.dayOfMonth} ${startDate.month.name.take(3)} ${startDate.year}"
+            "Started since ${taskStart.dayOfMonth} ${taskStart.month.name.take(3)} ${taskStart.year}"
 
         val daysRunning =
-            ChronoUnit.DAYS.between(startDate, today).toInt() + 1
+            ChronoUnit.DAYS.between(taskStart, today).toInt() + 1
 
         header.txtRunningFor.text = "• $daysRunning days"
 
@@ -298,7 +352,7 @@ class AnalysisRepeatTaskFragment : Fragment() {
             TaskIcon.fromName(task.iconResId)?.resId ?: R.drawable.ic_trophy
         imgTaskIcon.setImageResource(iconRes)
 
-        viewIconBg.backgroundTintList = ColorStateList.valueOf(color)
+        viewIconBg.setSolidBackgroundColorCompat(color)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -307,6 +361,11 @@ class AnalysisRepeatTaskFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            android.R.id.home -> {
+                navigateBackWithLoading()
+                true
+            }
+
             R.id.menu_edit -> {
                 val currentTask = viewModel.overviewState.value?.task ?: return true
 
@@ -326,12 +385,55 @@ class AnalysisRepeatTaskFragment : Fragment() {
         }
     }
 
+    private fun navigateBackWithLoading(message: String = "Going back...") {
+        binding.tvNavigationLoading.text = message
+        binding.navigationLoadingOverlay.visibility = View.VISIBLE
+        binding.root.post {
+            if (_binding == null || !isAdded) return@post
+            findNavController().popBackStack()
+        }
+    }
+
     private fun LocalDate.toDisplayFormat(): String {
         val month = month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }
         return "$month $dayOfMonth, $year"
     }
 
+    private fun buildUnavailableDatesForYear(
+        seriesStartDate: LocalDate,
+        scheduledDates: Set<LocalDate>,
+        year: Int
+    ): Set<LocalDate> {
+        val today = LocalDate.now()
+        val start = maxOf(seriesStartDate, LocalDate.of(year, 1, 1))
+        val end = minOf(today, LocalDate.of(year, 12, 31))
+        if (end.isBefore(start)) return emptySet()
+
+        val unavailable = mutableSetOf<LocalDate>()
+        var date = start
+        while (!date.isAfter(end)) {
+            if (!scheduledDates.contains(date)) {
+                unavailable.add(date)
+            }
+            date = date.plusDays(1)
+        }
+        return unavailable
+    }
+
+    private fun buildHistoryItems(scheduledDates: Set<LocalDate>): List<WeekHabit> {
+        return scheduledDates
+            .sorted()
+            .map { date ->
+                WeekHabit(
+                    date = date,
+                    dayLetter = date.dayOfWeek.name.first().toString()
+                )
+            }
+    }
+
     override fun onDestroyView() {
+        heatmapBindJob?.cancel()
+        isHeatmapDeferredFirstBind = true
         super.onDestroyView()
         _binding = null
     }

@@ -4,7 +4,7 @@
     android:id="@+id/repeatRow"
     android:layout_width="match_parent"
     android:layout_height="56dp"
-    android:background="@drawable/circular_corners"
+    android:background="@drawable/add_form_surface_card"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingHorizontal="16dp"
@@ -15,6 +15,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
+        android:textColor="@color/add_form_text_secondary"
         android:text="Repeats"
         android:textSize="16sp"
         android:textStyle="bold" />
@@ -32,5 +33,6 @@
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:src="@drawable/ic_right_arrow"
+        app:tint="@color/add_form_icon"
       />
 </LinearLayout>

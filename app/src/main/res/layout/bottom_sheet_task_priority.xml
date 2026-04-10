@@ -2,34 +2,47 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@color/task_screen_bg"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@drawable/circular_corners_more"
-     >
+    android:paddingHorizontal="16dp"
+    android:paddingTop="14dp"
+    android:paddingBottom="18dp">
 
-    <!-- Title -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Task Priority"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@color/brand_blue"
-        android:layout_marginTop="16dp"
-        android:layout_gravity="center"
+    <View
+        android:layout_width="44dp"
+        android:layout_height="5dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/circular"
+        android:backgroundTint="@color/task_card_stroke" />
 
-        />
-
-    <!-- Explanation -->
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Priority helps calculate your daily score. Higher priority tasks add more value and show how important this task is."
-        android:textColor="@android:color/darker_gray"
-        android:textSize="14sp" />
+        android:layout_marginTop="16dp"
+        android:background="@drawable/task_fragment_card"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <!-- Priority Options -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Task Priority"
+            android:textColor="@color/task_text_primary"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_gravity="center" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Priority helps calculate your daily score. Higher priority tasks add more value and show how important this task is."
+            android:textColor="@color/task_text_secondary"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:lineSpacingExtra="2dp" />
+    </LinearLayout>
+
     <RadioGroup
         android:id="@+id/radioGroupPriority"
         android:layout_width="match_parent"
@@ -39,27 +52,70 @@
 
         <RadioButton
             android:id="@+id/radioVeryLow"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Very Low (1 weight)" />
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/task_fragment_card"
+            android:button="@null"
+            android:drawableStart="@drawable/radio_selector"
+            android:drawablePadding="12dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="14dp"
+            android:paddingVertical="16dp"
+            android:text="Very Low (1 weight)"
+            android:textColor="@color/task_text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
         <RadioButton
             android:id="@+id/radioLow"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Low (2 weight)" />
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/task_fragment_card"
+            android:button="@null"
+            android:drawableStart="@drawable/radio_selector"
+            android:drawablePadding="12dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="14dp"
+            android:paddingVertical="16dp"
+            android:text="Low (2 weight)"
+            android:textColor="@color/task_text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
         <RadioButton
             android:id="@+id/radioHigh"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="High (3 weight)" />
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/task_fragment_card"
+            android:button="@null"
+            android:drawableStart="@drawable/radio_selector"
+            android:drawablePadding="12dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="14dp"
+            android:paddingVertical="16dp"
+            android:text="High (3 weight)"
+            android:textColor="@color/task_text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
         <RadioButton
             android:id="@+id/radioVeryHigh"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Very High (4 weight)" />
+            android:background="@drawable/task_fragment_card"
+            android:button="@null"
+            android:drawableStart="@drawable/radio_selector"
+            android:drawablePadding="12dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="14dp"
+            android:paddingVertical="16dp"
+            android:text="Very High (4 weight)"
+            android:textColor="@color/task_text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
     </RadioGroup>
 
 </LinearLayout>

@@ -10,7 +10,8 @@
         android:id="@+id/analysisListRv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="8dp"
+        android:paddingBottom="100dp"
+        android:clipToPadding="false"
         android:visibility="gone" />
 
     <!-- Empty state — shown when list is loaded but empty -->
@@ -18,13 +19,14 @@
     <FrameLayout
         android:id="@+id/emptyState"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
         <include
             layout="@layout/no_day_task_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="gone" />
+            android:layout_gravity="center" />
     </FrameLayout>
 
 

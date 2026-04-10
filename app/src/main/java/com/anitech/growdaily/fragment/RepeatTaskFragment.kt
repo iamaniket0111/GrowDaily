@@ -7,16 +7,22 @@ import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.anitech.growdaily.MyApp
 import com.anitech.growdaily.R
 import com.anitech.growdaily.adapter.RepeatTaskAdapter
+import com.anitech.growdaily.data_class.TaskCompletionEntity
 import com.anitech.growdaily.data_class.TaskEntity
-import com.anitech.growdaily.database.RepeatTaskViewModel
-import com.anitech.growdaily.database.RepeatTaskViewModelFactory
+import com.anitech.growdaily.database.util.resolveTrackingSettings
+import com.anitech.growdaily.database.viewmodel.RepeatTaskViewModel
+import com.anitech.growdaily.database.viewmodel.RepeatTaskViewModelFactory
 import com.anitech.growdaily.databinding.FragmentRepeatTaskBinding
-import com.anitech.growdaily.dialog.ResetCompletionBottomSheet
+import com.anitech.growdaily.dialog.CompletionInputDialog
+import com.anitech.growdaily.enum_class.CompletionAction
+import com.anitech.growdaily.enum_class.TrackingType
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 class RepeatTaskFragment : Fragment() {
@@ -51,22 +57,90 @@ class RepeatTaskFragment : Fragment() {
                 }
                 override fun onTaskCompleteClick(taskId: String, date: String) {
                     val uiList = viewModel.heatmapUiList.value ?: return
-                    val item = uiList.find { it.task.id == taskId } ?: return
-                    val target = item.task.dailyTargetCount.coerceAtLeast(1)
+                    val parsedDate = runCatching { LocalDate.parse(date) }.getOrNull() ?: return
+                    val item = uiList.find {
+                        it.task.id == taskId || it.taskIdByDate[parsedDate] == taskId
+                    } ?: return
 
-                    val parsedDate = LocalDate.parse(date)
-                    val count = item.completedDates[parsedDate] ?: 0
+                    val task       = item.task
+                    val settings   = resolveTrackingSettings(task, date, item.trackingVersions)
+                    val count      = item.completionByDate[parsedDate]?.count ?: 0
+                    val target     = settings.dailyTargetCount.coerceAtLeast(1)
 
-                    if (target > 1 && count >= target) {
-                        // same bottom sheet you use in TaskFragment
-                        ResetCompletionBottomSheet {
+                    when (task.trackingType) {
+
+                        TrackingType.BINARY -> {
+                            // Simple toggle — no dialog
                             viewModel.onHistoryCellClick(taskId, date)
-                        }.show(parentFragmentManager, "resetSheet")
-                    } else {
-                        viewModel.onHistoryCellClick(taskId, date)
+                        }
+
+                        TrackingType.COUNT -> {
+                            if (count >= target) {
+                                viewModel.onHistoryCellClick(taskId, date)
+                            } else {
+                                val existing = TaskCompletionEntity(taskId, date, count = count)
+                                CompletionInputDialog(
+                                    task = task,
+                                    date = date,
+                                    currentCompletion = existing,
+                                    trackingSettingsOverride = settings
+                                ) { action ->
+                                    when (action) {
+                                        is CompletionAction.CountDelta ->
+                                            viewModel.changeTaskCompletionBy(taskId, date, action.delta)
+
+                                        else -> Unit
+                                    }
+                                }.show(parentFragmentManager, "completionDialog")
+                            }
+                        }
+
+                        TrackingType.TIMER -> {
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                val existing = (requireActivity().application as MyApp)
+                                    .repository.completionDao
+                                    .isTaskCompletedOnDate(taskId, date)
+                                    ?: TaskCompletionEntity(taskId = taskId, date = date)
+
+                                CompletionInputDialog(
+                                    task = task,
+                                    date = date,
+                                    currentCompletion = existing,
+                                    trackingSettingsOverride = settings
+                                ) { action ->
+                                    when (action) {
+                                        is CompletionAction.TimerAdd ->
+                                            viewModel.addTimerDuration(taskId, date, action.seconds)
+                                        else -> Unit
+                                    }
+                                }.show(parentFragmentManager, "completionDialog")
+                            }
+                        }
+
+                        TrackingType.CHECKLIST -> {
+                            // Fetch existing checklist JSON from DB then open dialog
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                val repository = (requireActivity().application as MyApp).repository
+                                val existing = repository.completionDao
+                                    .isTaskCompletedOnDate(taskId, date)
+                                val checklistItemsForDate = settings.checklistItemsJson ?: task.checklistItems
+                                CompletionInputDialog(
+                                    task = task,
+                                    date = date,
+                                    currentCompletion = existing,
+                                    trackingSettingsOverride = settings,
+                                    checklistItemsOverride = checklistItemsForDate
+                                ) { action ->
+                                    when (action) {
+                                        is CompletionAction.ChecklistUpdate ->
+                                            viewModel.updateChecklist(taskId, date, action.json)
+                                        else -> Unit
+                                    }
+                                }.show(parentFragmentManager, "completionDialog")
+                            }
+                        }
                     }
-                }
-            }
+                }}
         )
 
         binding.analysisListRv.apply {
@@ -75,11 +149,25 @@ class RepeatTaskFragment : Fragment() {
             itemAnimator = null
         }
 
+        binding.emptyState.findViewById<View>(R.id.ivEmptyStateImage)?.let { imageView ->
+            (imageView as? android.widget.ImageView)?.setImageResource(R.drawable.ic_personal_goals)
+        }
+        binding.emptyState.findViewById<View>(R.id.tvEmptyStateTitle)?.let { titleView ->
+            (titleView as? android.widget.TextView)?.text = "No repeat tasks yet"
+        }
+        binding.emptyState.findViewById<View>(R.id.tvEmptyStateSubtitle)?.let { subtitleView ->
+            (subtitleView as? android.widget.TextView)?.text =
+                "Create a repeating task to track it over time."
+        }
+
         showLoading()   // spinner visible until first data arrives
 
         viewModel.heatmapUiList.observe(viewLifecycleOwner) { tasks ->
             when {
-                tasks.isNullOrEmpty() -> showEmpty()
+                tasks.isNullOrEmpty() -> {
+                    repeatTaskAdapter.submitList(emptyList())
+                    showEmpty()
+                }
                 else -> {
                     repeatTaskAdapter.submitList(tasks)
                     showList()

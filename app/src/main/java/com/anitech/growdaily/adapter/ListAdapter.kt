@@ -75,7 +75,7 @@ class ListAdapter(
         val context = holder.itemView.context
 
         holder.itemView.backgroundTintList =
-            ContextCompat.getColorStateList(context, R.color.white)
+            ContextCompat.getColorStateList(context, R.color.task_filter_surface)
 
         when (holder) {
 
