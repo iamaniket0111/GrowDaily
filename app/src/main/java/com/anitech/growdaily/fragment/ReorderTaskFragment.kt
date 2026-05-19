@@ -123,9 +123,9 @@ class ReorderTaskFragment : Fragment() {
         binding.emptyState.findViewById<ImageView>(com.anitech.growdaily.R.id.ivEmptyStateImage)
             ?.setImageResource(com.anitech.growdaily.R.drawable.ic_to_do_list)
         binding.emptyState.findViewById<TextView>(com.anitech.growdaily.R.id.tvEmptyStateTitle)
-            ?.text = "No tasks to reorder"
+            ?.setText(com.anitech.growdaily.R.string.empty_reorder_tasks_title)
         binding.emptyState.findViewById<TextView>(com.anitech.growdaily.R.id.tvEmptyStateSubtitle)
-            ?.text = "Add a few tasks first, then you can organize their order here."
+            ?.setText(com.anitech.growdaily.R.string.empty_reorder_tasks_subtitle)
     }
 
     override fun onDestroyView() {

@@ -11,6 +11,7 @@ import com.anitech.growdaily.data_class.TaskCompletionEntity
 import com.anitech.growdaily.data_class.TaskDaySnapshotEntity
 import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.data_class.TaskTrackingVersionEntity
+import com.anitech.growdaily.data_class.WeekHabit
 import com.anitech.growdaily.database.repository.AppRepository
 import com.anitech.growdaily.database.util.completionPercent
 import com.anitech.growdaily.database.util.isCompletedDerived
@@ -18,6 +19,7 @@ import com.anitech.growdaily.database.util.resolveTrackingSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -30,6 +32,7 @@ class RepeatTaskViewModel(
 ) : ViewModel() {
 
     private val DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    private val seriesUiCache = linkedMapOf<String, Pair<Int, RepeatTaskUi>>()
 
     /**
      * Combines the two Room streams into one, debounces to collapse the
@@ -53,6 +56,7 @@ class RepeatTaskViewModel(
             buildUiList(tasks, completions, trackingVersions, snapshots)
         }
             .debounce(50L)          // collapses the two near-simultaneous first Room emissions
+            .distinctUntilChanged()
             .flowOn(Dispatchers.Default)   // mapping runs off the main thread
             .asLiveData(viewModelScope.coroutineContext)
 
@@ -65,6 +69,11 @@ class RepeatTaskViewModel(
         snapshots: List<TaskDaySnapshotEntity>
     ): List<RepeatTaskUi> {
         if (tasks.isEmpty()) return emptyList()
+        val today = LocalDate.now()
+        val activeTasks = tasks.filter {
+            CommonMethods.isWithinTaskLifetime(it, today.format(DATE_FORMATTER))
+        }
+        if (activeTasks.isEmpty()) return emptyList()
 
         val completionMap = groupCompletions(completions)
         val trackingVersionMap = trackingVersions
@@ -73,14 +82,27 @@ class RepeatTaskViewModel(
         val snapshotMap = snapshots
             .groupBy { it.taskId.trim().lowercase() }
             .mapValues { entry -> entry.value.associateBy { it.date } }
-        val today = LocalDate.now()
+        val activeSeriesKeys = linkedSetOf<String>()
 
-        return tasks
+        val result = activeTasks
             .groupBy { it.seriesId.ifBlank { it.id } }
             .values
             .map { segments ->
                 val orderedSegments = segments.sortedBy { it.taskAddedDate }
                 val displayTask = orderedSegments.last()
+                val seriesKey = displayTask.seriesId.ifBlank { displayTask.id }
+                activeSeriesKeys.add(seriesKey)
+
+                val seriesSignature = buildSeriesSignature(
+                    orderedSegments = orderedSegments,
+                    completionMap = completionMap,
+                    trackingVersionMap = trackingVersionMap,
+                    snapshotMap = snapshotMap
+                )
+
+                seriesUiCache[seriesKey]?.takeIf { it.first == seriesSignature }?.second?.let { cached ->
+                    return@map cached
+                }
 
                 val taskIdByDate = linkedMapOf<LocalDate, String>()
                 val completionByDate = linkedMapOf<LocalDate, TaskCompletionEntity>()
@@ -143,6 +165,19 @@ class RepeatTaskViewModel(
                     completedDays,
                     currentSegmentScheduledDates
                 )
+                val historyItems = taskIdByDate.keys
+                    .sorted()
+                    .map { date ->
+                        WeekHabit(
+                            date = date,
+                            dayLetter = date.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW, java.util.Locale.getDefault())
+                        )
+                    }
+                val unavailableDates = buildUnavailableDates(
+                    startDate = taskStart,
+                    endDate = today,
+                    scheduledDates = taskIdByDate.keys
+                )
 
                 RepeatTaskUi(
                     task = displayTask,
@@ -152,12 +187,20 @@ class RepeatTaskViewModel(
                     taskIdByDate = taskIdByDate,
                     completedDays = completedDays,
                     trackingVersions = mergedVersions.values.toList(),
+                    historyItems = historyItems,
+                    unavailableDates = unavailableDates,
                     currentStreak = currentStreak,
                     completionOutOf10 = completionOutOf10,
                     completedCount = completedCount,
                     totalDays = totalDays
-                )
+                ).also { builtUi ->
+                    seriesUiCache[seriesKey] = seriesSignature to builtUi
+                }
             }
+
+        val staleKeys = seriesUiCache.keys - activeSeriesKeys
+        staleKeys.forEach(seriesUiCache::remove)
+        return result
     }
 
     private fun groupCompletions(
@@ -176,6 +219,41 @@ class RepeatTaskViewModel(
             .mapValues { (_, pairs) ->
                 pairs.associate { (date, entity) -> date to entity }
             }
+    }
+
+    private fun buildSeriesSignature(
+        orderedSegments: List<TaskEntity>,
+        completionMap: Map<String, Map<LocalDate, TaskCompletionEntity>>,
+        trackingVersionMap: Map<String, List<TaskTrackingVersionEntity>>,
+        snapshotMap: Map<String, Map<String, TaskDaySnapshotEntity>>
+    ): Int {
+        var signature = 17
+        orderedSegments.forEach { task ->
+            val normalizedId = task.id.trim().lowercase()
+            signature = 31 * signature + task.hashCode()
+            signature = 31 * signature + (completionMap[normalizedId]?.hashCode() ?: 0)
+            signature = 31 * signature + (trackingVersionMap[task.id]?.hashCode() ?: 0)
+            signature = 31 * signature + (snapshotMap[normalizedId]?.hashCode() ?: 0)
+        }
+        return signature
+    }
+
+    private fun buildUnavailableDates(
+        startDate: LocalDate,
+        endDate: LocalDate,
+        scheduledDates: Set<LocalDate>
+    ): Set<LocalDate> {
+        if (endDate.isBefore(startDate)) return emptySet()
+
+        val unavailable = mutableSetOf<LocalDate>()
+        var date = startDate
+        while (!date.isAfter(endDate)) {
+            if (!scheduledDates.contains(date)) {
+                unavailable.add(date)
+            }
+            date = date.plusDays(1)
+        }
+        return unavailable
     }
 
     fun onHistoryCellClick(taskId: String, date: String) {

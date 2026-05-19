@@ -12,29 +12,23 @@
     android:paddingHorizontal="16dp">
 
     <TextView
+        style="@style/TitleLabel"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="Start Date"
-        android:textSize="16sp"
-        android:textColor="@color/add_form_text_secondary"
-        android:textStyle="bold" />
+        android:text="Start Date" />
 
     <TextView
         android:id="@+id/txtStartDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
         android:text="--"
         android:textColor="@color/brand_blue"
-        android:textSize="14sp"
+        style="@style/ValueText"
 
         />
 
     <ImageView
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:src="@drawable/ic_right_arrow"
-        app:tint="@color/add_form_icon" />
+        style="@style/ChevronImageView" />
 
 </LinearLayout>

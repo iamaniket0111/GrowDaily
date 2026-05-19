@@ -10,15 +10,13 @@
     <!-- Label -->
     <TextView
         android:id="@+id/tvPriorityLabel"
+        style="@style/TitleLabel"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Task Priority (Weight)"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:textColor="@color/add_form_text_secondary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/txtPriority"
-         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Current value -->
@@ -26,10 +24,9 @@
         android:id="@+id/txtPriority"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingEnd="8dp"
         android:text="1/4"
         android:textColor="@color/brand_blue"
-        android:textSize="14sp"
+        style="@style/ValueText"
         app:layout_constraintBottom_toBottomOf="@id/tvPriorityLabel"
         app:layout_constraintEnd_toStartOf="@id/ivChevron"
         app:layout_constraintTop_toTopOf="@id/tvPriorityLabel" />
@@ -37,13 +34,10 @@
     <!-- Right chevron -->
     <ImageView
         android:id="@+id/ivChevron"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:contentDescription="Open priority selector"
-        android:src="@drawable/ic_right_arrow"
-        app:tint="@color/add_form_icon"
+        style="@style/ChevronImageView"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

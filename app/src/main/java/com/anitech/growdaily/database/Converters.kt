@@ -2,6 +2,7 @@ package com.anitech.growdaily.database
 
 import androidx.room.TypeConverter
 import com.anitech.growdaily.enum_class.RepeatType
+import com.anitech.growdaily.enum_class.TaskInactiveReason
 import com.anitech.growdaily.enum_class.TaskType
 import com.anitech.growdaily.enum_class.TaskWeight
 import com.anitech.growdaily.enum_class.TrackingType
@@ -32,6 +33,15 @@ class Converters {
     fun toRepeatType(value: String?): RepeatType? {
         if (value.isNullOrBlank()) return null
         return RepeatType.entries.firstOrNull { it.name == value }
+    }
+
+    @TypeConverter
+    fun fromTaskInactiveReason(value: TaskInactiveReason?): String? = value?.name
+
+    @TypeConverter
+    fun toTaskInactiveReason(value: String?): TaskInactiveReason? {
+        if (value.isNullOrBlank()) return null
+        return TaskInactiveReason.entries.firstOrNull { it.name == value }
     }
 
     @TypeConverter

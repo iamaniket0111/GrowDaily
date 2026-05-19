@@ -7,17 +7,12 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:letterSpacing="0.05"
+        style="@style/AnalysisTitle"
         android:text="HISTORY"
-        android:textColor="@color/task_text_primary"
-        android:textStyle="normal"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        />
 
     <LinearLayout
         android:layout_width="match_parent"

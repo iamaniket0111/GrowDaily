@@ -4,6 +4,7 @@ import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.anitech.growdaily.enum_class.RepeatType
+import com.anitech.growdaily.enum_class.TaskInactiveReason
 import com.anitech.growdaily.enum_class.TaskType
 import com.anitech.growdaily.enum_class.TaskWeight
 import com.anitech.growdaily.enum_class.TrackingType
@@ -27,6 +28,7 @@ data class TaskEntity(
 
     val taskAddedDate: String,
     val taskRemovedDate: String?,
+    val inactiveReason: TaskInactiveReason? = null,
 
     val iconResId: String,
     val colorCode: String,

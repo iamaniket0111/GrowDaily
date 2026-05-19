@@ -33,7 +33,7 @@
                     android:id="@+id/imageProfile"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/circular"
+                    android:background="@drawable/circle_background"
                     android:contentDescription="@string/none"
                     android:padding="6dp"
                     android:scaleType="centerCrop"
@@ -66,6 +66,7 @@
 
 
                     <LinearLayout
+                        android:id="@+id/weightContainer"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
@@ -85,6 +86,7 @@
                             android:textSize="11sp" />
 
                         <ImageView
+                            android:id="@+id/flag"
                             android:layout_width="14dp"
                             android:layout_height="14dp"
                             android:src="@drawable/ic_flag_fill"
@@ -93,6 +95,7 @@
 
 
                     <LinearLayout
+                        android:id="@+id/streakContainer"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
@@ -112,6 +115,7 @@
                             android:textSize="11sp" />
 
                         <ImageView
+                            android:id="@+id/fire"
                             android:layout_width="14dp"
                             android:layout_height="14dp"
                             android:src="@drawable/ic_fire_fill"

@@ -10,6 +10,7 @@ import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.anitech.growdaily.CommonMethods
+import com.anitech.growdaily.data_class.BarTimelineState
 import com.anitech.growdaily.data_class.DailyScore
 import com.anitech.growdaily.data_class.TaskCompletionEntity
 import com.anitech.growdaily.data_class.TaskDaySnapshotEntity
@@ -17,11 +18,13 @@ import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.data_class.TaskTrackingVersionEntity
 import com.anitech.growdaily.data_class.TaskUiItem
 import com.anitech.growdaily.data_class.TaskUiState
+import com.anitech.growdaily.data_class.UntilCompleteChildEntity
 import com.anitech.growdaily.database.repository.AppRepository
 import com.anitech.growdaily.database.util.completionPercent
 import com.anitech.growdaily.database.util.isCompletedDerived
 import com.anitech.growdaily.database.util.resolveTrackingSettings
 import com.anitech.growdaily.enum_class.DateMode
+import com.anitech.growdaily.enum_class.TaskType
 import com.anitech.growdaily.enum_class.TimeState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -35,10 +38,30 @@ class TaskViewModel(
 ) : ViewModel() {
 
     companion object {
-        // Adjust this if you want smaller/larger window
-        private const val RANGE_DAYS = 91
+        // Professional Rolling Window Strategy
+        private const val INITIAL_BAR_PAST_DAYS = 91L // ~3 months
+        private const val INITIAL_BAR_FUTURE_DAYS = 91L // ~3 months
+        private const val BAR_CHUNK_DAYS = 56L // 8 weeks per fetch
+        private const val MAX_BAR_WINDOW_DAYS = 365L // Keep ~1 year max in memory to prevent OOM
         private const val TAG = "TaskViewModel"
     }
+
+    private var latestTasks: List<TaskEntity>? = null
+    private var latestDate: String? = null
+    private var latestCompletionAll: Map<String, Map<String, Int>>? = null
+    private var latestCompletionEntitiesAll: Map<String, Map<String, TaskCompletionEntity>>? = null
+    private var latestTrackingVersionsAll: Map<String, List<TaskTrackingVersionEntity>>? = null
+    private var latestTaskDaySnapshotsAll: Map<String, Map<String, TaskDaySnapshotEntity>>? = null
+    private var latestTaskExtraDatesAll: Map<String, Set<String>>? = null
+    private var latestUntilCompleteChildrenAll: List<UntilCompleteChildEntity> = emptyList()
+    private var latestSelectedListId: String? = null
+    private var latestTaskIdsForSelectedList: List<String> = emptyList()
+
+    private val barScoreCache = linkedMapOf<String, DailyScore>()
+    private var barWindowStart: LocalDate = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).minusDays(INITIAL_BAR_PAST_DAYS)
+    private var barWindowEnd: LocalDate = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).plusDays(6).plusDays(INITIAL_BAR_FUTURE_DAYS)
+    private var isLoadingBarPast = false
+    private var isLoadingBarFuture = false
 
     // -----------------------------
     // TASK LIST
@@ -120,46 +143,65 @@ class TaskViewModel(
                 }
         }
 
+    val taskExtraDateMap: LiveData<Map<String, Set<String>>> =
+        repository.getAllTaskExtraDatesFlow().asLiveData().map { list ->
+            list.groupBy { it.taskId }
+                .mapValues { entry -> entry.value.map { it.date }.toSet() }
+        }
+
+    val untilCompleteChildren = repository.getAllUntilCompleteChildrenFlow().asLiveData()
+
     // -----------------------------
     // UI STATE (optimized)
     // -----------------------------
     val taskUiState: LiveData<TaskUiState> =
         MediatorLiveData<TaskUiState>().apply {
-
-            var tasks: List<TaskEntity>? = null
-            var date: String? = null
-            var completionAll: Map<String, Map<String, Int>>? = null
-            var completionEntitiesAll: Map<String, Map<String, TaskCompletionEntity>>? = null
-            var trackingVersionsAll: Map<String, List<TaskTrackingVersionEntity>>? = null
-            var taskDaySnapshotsAll: Map<String, Map<String, TaskDaySnapshotEntity>>? = null
-            var selectedListId: String? = null
-            var taskIdsForSelectedList: List<String> = emptyList()
-
-
             // keep a reference to this MediatorLiveData so we can post from background
             val mediator = this
 
             fun rebuildStateAsync() {
-                val t = tasks ?: return
-                val d = date ?: return
-                val completionMap = completionAll ?: return
-                val completionEntityMap = completionEntitiesAll ?: return
-                val trackingVersionsMap = trackingVersionsAll ?: return
-                val snapshotMap = taskDaySnapshotsAll ?: emptyMap()
+                val t = latestTasks ?: return
+                val d = latestDate ?: return
+                val completionMap = latestCompletionAll ?: return
+                val completionEntityMap = latestCompletionEntitiesAll ?: return
+                val trackingVersionsMap = latestTrackingVersionsAll ?: return
+                val snapshotMap = latestTaskDaySnapshotsAll ?: emptyMap()
+                    val extraDateMap = latestTaskExtraDatesAll ?: emptyMap()
+                    val expandedTasks = expandUntilCompleteTasks(t, latestUntilCompleteChildrenAll)
+                    val childParentMap = latestUntilCompleteChildrenAll.associate { it.childTaskId to it.parentTaskId }
+                    val parentTaskMap = t.associateBy { it.id }
 
                 // do heavy work off main
                 viewModelScope.launch(Dispatchers.Default) {
 
                     val allVisibleTasks =
-                        if (selectedListId == null) {
-                            t
+                        if (latestSelectedListId == null) {
+                            expandedTasks
                         } else {
-                            t.filter { it.id in taskIdsForSelectedList }
+                            expandedTasks.filter { it.id in latestTaskIdsForSelectedList || childParentMap[it.id] in latestTaskIdsForSelectedList }
                         }
 
-                    val scheduledTasksForSelectedDate = CommonMethods.filterTasks(allVisibleTasks, d)
+                    val untilCompleteStates = allVisibleTasks
+                        .filter { it.taskType == TaskType.UNTIL_COMPLETE }
+                        .associate { task ->
+                            task.id to resolveUntilCompleteState(
+                                task = task,
+                                selectedDate = d,
+                                completionEntityMap = completionEntityMap,
+                                trackingVersionsMap = trackingVersionsMap,
+                                versionOwnerId = childParentMap[task.id] ?: task.id
+                            )
+                        }
+                    val scheduledTasksForSelectedDate = CommonMethods.filterTasks(
+                        allVisibleTasks.filter { it.taskType != TaskType.UNTIL_COMPLETE },
+                        d,
+                        extraDateMap
+                    ) + allVisibleTasks.filter { task ->
+                        task.taskType == TaskType.UNTIL_COMPLETE &&
+                            untilCompleteStates[task.id]?.isVisible == true
+                    }
                     val carryForwardDayTasks = allVisibleTasks.filter { task ->
-                        task.taskType == com.anitech.growdaily.enum_class.TaskType.DAY &&
+                        task.taskType == TaskType.DAY &&
                             task.showUntilCompleted &&
                             task.taskAddedDate < d &&
                             !isCompletedDerived(
@@ -173,7 +215,7 @@ class TaskViewModel(
                             )
                     }
                     val carryForwardRepeatTasks = allVisibleTasks.filter { task ->
-                        task.taskType == com.anitech.growdaily.enum_class.TaskType.DAILY &&
+                        task.taskType == TaskType.DAILY &&
                             task.showMissedOnGapDays &&
                             (task.repeatType != null && task.repeatType != com.anitech.growdaily.enum_class.RepeatType.DAILY) &&
                             CommonMethods.isWithinTaskLifetime(task, d) &&
@@ -212,29 +254,33 @@ class TaskViewModel(
                                 ?.scheduledMinutes
                         } else null
 
-                    val isListFiltered = selectedListId != null
+                    val isListFiltered = latestSelectedListId != null
 
 
                     val uiItems = orderedTasks.map { task ->
+                        val untilCompleteState = untilCompleteStates[task.id]
                         val completionDate = if (
-                            task.taskType == com.anitech.growdaily.enum_class.TaskType.DAY &&
+                            task.taskType == TaskType.DAY &&
                             task.showUntilCompleted &&
                             task.taskAddedDate < d
                         ) {
                             task.taskAddedDate
                         } else if (
-                            task.taskType == com.anitech.growdaily.enum_class.TaskType.DAILY &&
+                            task.taskType == TaskType.DAILY &&
                             task.showMissedOnGapDays &&
                             !CommonMethods.isTaskActiveOnDate(task, d)
                         ) {
                             CommonMethods.previousScheduledDate(task, d) ?: d
+                        } else if (task.taskType == TaskType.UNTIL_COMPLETE) {
+                            untilCompleteState?.displayCompletionDate ?: d
                         } else d
                         val completion = completionEntityMap[completionDate]?.get(task.id)
                         val snapshot = snapshotMap[completionDate]?.get(task.id)
+                        val trackingOwnerId = childParentMap[task.id] ?: task.id
                         val settings = resolveTrackingSettings(
                             task = task,
                             date = completionDate,
-                            versions = trackingVersionsMap[task.id].orEmpty()
+                            versions = trackingVersionsMap[trackingOwnerId].orEmpty()
                         )
                         val completionCount = snapshot?.completionCount ?: (completion?.count ?: 0)
                         val completionPercent = snapshot?.progressPercent
@@ -245,7 +291,7 @@ class TaskViewModel(
                             !task.isScheduled || task.scheduledMinutes == null -> TimeState.NONE
                             completionDate != d -> TimeState.NONE
                             dateMode != DateMode.TODAY || currentMinutes == null -> TimeState.NONE
-                            task.scheduledMinutes!! < currentMinutes -> TimeState.PAST
+                            task.scheduledMinutes < currentMinutes -> TimeState.PAST
                             task.scheduledMinutes == currentMinutes -> TimeState.CURRENT
                             else -> TimeState.FUTURE
                         }
@@ -294,9 +340,14 @@ class TaskViewModel(
                             isCompleted = isCompleted,
                             isListFiltered = isListFiltered,
                             completionDate = completionDate,
-                            pendingFromText = if (completionDate != d)
-                                "Pending from ${CommonMethods.formatDate(completionDate)}"
-                            else null
+                            pendingFromDate = when {
+                                task.taskType == com.anitech.growdaily.enum_class.TaskType.UNTIL_COMPLETE &&
+                                    task.taskAddedDate != d &&
+                                    untilCompleteState?.isVisible == true -> task.taskAddedDate
+                                completionDate != d -> completionDate
+                                else -> null
+                            },
+                            sourceTask = childParentMap[task.id]?.let { parentTaskMap[it] }
                         )
                     }
 
@@ -305,10 +356,14 @@ class TaskViewModel(
                     val dayScore =
                         calculateScoreForDateVersioned(
                             t,
+                            // score against effective task occurrences, not only base tasks
+                            // so UNTIL_COMPLETE children count on their own dates
                             d,
                             completionEntityMap,
                             trackingVersionsMap,
-                            snapshotMap
+                            snapshotMap,
+                            extraDateMap,
+                            expandedTasksOverride = expandedTasks
                         )
                     val selectedDate = LocalDate.parse(d)
 
@@ -322,7 +377,9 @@ class TaskViewModel(
                         weekEnd,
                         completionEntityMap,
                         trackingVersionsMap,
-                        snapshotMap
+                        snapshotMap,
+                        extraDateMap,
+                        expandedTasksOverride = expandedTasks
                     )
 
                     val monthStart = selectedDate.withDayOfMonth(1)
@@ -333,39 +390,10 @@ class TaskViewModel(
                         monthEnd,
                         completionEntityMap,
                         trackingVersionsMap,
-                        snapshotMap
+                        snapshotMap,
+                        extraDateMap,
+                        expandedTasksOverride = expandedTasks
                     )
-
-                    // bar window
-                    val half = RANGE_DAYS / 2L
-                    val barCenterDate = LocalDate.now()
-                    val start = barCenterDate.minusDays(half)
-                    val end = barCenterDate.plusDays(half)
-
-                    // build bar list
-                    val barScores = ArrayList<DailyScore>(RANGE_DAYS)
-                    var current = start
-                    while (!current.isAfter(end)) {
-
-                        val score = calculateScoreForDateVersioned(
-                            t,
-                            current.toString(),
-                            completionEntityMap,
-                            trackingVersionsMap,
-                            snapshotMap
-                        )
-
-                        barScores.add(
-                            DailyScore(
-                                date = current.toString(),
-                                dayText = current.dayOfMonth.toString(),
-                                monthDayText = "${current.monthValue}/${current.dayOfMonth}",
-                                score = score,
-                                taskCount = 0 // you can compute taskCount similarly if needed
-                            )
-                        )
-                        current = current.plusDays(1)
-                    }
 
                     // publish on mediator
                     val ui = TaskUiState(
@@ -375,10 +403,10 @@ class TaskViewModel(
                         dayScore = dayScore,
                         weekScore = weekScore,
                         monthScore = monthScore,
-                        barScores = barScores,
+                        barScores = emptyList(),
                         dateMode = CommonMethods.getDateMode(d),
                         isEmpty = orderedTasks.isEmpty(),
-                        selectedListId = selectedListId
+                        selectedListId = latestSelectedListId
                     )
 
                     mediator.postValue(ui)
@@ -386,56 +414,382 @@ class TaskViewModel(
             }
 
             addSource(allTasks) {
-                tasks = it
+                latestTasks = it
                 rebuildStateAsync()
             }
 
             addSource(selectedDate) {
-                date = it
+                latestDate = it
                 rebuildStateAsync()
             }
 
             addSource(completionMap) {
-                completionAll = it
+                latestCompletionAll = it
                 rebuildStateAsync()
             }
 
             addSource(completionEntityMap) {
-                completionEntitiesAll = it
+                latestCompletionEntitiesAll = it
                 rebuildStateAsync()
             }
 
             addSource(trackingVersionMap) {
-                trackingVersionsAll = it
+                latestTrackingVersionsAll = it
                 rebuildStateAsync()
             }
 
             addSource(taskDaySnapshotMap) {
-                taskDaySnapshotsAll = it
+                latestTaskDaySnapshotsAll = it
+                rebuildStateAsync()
+            }
+
+            addSource(taskExtraDateMap) {
+                latestTaskExtraDatesAll = it
+                rebuildStateAsync()
+            }
+
+            addSource(untilCompleteChildren) {
+                latestUntilCompleteChildrenAll = it
                 rebuildStateAsync()
             }
 
             addSource(this@TaskViewModel.selectedListId) {
-                selectedListId = it
+                latestSelectedListId = it
                 rebuildStateAsync()
             }
 
 
             addSource(listTaskIds) {
-                taskIdsForSelectedList = it
+                latestTaskIdsForSelectedList = it
                 rebuildStateAsync()
             }
 
         }
+
+    private val _barTimelineState = MediatorLiveData<BarTimelineState>().apply {
+
+        fun rebuildBarStateAsync() {
+            val tasks = latestTasks ?: return
+            val completionEntityMap = latestCompletionEntitiesAll ?: return
+            val trackingVersionsMap = latestTrackingVersionsAll ?: return
+            val snapshotMap = latestTaskDaySnapshotsAll ?: emptyMap()
+            val extraDateMap = latestTaskExtraDatesAll ?: emptyMap()
+            val expandedTasks = expandUntilCompleteTasks(tasks, latestUntilCompleteChildrenAll)
+            val selectedDate = latestDate ?: CommonMethods.getTodayDate()
+
+            viewModelScope.launch(Dispatchers.Default) {
+                val scores = buildBarWindowScores(
+                    tasks = expandedTasks,
+                    start = barWindowStart,
+                    end = barWindowEnd,
+                    completionEntityMap = completionEntityMap,
+                    trackingVersionsMap = trackingVersionsMap,
+                    snapshotMap = snapshotMap,
+                    extraDateMap = extraDateMap
+                )
+
+                postValue(
+                    BarTimelineState(
+                        scores = scores,
+                        selectedDate = selectedDate,
+                        isLoadingPast = isLoadingBarPast,
+                        isLoadingFuture = isLoadingBarFuture
+                    )
+                )
+            }
+        }
+
+        addSource(allTasks) {
+            latestTasks = it
+            barScoreCache.clear()
+            rebuildBarStateAsync()
+        }
+
+        addSource(selectedDate) {
+            latestDate = it
+            rebuildBarStateAsync()
+        }
+
+        addSource(completionEntityMap) {
+            latestCompletionEntitiesAll = it
+            barScoreCache.clear()
+            rebuildBarStateAsync()
+        }
+
+        addSource(trackingVersionMap) {
+            latestTrackingVersionsAll = it
+            barScoreCache.clear()
+            rebuildBarStateAsync()
+        }
+
+        addSource(taskDaySnapshotMap) {
+            latestTaskDaySnapshotsAll = it
+            barScoreCache.clear()
+            rebuildBarStateAsync()
+        }
+
+        addSource(taskExtraDateMap) {
+            latestTaskExtraDatesAll = it
+            barScoreCache.clear()
+            rebuildBarStateAsync()
+        }
+        addSource(untilCompleteChildren) {
+            latestUntilCompleteChildrenAll = it
+            barScoreCache.clear()
+            rebuildBarStateAsync()
+        }
+    }
+    val barTimelineState: LiveData<BarTimelineState> = _barTimelineState
+
+    fun resetBarWindowToToday() {
+        jumpToDate(LocalDate.now())
+    }
+
+    fun jumpToDate(target: LocalDate) {
+        val weekStart = target.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        barWindowStart = weekStart.minusDays(INITIAL_BAR_PAST_DAYS)
+        barWindowEnd = weekStart.plusDays(6).plusDays(INITIAL_BAR_FUTURE_DAYS)
+        isLoadingBarPast = false
+        isLoadingBarFuture = false
+        barScoreCache.clear() // Clear cache to keep memory usage flat
+        rebuildBarTimelineState()
+    }
+
+    fun loadMoreBarPast() {
+        if (isLoadingBarPast) return
+        val tasks = latestTasks ?: return
+        val completionEntityMap = latestCompletionEntitiesAll ?: return
+        val trackingVersionsMap = latestTrackingVersionsAll ?: return
+        val snapshotMap = latestTaskDaySnapshotsAll ?: emptyMap()
+        val extraDateMap = latestTaskExtraDatesAll ?: emptyMap()
+        val expandedTasks = expandUntilCompleteTasks(tasks, latestUntilCompleteChildrenAll)
+        val selectedDate = latestDate ?: CommonMethods.getTodayDate()
+
+        isLoadingBarPast = true
+        emitLoadingBarState(selectedDate)
+
+        val newStart = barWindowStart.minusDays(BAR_CHUNK_DAYS)
+        val oldStart = barWindowStart
+        
+        // Rolling Window: If we exceed MAX_BAR_WINDOW_DAYS, trim the future
+        if (java.time.temporal.ChronoUnit.DAYS.between(newStart, barWindowEnd) > MAX_BAR_WINDOW_DAYS) {
+            val trimDays = BAR_CHUNK_DAYS
+            val newEnd = barWindowEnd.minusDays(trimDays)
+            // Remove trimmed days from cache
+            var cursor = newEnd.plusDays(1)
+            while (!cursor.isAfter(barWindowEnd)) {
+                barScoreCache.remove(cursor.toString())
+                cursor = cursor.plusDays(1)
+            }
+            barWindowEnd = newEnd
+        }
+
+        viewModelScope.launch(Dispatchers.Default) {
+            var cursor = newStart
+            while (cursor.isBefore(oldStart)) {
+                getOrBuildDailyScore(
+                    tasks = expandedTasks,
+                    date = cursor,
+                    completionEntityMap = completionEntityMap,
+                    trackingVersionsMap = trackingVersionsMap,
+                    snapshotMap = snapshotMap,
+                    extraDateMap = extraDateMap
+                )
+                cursor = cursor.plusDays(1)
+            }
+            barWindowStart = newStart
+            isLoadingBarPast = false
+            emitCurrentBarState(selectedDate)
+        }
+    }
+
+    fun loadMoreBarFuture() {
+        if (isLoadingBarFuture) return
+        val tasks = latestTasks ?: return
+        val completionEntityMap = latestCompletionEntitiesAll ?: return
+        val trackingVersionsMap = latestTrackingVersionsAll ?: return
+        val snapshotMap = latestTaskDaySnapshotsAll ?: emptyMap()
+        val extraDateMap = latestTaskExtraDatesAll ?: emptyMap()
+        val expandedTasks = expandUntilCompleteTasks(tasks, latestUntilCompleteChildrenAll)
+        val selectedDate = latestDate ?: CommonMethods.getTodayDate()
+
+        isLoadingBarFuture = true
+        emitLoadingBarState(selectedDate)
+
+        val newEnd = barWindowEnd.plusDays(BAR_CHUNK_DAYS)
+        val oldEnd = barWindowEnd
+
+        // Rolling Window: If we exceed MAX_BAR_WINDOW_DAYS, trim the past
+        if (java.time.temporal.ChronoUnit.DAYS.between(barWindowStart, newEnd) > MAX_BAR_WINDOW_DAYS) {
+            val trimDays = BAR_CHUNK_DAYS
+            val newStart = barWindowStart.plusDays(trimDays)
+            // Remove trimmed days from cache
+            var cursor = barWindowStart
+            while (cursor.isBefore(newStart)) {
+                barScoreCache.remove(cursor.toString())
+                cursor = cursor.plusDays(1)
+            }
+            barWindowStart = newStart
+        }
+
+        viewModelScope.launch(Dispatchers.Default) {
+            var cursor = oldEnd.plusDays(1)
+            while (!cursor.isAfter(newEnd)) {
+                getOrBuildDailyScore(
+                    tasks = expandedTasks,
+                    date = cursor,
+                    completionEntityMap = completionEntityMap,
+                    trackingVersionsMap = trackingVersionsMap,
+                    snapshotMap = snapshotMap,
+                    extraDateMap = extraDateMap
+                )
+                cursor = cursor.plusDays(1)
+            }
+            barWindowEnd = newEnd
+            isLoadingBarFuture = false
+            emitCurrentBarState(selectedDate)
+        }
+    }
+
+    private fun rebuildBarTimelineState() {
+        val tasks = latestTasks ?: return
+        val completionEntityMap = latestCompletionEntitiesAll ?: return
+        val trackingVersionsMap = latestTrackingVersionsAll ?: return
+        val snapshotMap = latestTaskDaySnapshotsAll ?: emptyMap()
+        val extraDateMap = latestTaskExtraDatesAll ?: emptyMap()
+        val expandedTasks = expandUntilCompleteTasks(tasks, latestUntilCompleteChildrenAll)
+        val selectedDate = latestDate ?: CommonMethods.getTodayDate()
+
+        viewModelScope.launch(Dispatchers.Default) {
+            emitComputedBarState(
+                tasks = expandedTasks,
+                completionEntityMap = completionEntityMap,
+                trackingVersionsMap = trackingVersionsMap,
+                snapshotMap = snapshotMap,
+                extraDateMap = extraDateMap,
+                selectedDate = selectedDate
+            )
+        }
+    }
+
+    private fun emitLoadingBarState(selectedDate: String) {
+        _barTimelineState.value = (_barTimelineState.value ?: BarTimelineState(selectedDate = selectedDate)).copy(
+            selectedDate = selectedDate,
+            isLoadingPast = isLoadingBarPast,
+            isLoadingFuture = isLoadingBarFuture
+        )
+    }
+
+    private suspend fun emitCurrentBarState(selectedDate: String) {
+        val tasks = latestTasks ?: return
+        val completionEntityMap = latestCompletionEntitiesAll ?: return
+        val trackingVersionsMap = latestTrackingVersionsAll ?: return
+        val snapshotMap = latestTaskDaySnapshotsAll ?: emptyMap()
+        val extraDateMap = latestTaskExtraDatesAll ?: emptyMap()
+        val expandedTasks = expandUntilCompleteTasks(tasks, latestUntilCompleteChildrenAll)
+        emitComputedBarState(
+            tasks = expandedTasks,
+            completionEntityMap = completionEntityMap,
+            trackingVersionsMap = trackingVersionsMap,
+            snapshotMap = snapshotMap,
+            extraDateMap = extraDateMap,
+            selectedDate = selectedDate
+        )
+    }
+
+    private suspend fun emitComputedBarState(
+        tasks: List<TaskEntity>,
+        completionEntityMap: Map<String, Map<String, TaskCompletionEntity>>,
+        trackingVersionsMap: Map<String, List<TaskTrackingVersionEntity>>,
+        snapshotMap: Map<String, Map<String, TaskDaySnapshotEntity>>,
+        extraDateMap: Map<String, Set<String>>,
+        selectedDate: String
+    ) {
+        val scores = buildBarWindowScores(
+            tasks = tasks,
+            start = barWindowStart,
+            end = barWindowEnd,
+            completionEntityMap = completionEntityMap,
+            trackingVersionsMap = trackingVersionsMap,
+            snapshotMap = snapshotMap,
+            extraDateMap = extraDateMap
+        )
+        _barTimelineState.postValue(
+            BarTimelineState(
+                scores = scores,
+                selectedDate = selectedDate,
+                isLoadingPast = isLoadingBarPast,
+                isLoadingFuture = isLoadingBarFuture
+            )
+        )
+    }
+
+    private fun buildBarWindowScores(
+        tasks: List<TaskEntity>,
+        start: LocalDate,
+        end: LocalDate,
+        completionEntityMap: Map<String, Map<String, TaskCompletionEntity>>,
+        trackingVersionsMap: Map<String, List<TaskTrackingVersionEntity>>,
+        snapshotMap: Map<String, Map<String, TaskDaySnapshotEntity>>,
+        extraDateMap: Map<String, Set<String>>
+    ): List<DailyScore> {
+        val scores = ArrayList<DailyScore>()
+        var cursor = start
+        while (!cursor.isAfter(end)) {
+            scores.add(
+                getOrBuildDailyScore(
+                    tasks = tasks,
+                    date = cursor,
+                    completionEntityMap = completionEntityMap,
+                    trackingVersionsMap = trackingVersionsMap,
+                    snapshotMap = snapshotMap,
+                    extraDateMap = extraDateMap
+                )
+            )
+            cursor = cursor.plusDays(1)
+        }
+        return scores
+    }
+
+    private fun getOrBuildDailyScore(
+        tasks: List<TaskEntity>,
+        date: LocalDate,
+        completionEntityMap: Map<String, Map<String, TaskCompletionEntity>>,
+        trackingVersionsMap: Map<String, List<TaskTrackingVersionEntity>>,
+        snapshotMap: Map<String, Map<String, TaskDaySnapshotEntity>>,
+        extraDateMap: Map<String, Set<String>>
+    ): DailyScore {
+        val key = date.toString()
+        return barScoreCache.getOrPut(key) {
+            val score = calculateScoreForDateVersioned(
+                tasks = tasks,
+                date = key,
+                completionEntityMap = completionEntityMap,
+                trackingVersionsMap = trackingVersionsMap,
+                snapshotMap = snapshotMap,
+                extraDateMap = extraDateMap
+            )
+            val taskCount = CommonMethods.filterTasksForDate(tasks, key, extraDateMap).size
+            DailyScore(
+                date = key,
+                dayText = date.dayOfMonth.toString(),
+                monthDayText = "${date.monthValue}/${date.dayOfMonth}",
+                score = score,
+                taskCount = taskCount
+            )
+        }
+    }
 
     private fun calculateScoreForDateVersioned(
         tasks: List<TaskEntity>,
         date: String,
         completionEntityMap: Map<String, Map<String, TaskCompletionEntity>>,
         trackingVersionsMap: Map<String, List<TaskTrackingVersionEntity>>,
-        snapshotMap: Map<String, Map<String, TaskDaySnapshotEntity>>
+        snapshotMap: Map<String, Map<String, TaskDaySnapshotEntity>>,
+        extraDateMap: Map<String, Set<String>>,
+        expandedTasksOverride: List<TaskEntity>? = null
     ): Float {
-        val tasksForDate = CommonMethods.filterTasksForDate(tasks, date)
+        val tasksForDate = CommonMethods.filterTasksForDate(expandedTasksOverride ?: tasks, date, extraDateMap)
         if (tasksForDate.isEmpty()) return 0f
 
         var totalWeight = 0f
@@ -465,26 +819,27 @@ class TaskViewModel(
         endDate: LocalDate,
         completionEntityMap: Map<String, Map<String, TaskCompletionEntity>>,
         trackingVersionsMap: Map<String, List<TaskTrackingVersionEntity>>,
-        snapshotMap: Map<String, Map<String, TaskDaySnapshotEntity>>
+        snapshotMap: Map<String, Map<String, TaskDaySnapshotEntity>>,
+        extraDateMap: Map<String, Set<String>>,
+        expandedTasksOverride: List<TaskEntity>? = null
     ): Float {
         val dailyScores = mutableListOf<Float>()
         var currentDate = startDate
-        val today = LocalDate.now()
 
         while (!currentDate.isAfter(endDate)) {
-            if (!currentDate.isAfter(today)) {
-                val dateString = currentDate.toString()
-                val tasksForDate = CommonMethods.filterTasksForDate(tasks, dateString)
-                if (tasksForDate.isNotEmpty()) {
-                    val score = calculateScoreForDateVersioned(
-                        tasks = tasks,
-                        date = dateString,
-                        completionEntityMap = completionEntityMap,
-                        trackingVersionsMap = trackingVersionsMap,
-                        snapshotMap = snapshotMap
-                    )
-                    dailyScores.add(score)
-                }
+            val dateString = currentDate.toString()
+            val effectiveTasks = expandedTasksOverride ?: tasks
+            val tasksForDate = CommonMethods.filterTasksForDate(effectiveTasks, dateString, extraDateMap)
+            if (tasksForDate.isNotEmpty()) {
+                val score = calculateScoreForDateVersioned(
+                    tasks = effectiveTasks,
+                    date = dateString,
+                    completionEntityMap = completionEntityMap,
+                    trackingVersionsMap = trackingVersionsMap,
+                    snapshotMap = snapshotMap,
+                    extraDateMap = extraDateMap
+                )
+                dailyScores.add(score)
             }
             currentDate = currentDate.plusDays(1)
         }
@@ -538,5 +893,83 @@ class TaskViewModel(
                 Log.e(TAG, "Failed to update checklist for $taskId on $date", error)
             }
         }
+    }
+
+    private fun expandUntilCompleteTasks(
+        baseTasks: List<TaskEntity>,
+        children: List<UntilCompleteChildEntity>
+    ): List<TaskEntity> {
+        if (children.isEmpty()) return baseTasks
+        val parentsById = baseTasks.associateBy { it.id }
+        val syntheticChildren = children.mapNotNull { child ->
+            val parent = parentsById[child.parentTaskId] ?: return@mapNotNull null
+            if (parent.taskType != com.anitech.growdaily.enum_class.TaskType.UNTIL_COMPLETE) return@mapNotNull null
+            parent.copy(
+                id = child.childTaskId,
+                taskAddedDate = child.taskAddedDate,
+                taskRemovedDate = null,
+                inactiveReason = null
+            )
+        }
+        return baseTasks + syntheticChildren
+    }
+
+    private data class UntilCompleteDisplayState(
+        val isVisible: Boolean,
+        val displayCompletionDate: String
+    )
+
+    private fun resolveUntilCompleteState(
+        task: TaskEntity,
+        selectedDate: String,
+        completionEntityMap: Map<String, Map<String, TaskCompletionEntity>>,
+        trackingVersionsMap: Map<String, List<TaskTrackingVersionEntity>>,
+        versionOwnerId: String
+    ): UntilCompleteDisplayState {
+        if (task.taskAddedDate > selectedDate) {
+            return UntilCompleteDisplayState(
+                isVisible = false,
+                displayCompletionDate = selectedDate
+            )
+        }
+        if (task.taskRemovedDate != null && task.taskRemovedDate < selectedDate) {
+            return UntilCompleteDisplayState(
+                isVisible = false,
+                displayCompletionDate = selectedDate
+            )
+        }
+
+        // If this is a synthetic child, it's a one-day session.
+        // It should only look at its own date, not the parent's history.
+        if (task.id != versionOwnerId) {
+            return UntilCompleteDisplayState(
+                isVisible = true,
+                displayCompletionDate = selectedDate
+            )
+        }
+
+        var cursor = LocalDate.parse(task.taskAddedDate)
+        val endDate = LocalDate.parse(selectedDate)
+        while (!cursor.isAfter(endDate)) {
+            val dateString = cursor.toString()
+            val completion = completionEntityMap[dateString]?.get(task.id)
+            val settings = resolveTrackingSettings(
+                task = task,
+                date = dateString,
+                versions = trackingVersionsMap[versionOwnerId].orEmpty()
+            )
+            if (isCompletedDerived(task, completion, settings)) {
+                return UntilCompleteDisplayState(
+                    isVisible = dateString == selectedDate,
+                    displayCompletionDate = dateString
+                )
+            }
+            cursor = cursor.plusDays(1)
+        }
+
+        return UntilCompleteDisplayState(
+            isVisible = true,
+            displayCompletionDate = selectedDate
+        )
     }
 }

@@ -9,6 +9,7 @@
 
     <!-- Background lines -->
     <com.anitech.growdaily.view.ScoreBarBackground
+        android:id="@+id/scoreBarBg"
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_marginTop="15dp"
@@ -36,7 +37,7 @@
         android:src="@drawable/ic_close"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:background="@drawable/circular"
+        android:background="@drawable/circle_background"
         android:backgroundTint="@color/task_bar_button_bg"
         android:visibility="invisible"
         app:tint="@color/task_bar_button_icon"

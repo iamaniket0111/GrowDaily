@@ -122,14 +122,6 @@ interface TaskCompletionDao {
 
     @Query(
         """
-        DELETE FROM task_completions
-        WHERE taskId = :taskId AND date < :newStartDate
-        """
-    )
-    suspend fun deleteCompletionsBefore(taskId: String, newStartDate: String)
-
-    @Query(
-        """
         SELECT * FROM task_completions
         WHERE taskId = :taskId
         ORDER BY date ASC

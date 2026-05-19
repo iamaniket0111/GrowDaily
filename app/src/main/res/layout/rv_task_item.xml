@@ -23,8 +23,7 @@
             android:src="@drawable/sh_view3"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <Space
             android:layout_width="18dp"
@@ -78,7 +77,7 @@
                     android:id="@+id/imageProfile"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/circular"
+                    android:background="@drawable/circle_background"
                     android:contentDescription="@string/none"
                     android:padding="6dp"
                     android:scaleType="centerCrop"
@@ -96,17 +95,17 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    >
+                    android:orientation="horizontal">
+
                     <TextView
                         android:id="@+id/taskType"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Daily"
-                        android:textSize="14sp"
-                        android:textColor="@color/brand_blue" />
+                        android:textColor="@color/brand_blue"
+                        android:textSize="14sp" />
 
                     <LinearLayout
                         android:id="@+id/weightContainer"
@@ -114,7 +113,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:background="@drawable/circular_corners_less"
-                        android:backgroundTint="@color/brand_blue"
+                        android:backgroundTint="@color/task_done_track"
 
                         android:gravity="center"
 
@@ -166,9 +165,6 @@
                     </LinearLayout>
 
 
-
-
-
                 </LinearLayout>
 
                 <TextView
@@ -189,8 +185,8 @@
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
                     android:maxLines="5"
-                    android:textColor="@color/task_text_secondary"
-                    android:text="be ready for the day" />
+                    android:text="be ready for the day"
+                    android:textColor="@color/task_text_secondary" />
 
                 <TextView
                     android:id="@+id/taskPendingText"
@@ -207,8 +203,7 @@
             <FrameLayout
                 android:id="@+id/doneContainer"
                 android:layout_width="38dp"
-                android:layout_height="38dp"
-                >
+                android:layout_height="38dp">
                 <!-- fixme have to ada full stroke thickness .5-->
 
 
@@ -217,14 +212,12 @@
                     android:id="@+id/doneView"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:indeterminate="false"
-                    app:indicatorSize="28dp"
-                    app:trackThickness="2dp"
-                    app:indicatorColor="@color/brand_blue"
-                    app:trackColor="@color/task_done_track"
                     android:layout_gravity="center"
-                    />
-
+                    android:indeterminate="false"
+                    app:indicatorColor="@color/brand_blue"
+                    app:indicatorSize="26dp"
+                    app:trackColor="@color/task_done_track"
+                    app:trackThickness="2dp" />
 
 
                 <!-- Center Icon -->
@@ -232,11 +225,10 @@
                     android:id="@+id/done"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_check"
                     android:layout_gravity="center"
-                    app:tint="@color/white"
-                    android:background="@drawable/circular"
-                    />
+                    android:background="@drawable/circle_background"
+                    android:src="@drawable/ic_check"
+                    app:tint="@color/white" />
 
             </FrameLayout>
 

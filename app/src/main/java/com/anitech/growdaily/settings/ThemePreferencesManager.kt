@@ -15,6 +15,7 @@ private val Context.themeDataStore by preferencesDataStore(name = "theme_prefere
 class ThemePreferencesManager(private val context: Context) {
 
     private val themeKey = stringPreferencesKey("theme_preference")
+    private val accentColorKey = stringPreferencesKey("accent_color_preference")
 
     val themePreferenceFlow: Flow<ThemePreference> = context.themeDataStore.data.map { preferences ->
         preferences[themeKey]
@@ -22,9 +23,19 @@ class ThemePreferencesManager(private val context: Context) {
             ?: ThemePreference.SYSTEM
     }
 
+    val accentColorFlow: Flow<String> = context.themeDataStore.data.map { preferences ->
+        preferences[accentColorKey] ?: "DARK_BLUE" // Default to DARK_BLUE
+    }
+
     suspend fun setThemePreference(preference: ThemePreference) {
         context.themeDataStore.edit { preferences: MutablePreferences ->
             preferences[themeKey] = preference.name
+        }
+    }
+
+    suspend fun setAccentColor(colorName: String) {
+        context.themeDataStore.edit { preferences: MutablePreferences ->
+            preferences[accentColorKey] = colorName
         }
     }
 

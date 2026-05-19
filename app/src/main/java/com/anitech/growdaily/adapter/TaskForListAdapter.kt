@@ -89,23 +89,26 @@ class TaskForListAdapter(
             val isSelected = selectedTaskIds.contains(taskId)
             val cardSurface = ContextCompat.getColor(itemView.context, R.color.task_card_surface)
             val mutedSurface = ContextCompat.getColor(itemView.context, R.color.task_done_track)
+
+            // Outer container tint
             doneContainer.backgroundTintList = ColorStateList.valueOf(if (isSelected) color else mutedSurface)
 
             if (isSelected) {
                 doneImg.visibility = View.VISIBLE
                 doneImg.setImageResource(R.drawable.ic_check)
-                doneImg.setSolidBackgroundColorCompat(color)
+                // ✅ Set inner circle background tint to task color
+                doneImg.backgroundTintList = ColorStateList.valueOf(color)
                 doneImg.setColorFilter(white)
-                body.alpha = 1f
+               // body.alpha = 1f
             } else {
                 doneImg.visibility = View.VISIBLE
                 doneImg.setImageResource(0)
-                doneImg.setSolidBackgroundColorCompat(cardSurface)
+                // ✅ Reset inner circle background tint to card surface
+                doneImg.backgroundTintList = ColorStateList.valueOf(cardSurface)
                 doneImg.clearColorFilter()
-                body.alpha = 0.96f
+               // body.alpha = 0.96f
             }
-        }
-    }
+        }    }
 }
 
 class TaskForListDiffCallback : DiffUtil.ItemCallback<TaskEntity>() {

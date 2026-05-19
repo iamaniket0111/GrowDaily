@@ -12,9 +12,9 @@ class DeleteListDialog(
     fun show() {
         TaskActionDialog(
             context = context,
-            title = "Delete list?",
-            message = "This will remove the list. Tasks stay available, but the list itself cannot be recovered.",
-            primaryLabel = "Delete",
+            title = context.getString(R.string.delete_list_title),
+            message = context.getString(R.string.delete_list_message),
+            primaryLabel = context.getString(R.string.delete_button),
             iconRes = R.drawable.ic_warning,
             accentColor = context.getColor(R.color.category_red),
             iconBubbleColor = 0x50EF5350,

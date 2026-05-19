@@ -1,27 +1,45 @@
 package com.anitech.growdaily.fragment
 
+import android.Manifest
+import android.app.AlarmManager
 import android.app.AlertDialog
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.content.res.Configuration
+import android.graphics.Color
+import android.graphics.PorterDuff
+import android.graphics.drawable.GradientDrawable
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.OnBackPressedCallback
+import androidx.annotation.StyleRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.os.bundleOf
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import com.anitech.growdaily.CommonMethods
+import com.anitech.growdaily.MainActivity
 import com.anitech.growdaily.MyApp
 import com.anitech.growdaily.R
 import com.anitech.growdaily.setSolidBackgroundColorCompat
@@ -37,11 +55,16 @@ import com.anitech.growdaily.dialog.TaskActionDialog
 import com.anitech.growdaily.dialog.TaskListBottomSheet
 import com.anitech.growdaily.dialog.TaskPriorityBottomSheet
 import com.anitech.growdaily.enum_class.TaskColor
+import com.anitech.growdaily.enum_class.TaskInactiveReason
 import com.anitech.growdaily.enum_class.TaskIcon
 import com.anitech.growdaily.enum_class.RepeatType
 import com.anitech.growdaily.enum_class.TaskType
 import com.anitech.growdaily.enum_class.TaskWeight
 import com.anitech.growdaily.enum_class.TrackingType
+import com.google.android.material.datepicker.CalendarConstraints
+import com.google.android.material.datepicker.MaterialDatePicker
+import com.google.android.material.timepicker.MaterialTimePicker
+import com.google.android.material.timepicker.TimeFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -60,13 +83,56 @@ class AddTaskFragment : Fragment() {
         )
     }
 
+    private var accentColor: Int = Color.BLUE
+
     private var selectedType: TaskType = TaskType.DAILY
     private var originalStartDate: String = ""
+    private var hasUserSelectedTaskAppearance: Boolean = false
     private var initialStateSnapshot: AddTaskUiState? = null
     private var initialSelectedListIds: List<String>? = null
 
     private var ignoreScheduleToggle = false
     private var ignoreReminderToggle = false
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                ensureReminderPermissionThenEnable()
+            } else {
+                ignoreReminderToggle = true
+                binding.reminderLayoutMain.switchReminder.isChecked = false
+                ignoreReminderToggle = false
+                viewModel.updateReminder(null, false)
+                
+                if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.notification_permission_needed),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    showPermissionDeniedFeedback()
+                }
+            }
+        }
+
+    private fun showPermissionDeniedFeedback() {
+        TaskActionDialog(
+            context = requireContext(),
+            title = getString(R.string.notification_permission_needed),
+            message = getString(R.string.discard_changes_message_edit), // Reusing a message for now or add new one
+            primaryLabel = getString(R.string.exact_alarm_permission_button),
+            secondaryLabel = getString(R.string.cancel_button),
+            iconRes = R.drawable.ic_warning,
+            accentColor = accentColor,
+            iconBubbleColor = accentBubbleColor(),
+            onPrimaryAction = {
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.fromParts("package", requireContext().packageName, null)
+                }
+                startActivity(intent)
+            }
+        ).show()
+    }
 
     // ── Tracking type views (resolved lazily after view is created) ───────────
     private val btnBinary   get() = binding.taskTrackingType.binaryType
@@ -101,14 +167,19 @@ class AddTaskFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Try to capture initial accent color immediately
+        (requireActivity() as? MainActivity)?.accentColor?.value?.let {
+            accentColor = it
+        }
+
         setupActionBar()
         setupTaskType()
+        observeAccentColor()
         setupObservers()
         setupClickListeners()
         setupTextListeners()
@@ -116,14 +187,133 @@ class AddTaskFragment : Fragment() {
         setupRepeatConfigResult()
         loadTaskDataIfEditing()
         setupDiscardHandling()
+        setupMenu()
 
         updateDeletePauseUi()
     }
 
+    private fun setupMenu() {
+        requireActivity().addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: android.view.Menu, menuInflater: android.view.MenuInflater) {
+                // No specific menu items for this fragment, but adding provider 
+                // ensures we don't leak global menus.
+                menu.clear() 
+            }
+
+            override fun onMenuItemSelected(menuItem: android.view.MenuItem): Boolean {
+                return false
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
     // ── Setup ─────────────────────────────────────────────────────────────────
 
+    private fun observeAccentColor() {
+        (requireActivity() as? MainActivity)?.accentColor?.observe(viewLifecycleOwner) { color ->
+            accentColor = color
+            updateAccentColorUi(color)
+        }
+    }
+
+    private fun updateAccentColorUi(color: Int) {
+        maybeApplyAccentAsDefaultTaskColor(color)
+        binding.buttonSave.backgroundTintList = ColorStateList.valueOf(color)
+        binding.buttonSave.setTextColor(onAccentTextColor(color))
+        binding.progressBarSave.indeterminateTintList = ColorStateList.valueOf(color)
+        binding.taskTrackingType.btnAddChecklistItem.backgroundTintList = ColorStateList.valueOf(color)
+        binding.taskWeightPriorityLayout.txtPriority.setTextColor(color)
+        binding.startDateLayout.txtStartDate.setTextColor(color)
+        binding.repeatLayout.txtRepeatSummary.setTextColor(color)
+        
+        // Warning Layout Styling
+        binding.warningLayout.ivWarningIcon.imageTintList = ColorStateList.valueOf(color)
+        binding.warningLayout.ivWarningIcon.backgroundTintList = ColorStateList.valueOf(ColorUtils.setAlphaComponent(color, 36))
+        binding.warningLayout.tvWarningTitle.setTextColor(color)
+        
+        // Subtle background tint for the warning card in light mode
+        val isDarkMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        if (!isDarkMode) {
+            binding.warningLayout.root.backgroundTintList = ColorStateList.valueOf(ColorUtils.setAlphaComponent(color, 10))
+            binding.warningLayout.root.backgroundTintMode = PorterDuff.Mode.SRC_OVER
+        } else {
+            binding.warningLayout.root.backgroundTintList = null
+        }
+
+        applyAccentToEditTexts(color)
+        applyAccentToSwitches(color)
+        binding.addToListLayout.txtListSummary.setTextColor(
+            if ((viewModel.selectedListIds.value ?: emptyList()).isEmpty()) {
+                ContextCompat.getColor(requireContext(), R.color.add_form_text_secondary)
+            } else {
+                color
+            }
+        )
+        binding.endDateLayout.txtEndDate.setTextColor(
+            if ((viewModel.uiState.value?.endDate).isNullOrBlank()) {
+                ContextCompat.getColor(requireContext(), R.color.add_form_text_secondary)
+            } else {
+                color
+            }
+        )
+        // Refresh tracking type highlights with the new accent color
+        viewModel.uiState.value?.trackingType?.let { highlightSelectedType(it) }
+    }
+
+    private fun applyAccentToEditTexts(color: Int) {
+        val highlightColor = ColorUtils.setAlphaComponent(color, 48)
+        listOf(
+            binding.titleNoteLayout.editTextTitle,
+            binding.titleNoteLayout.editTextNote,
+            binding.taskTrackingType.etChecklistItem
+        ).forEach { editText ->
+            editText.textCursorDrawable = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                setColor(color)
+                setSize(dpToPx(2), 1)
+            }
+            editText.highlightColor = highlightColor
+        }
+    }
+
+    private fun applyAccentToSwitches(color: Int) {
+        val thumbTint = ColorStateList(
+            arrayOf(
+                intArrayOf(android.R.attr.state_checked),
+                intArrayOf(-android.R.attr.state_checked)
+            ),
+            intArrayOf(
+                color,
+                ContextCompat.getColor(requireContext(), R.color.white)
+            )
+        )
+        val trackTint = ColorStateList(
+            arrayOf(
+                intArrayOf(android.R.attr.state_checked),
+                intArrayOf(-android.R.attr.state_checked)
+            ),
+            intArrayOf(
+                ColorUtils.setAlphaComponent(color, 110),
+                ContextCompat.getColor(requireContext(), R.color.task_done_track)
+            )
+        )
+
+        tintSwitch(binding.scheduleLayout.switchSchedule, thumbTint, trackTint)
+        tintSwitch(binding.reminderLayoutMain.switchReminder, thumbTint, trackTint)
+        tintSwitch(binding.untilCompleteLayout.switchUntilComplete, thumbTint, trackTint)
+    }
+
+    private fun tintSwitch(switch: SwitchCompat, thumbTint: ColorStateList, trackTint: ColorStateList) {
+        switch.thumbTintList = thumbTint
+        switch.trackTintList = trackTint
+    }
+
+    private fun tintSwitch(switch: Switch, thumbTint: ColorStateList, trackTint: ColorStateList) {
+        switch.thumbTintList = thumbTint
+        switch.trackTintList = trackTint
+    }
+
     private fun setupActionBar() {
-        val title = if (args.task != null) "Edit Task" else "Add Task"
+        val title = if (args.task != null) getString(R.string.edit_task_title) else getString(R.string.add_task_title)
         (requireActivity() as AppCompatActivity).supportActionBar?.title = title
     }
 
@@ -146,7 +336,7 @@ class AddTaskFragment : Fragment() {
     // ── Observer-driven UI update ─────────────────────────────────────────────
 
     private fun updateUIFromState(state: AddTaskUiState) {
-        binding.tvVersioningHint.visibility =
+        binding.warningLayout.root.visibility =
             if (args.task != null) View.VISIBLE else View.GONE
 
         if (binding.titleNoteLayout.editTextTitle.text.toString() != state.title)
@@ -155,6 +345,18 @@ class AddTaskFragment : Fragment() {
             binding.titleNoteLayout.editTextNote.setText(state.note)
 
         binding.startDateLayout.txtStartDate.text = state.startDate
+        binding.endDateLayout.endDateRow.visibility =
+            if (selectedType == TaskType.DAILY) View.VISIBLE else View.GONE
+        binding.endDateLayout.txtEndDate.text = state.endDate ?: getString(R.string.no_end_date)
+        binding.endDateLayout.txtEndDate.setTextColor(
+            if (state.endDate.isNullOrBlank()) {
+                ContextCompat.getColor(requireContext(), R.color.add_form_text_secondary)
+            } else {
+                accentColor
+            }
+        )
+        binding.endDateLayout.txtClearEndDate.visibility =
+            if (selectedType == TaskType.DAILY && !state.endDate.isNullOrBlank()) View.VISIBLE else View.GONE
 
         if (binding.scheduleLayout.switchSchedule.isChecked != state.isScheduled) {
             ignoreScheduleToggle = true
@@ -174,7 +376,7 @@ class AddTaskFragment : Fragment() {
         binding.reminderLayoutMain.layoutReminder.visibility =
             if (state.isReminderEnabled) View.VISIBLE else View.GONE
 
-        binding.taskWeightPriorityLayout.txtPriority.text = "${state.weight.weight}/4"
+        binding.taskWeightPriorityLayout.txtPriority.text = getString(R.string.task_weight_prefix, state.weight.weight)
         binding.repeatLayout.repeatRow.visibility =
             if (selectedType == TaskType.DAILY) View.VISIBLE else View.GONE
         binding.untilCompleteLayout.untilCompleteRow.visibility =
@@ -187,10 +389,15 @@ class AddTaskFragment : Fragment() {
             )
         if (state.repeatType != RepeatType.DAILY && state.showMissedOnGapDays) {
             binding.repeatLayout.txtRepeatSummary.text =
-                "${binding.repeatLayout.txtRepeatSummary.text} · gap days"
+                "${binding.repeatLayout.txtRepeatSummary.text}${getString(R.string.gap_days_suffix)}"
         }
 
         updateIconAndColor(state.icon, state.color)
+
+        binding.taskTrackingType.root.visibility =
+            if (args.task != null && state.trackingType == TrackingType.BINARY) View.GONE else View.VISIBLE
+        binding.taskTrackingType.typeSelectorContainer.visibility =
+            if (args.task != null) View.GONE else View.VISIBLE
 
         // ── Tracking type UI ─────────────────────────────────────────────────
         highlightSelectedType(state.trackingType)
@@ -210,10 +417,10 @@ class AddTaskFragment : Fragment() {
         if (state.isSaved) {
             Toast.makeText(
                 requireContext(),
-                if (args.task != null) "Task updated" else "Task saved",
+                if (args.task != null) getString(R.string.task_updated_toast) else getString(R.string.task_saved_toast),
                 Toast.LENGTH_SHORT
             ).show()
-            navigateBackWithLoading("Returning...")
+            findNavController().popBackStack()
             viewModel.resetSaveState()
         }
 
@@ -223,17 +430,10 @@ class AddTaskFragment : Fragment() {
     // ── Tracking type helpers ─────────────────────────────────────────────────
 
     private fun setupTrackingTypeListeners() {
-        if (args.task == null) {
-            btnBinary.setOnClickListener    { viewModel.updateTrackingType(TrackingType.BINARY) }
-            btnCount.setOnClickListener     { viewModel.updateTrackingType(TrackingType.COUNT) }
-            btnTimer.setOnClickListener     { viewModel.updateTrackingType(TrackingType.TIMER) }
-            btnChecklist.setOnClickListener { viewModel.updateTrackingType(TrackingType.CHECKLIST) }
-        } else {
-            listOf(btnBinary, btnCount, btnTimer, btnChecklist).forEach { button ->
-                button.isEnabled = false
-                button.alpha = 0.65f
-            }
-        }
+        btnBinary.setOnClickListener    { viewModel.updateTrackingType(TrackingType.BINARY) }
+        btnCount.setOnClickListener     { viewModel.updateTrackingType(TrackingType.COUNT) }
+        btnTimer.setOnClickListener     { viewModel.updateTrackingType(TrackingType.TIMER) }
+        btnChecklist.setOnClickListener { viewModel.updateTrackingType(TrackingType.CHECKLIST) }
 
         // COUNT stepper
         btnCountMinus.setOnClickListener {
@@ -277,9 +477,8 @@ class AddTaskFragment : Fragment() {
 
     /** Highlights the active type button, resets the others. */
     private fun highlightSelectedType(type: TrackingType) {
-        val activeColor   = ContextCompat.getColor(requireContext(), R.color.brand_blue)
+        val activeColor   = accentColor
         val inactiveColor = ContextCompat.getColor(requireContext(), R.color.add_form_muted_surface)
-        val whiteColor    = ContextCompat.getColor(requireContext(), R.color.white)
         val blackColor    = ContextCompat.getColor(requireContext(), R.color.add_form_text_secondary)
 
         listOf(btnBinary, btnCount, btnTimer, btnChecklist).forEach { btn ->
@@ -294,7 +493,7 @@ class AddTaskFragment : Fragment() {
             TrackingType.CHECKLIST -> btnChecklist
         }
         activeBtn.backgroundTintList = ColorStateList.valueOf(activeColor)
-        activeBtn.setTextColor(whiteColor)
+        activeBtn.setTextColor(onAccentTextColor(activeColor))
     }
 
     /** Shows only the extra field container relevant to [type]. */
@@ -403,12 +602,12 @@ class AddTaskFragment : Fragment() {
         binding.deletePauseLayout.pauseRow.layoutParams = pauseParams
 
         binding.deletePauseLayout.tvPauseAction.text =
-            if (isPaused) "Resume" else "Pause"
+            if (isPaused) getString(R.string.resume_action) else getString(R.string.pause_action)
         binding.deletePauseLayout.ivPause.setImageResource(
             if (isPaused) android.R.drawable.ic_media_play else R.drawable.ic_pause
         )
         binding.deletePauseLayout.ivPause.contentDescription =
-            if (isPaused) "Resume" else "Pause"
+            if (isPaused) getString(R.string.resume_action) else getString(R.string.pause_action)
     }
 
     private fun isPausedDailyTask(task: com.anitech.growdaily.data_class.TaskEntity): Boolean {
@@ -435,6 +634,14 @@ class AddTaskFragment : Fragment() {
         binding.startDateLayout.startDateRow.setOnClickListener {
             openStartDatePicker()
         }
+        binding.endDateLayout.endDateRow.setOnClickListener {
+            if (selectedType == TaskType.DAILY) {
+                openEndDatePicker()
+            }
+        }
+        binding.endDateLayout.txtClearEndDate.setOnClickListener {
+            viewModel.updateEndDate(null)
+        }
 
         binding.untilCompleteLayout.untilCompleteRow.setOnClickListener {
             binding.untilCompleteLayout.switchUntilComplete.toggle()
@@ -450,17 +657,36 @@ class AddTaskFragment : Fragment() {
 
         binding.reminderLayoutMain.switchReminder.setOnCheckedChangeListener { _, isChecked ->
             if (ignoreReminderToggle) return@setOnCheckedChangeListener
-            if (isChecked) handleReminderEnabled() else viewModel.updateReminder(null, false)
+            if (isChecked) ensureReminderPermissionThenEnable() else viewModel.updateReminder(null, false)
         }
 
         binding.scheduleLayout.scheduleRow.setOnClickListener {
             if (binding.scheduleLayout.switchSchedule.isChecked)
-                openTimePicker { time -> viewModel.updateSchedule(time, true) }
+                openTimePicker(tag = "schedule") { time -> viewModel.updateSchedule(time, true) }
         }
 
         binding.reminderLayoutMain.reminderBody.setOnClickListener {
             if (binding.reminderLayoutMain.switchReminder.isChecked)
-                openTimePicker { time -> viewModel.updateReminder(time, true) }
+                openTimePicker(tag = "reminder") { time -> viewModel.updateReminder(time, true) }
+        }
+
+        binding.reminderLayoutMain.ivBatteryWarning.setOnClickListener {
+            TaskActionDialog(
+                context = requireContext(),
+                title = getString(R.string.battery_optimization_title),
+                message = getString(R.string.battery_optimization_message),
+                primaryLabel = getString(R.string.exact_alarm_permission_button),
+                secondaryLabel = getString(R.string.cancel_button),
+                iconRes = R.drawable.ic_warning,
+                accentColor = accentColor,
+                iconBubbleColor = accentBubbleColor(),
+                onPrimaryAction = {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                        startActivity(intent)
+                    }
+                }
+            ).show()
         }
 
         binding.addToListLayout.addToListRow.setOnClickListener {
@@ -468,6 +694,7 @@ class AddTaskFragment : Fragment() {
             TaskListBottomSheet(
                 allListsLiveData = viewModel.allLists,
                 preselectedIds = currentIds,
+                accentColor = accentColor,
                 onInsertList = { list -> viewModel.insertList(list) }
             ) { ids -> viewModel.updateSelectedLists(ids) }
                 .show(parentFragmentManager, "TaskListBottomSheet")
@@ -475,7 +702,10 @@ class AddTaskFragment : Fragment() {
 
         binding.taskWeightPriorityLayout.priorityContainer.setOnClickListener {
             val currentWeight = viewModel.uiState.value?.weight ?: TaskWeight.VERY_LOW
-            TaskPriorityBottomSheet(selectedWeight = currentWeight) { weight ->
+            TaskPriorityBottomSheet(
+                selectedWeight = currentWeight,
+                accentColor = accentColor
+            ) { weight ->
                 viewModel.updateWeight(weight)
             }.show(parentFragmentManager, "TaskPriorityBottomSheet")
         }
@@ -487,6 +717,7 @@ class AddTaskFragment : Fragment() {
                 selectedColor = currentState?.color ?: "DARK_BLUE"
             )
             dialog.setOnImageSelectedListener { iconName, colorName ->
+                hasUserSelectedTaskAppearance = true
                 viewModel.updateIconAndColor(iconName, colorName)
             }
             dialog.show(parentFragmentManager, "IconAndColorDialog")
@@ -512,12 +743,12 @@ class AddTaskFragment : Fragment() {
             if (isPaused) {
                 TaskActionDialog(
                     context = requireContext(),
-                    title = "Resume daily task?",
-                    message = "This will make the task active again starting today.",
-                    primaryLabel = "Resume",
+                    title = getString(R.string.resume_daily_task_title),
+                    message = getString(R.string.resume_daily_task_message),
+                    primaryLabel = getString(R.string.resume_action),
                     iconRes = android.R.drawable.ic_media_play,
-                    accentColor = ContextCompat.getColor(requireContext(), R.color.brand_blue),
-                    iconBubbleColor = 0x332196F3,
+                    accentColor = accentColor,
+                    iconBubbleColor = accentBubbleColor(),
                     onPrimaryAction = {
                         viewModel.resumeDailyTask(task)
                         findNavController().popBackStack()
@@ -551,17 +782,17 @@ class AddTaskFragment : Fragment() {
         val reminderTime = currentState?.reminderTime
         if (currentState?.isReminderEnabled == true && reminderTime != null) {
             val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                .setTitle("Schedule time")
-                .setMessage("Use the same time as your reminder ($reminderTime)?")
+                .setTitle(getString(R.string.schedule_time_dialog_title))
+                .setMessage(getString(R.string.use_same_time_reminder_message, reminderTime))
                 .setCancelable(false)
-                .setPositiveButton("Use same ($reminderTime)") { _, _ ->
+                .setPositiveButton(getString(R.string.use_same_time_button, reminderTime)) { _, _ ->
                     viewModel.updateSchedule(reminderTime, true)
                 }
-                .setNegativeButton("Pick different time") { _, _ ->
+                .setNegativeButton(getString(R.string.pick_different_time_button)) { _, _ ->
                     openTimePickerOrRevertSchedule()
                 }
                 .show()
-            val primaryColor = ContextCompat.getColor(requireContext(), R.color.brand_blue)
+            val primaryColor = accentColor
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(primaryColor)
             dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.setTextColor(primaryColor)
         } else {
@@ -574,17 +805,17 @@ class AddTaskFragment : Fragment() {
         val scheduleTime = currentState?.scheduleTime
         if (currentState?.isScheduled == true && scheduleTime != null) {
             val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                .setTitle("Reminder time")
-                .setMessage("Use the same time as your schedule ($scheduleTime)?")
+                .setTitle(getString(R.string.reminder_time_dialog_title))
+                .setMessage(getString(R.string.use_same_time_schedule_message, scheduleTime))
                 .setCancelable(false)
-                .setPositiveButton("Use same ($scheduleTime)") { _, _ ->
+                .setPositiveButton(getString(R.string.use_same_time_button, scheduleTime)) { _, _ ->
                     viewModel.updateReminder(scheduleTime, true)
                 }
-                .setNegativeButton("Pick different time") { _, _ ->
+                .setNegativeButton(getString(R.string.pick_different_time_button)) { _, _ ->
                     openTimePickerOrRevertReminder()
                 }
                 .show()
-            val primaryColor = ContextCompat.getColor(requireContext(), R.color.brand_blue)
+            val primaryColor = accentColor
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(primaryColor)
             dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.setTextColor(primaryColor)
         } else {
@@ -592,9 +823,62 @@ class AddTaskFragment : Fragment() {
         }
     }
 
+    private fun ensureReminderPermissionThenEnable() {
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            return
+        }
+
+        // We check for exact alarm permission but don't block enabling if missing.
+        // Instead, we'll show the warning icon which is already visible in the UI.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            if (!alarmManager.canScheduleExactAlarms()) {
+                // Optionally show the permission dialog once, but don't return.
+                // showExactAlarmPermissionDialog()
+            }
+        }
+
+        handleReminderEnabled()
+    }
+
+    private fun showExactAlarmPermissionDialog() {
+        TaskActionDialog(
+            context = requireContext(),
+            title = getString(R.string.exact_alarm_permission_title),
+            message = getString(R.string.exact_alarm_permission_message),
+            primaryLabel = getString(R.string.exact_alarm_permission_button),
+            secondaryLabel = getString(R.string.cancel_button),
+            iconRes = R.drawable.ic_warning,
+            accentColor = accentColor,
+            iconBubbleColor = accentBubbleColor(),
+            onPrimaryAction = {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                        data = Uri.fromParts("package", requireContext().packageName, null)
+                    }
+                    startActivity(intent)
+                }
+            },
+            onSecondaryAction = {
+                ignoreReminderToggle = true
+                binding.reminderLayoutMain.switchReminder.isChecked = false
+                ignoreReminderToggle = false
+                viewModel.updateReminder(null, false)
+            }
+        ).show()
+    }
+
     private fun openTimePickerOrRevertSchedule() {
         var timePicked = false
         openTimePicker(
+            tag = "schedule",
             onDismiss = {
                 if (!timePicked) {
                     ignoreScheduleToggle = true
@@ -609,6 +893,7 @@ class AddTaskFragment : Fragment() {
     private fun openTimePickerOrRevertReminder() {
         var timePicked = false
         openTimePicker(
+            tag = "reminder",
             onDismiss = {
                 if (!timePicked) {
                     ignoreReminderToggle = true
@@ -623,51 +908,217 @@ class AddTaskFragment : Fragment() {
     // ── Date / Time pickers ───────────────────────────────────────────────────
 
     private fun openStartDatePicker() {
-        val cal = Calendar.getInstance()
         val currentDate = viewModel.uiState.value?.startDate ?: CommonMethods.getTodayDate()
+        val cal = Calendar.getInstance()
         try {
             val parts = currentDate.split("-")
-            if (parts.size == 3) cal.set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt())
+            if (parts.size == 3) {
+                cal.set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt())
+            }
         } catch (e: Exception) { /* use today */ }
 
-        val picker = DatePickerDialog(
-            requireContext(),
-            { _, y, m, d ->
-                val selectedDate = String.format("%04d-%02d-%02d", y, m + 1, d)
-                handleStartDateSelection(selectedDate)
-            },
-            cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
-        )
-        picker.setOnShowListener {
-            val color = ContextCompat.getColor(requireContext(), R.color.brand_blue)
-            picker.getButton(DatePickerDialog.BUTTON_POSITIVE)?.setTextColor(color)
-            picker.getButton(DatePickerDialog.BUTTON_NEGATIVE)?.setTextColor(color)
+        val constraints = CalendarConstraints.Builder()
+            .setOpenAt(cal.timeInMillis)
+            .build()
+
+        val datePicker = MaterialDatePicker.Builder.datePicker()
+            .setTitleText(getString(R.string.select_start_date))
+            .setSelection(cal.timeInMillis)
+            .setCalendarConstraints(constraints)
+            .setPositiveButtonText(getString(R.string.picker_set_date))
+            .setNegativeButtonText(getString(R.string.cancel_button))
+            .setTheme(resolveDatePickerThemeRes())
+            .build()
+
+        datePicker.addOnPositiveButtonClickListener { selection ->
+            val calendar = Calendar.getInstance()
+            calendar.timeInMillis = selection
+            val selectedDate = String.format(Locale.US, "%04d-%02d-%02d",
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH) + 1,
+                calendar.get(Calendar.DAY_OF_MONTH)
+            )
+            handleStartDateSelection(selectedDate)
         }
-        picker.show()
+        datePicker.show(parentFragmentManager, "DATE_PICKER")
     }
 
-    private fun openTimePicker(onDismiss: (() -> Unit)? = null, onSelected: (String) -> Unit) {
-        val cal = Calendar.getInstance()
-        val dialog = TimePickerDialog(
-            requireContext(),
-            { _, hour, minute ->
-                cal.set(Calendar.HOUR_OF_DAY, hour)
-                cal.set(Calendar.MINUTE, minute)
-                onSelected(SimpleDateFormat("hh:mm a", Locale.getDefault()).format(cal.time))
-            },
-            cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), false
-        )
-        dialog.setOnShowListener {
-            val color = ContextCompat.getColor(requireContext(), R.color.brand_blue)
-            dialog.getButton(TimePickerDialog.BUTTON_POSITIVE)?.setTextColor(color)
-            dialog.getButton(TimePickerDialog.BUTTON_NEGATIVE)?.setTextColor(color)
+    private fun openEndDatePicker() {
+        val startDate = viewModel.uiState.value?.startDate ?: CommonMethods.getTodayDate()
+        val currentEndDate = viewModel.uiState.value?.endDate
+        val currentDate = when {
+            currentEndDate.isNullOrBlank() -> startDate
+            currentEndDate < startDate -> startDate
+            else -> currentEndDate
         }
-        if (onDismiss != null) dialog.setOnDismissListener { onDismiss() }
-        dialog.show()
+        val cal = Calendar.getInstance()
+        try {
+            val parts = currentDate.split("-")
+            if (parts.size == 3) {
+                cal.set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt())
+            }
+        } catch (_: Exception) { /* use current calendar */ }
+
+        val startMillis = runCatching {
+            val start = LocalDate.parse(
+                viewModel.uiState.value?.startDate ?: CommonMethods.getTodayDate(),
+                CommonMethods.sdf
+            )
+            start.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+        }.getOrNull()
+
+        val constraintsBuilder = CalendarConstraints.Builder()
+            .setOpenAt(cal.timeInMillis)
+        if (startMillis != null) {
+            constraintsBuilder.setStart(startMillis)
+            constraintsBuilder.setValidator(com.google.android.material.datepicker.DateValidatorPointForward.from(startMillis))
+        }
+
+        val datePicker = MaterialDatePicker.Builder.datePicker()
+            .setTitleText(getString(R.string.select_end_date))
+            .setSelection(cal.timeInMillis)
+            .setCalendarConstraints(constraintsBuilder.build())
+            .setPositiveButtonText(getString(R.string.picker_set_date))
+            .setNegativeButtonText(getString(R.string.cancel_button))
+            .setTheme(resolveDatePickerThemeRes())
+            .build()
+
+        datePicker.addOnPositiveButtonClickListener { selection ->
+            val calendar = Calendar.getInstance()
+            calendar.timeInMillis = selection
+            val selectedDate = String.format(
+                Locale.US,
+                "%04d-%02d-%02d",
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH) + 1,
+                calendar.get(Calendar.DAY_OF_MONTH)
+            )
+            viewModel.updateEndDate(selectedDate)
+        }
+        datePicker.show(parentFragmentManager, "END_DATE_PICKER")
+    }
+
+    private fun openTimePicker(
+        tag: String? = null,
+        onDismiss: (() -> Unit)? = null,
+        onSelected: (String) -> Unit
+    ) {
+        val currentState = viewModel.uiState.value
+        val oldScheduleTime = currentState?.scheduleTime
+        val oldReminderTime = currentState?.reminderTime
+        val wasSynced = oldScheduleTime != null && oldScheduleTime == oldReminderTime
+
+        val cal = Calendar.getInstance()
+
+        val timePicker = MaterialTimePicker.Builder()
+            .setTimeFormat(TimeFormat.CLOCK_12H)
+            .setHour(cal.get(Calendar.HOUR_OF_DAY))
+            .setMinute(cal.get(Calendar.MINUTE))
+            .setTitleText(getString(R.string.select_time))
+            .setPositiveButtonText(getString(R.string.picker_set_time))
+            .setNegativeButtonText(getString(R.string.cancel_button))
+            .setTheme(resolveTimePickerThemeRes())
+            .build()
+
+        var timePicked = false
+        timePicker.addOnPositiveButtonClickListener {
+            timePicked = true
+            cal.set(Calendar.HOUR_OF_DAY, timePicker.hour)
+            cal.set(Calendar.MINUTE, timePicker.minute)
+            val newTime = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(cal.time)
+            onSelected(newTime)
+
+            // Sync logic
+            if (wasSynced) {
+                // If they were synced, and we are updating one, ask to update both
+                if (tag == "schedule") {
+                    // Changing schedule, ask for reminder
+                    showSyncReminderTimeDialog(newTime)
+                } else if (tag == "reminder") {
+                    // Changing reminder, ask for schedule
+                    showSyncScheduleTimeDialog(newTime)
+                }
+            }
+        }
+
+        if (onDismiss != null) {
+            timePicker.addOnDismissListener {
+                if (!timePicked) onDismiss()
+            }
+        }
+
+        timePicker.show(parentFragmentManager, "TIME_PICKER")
+    }
+
+    private fun showSyncReminderTimeDialog(newTime: String) {
+        TaskActionDialog(
+            context = requireContext(),
+            title = getString(R.string.reminder_time_dialog_title),
+            message = getString(R.string.sync_reminder_time_message, newTime),
+            primaryLabel = getString(R.string.update_both_button),
+            secondaryLabel = getString(R.string.update_only_this_button),
+            iconRes = R.drawable.ic_notification,
+            accentColor = accentColor,
+            iconBubbleColor = accentBubbleColor(),
+            onPrimaryAction = {
+                viewModel.updateReminder(newTime, true)
+            }
+        ).show()
+    }
+
+    private fun showSyncScheduleTimeDialog(newTime: String) {
+        TaskActionDialog(
+            context = requireContext(),
+            title = getString(R.string.schedule_time_dialog_title),
+            message = getString(R.string.sync_schedule_time_message, newTime),
+            primaryLabel = getString(R.string.update_both_button),
+            secondaryLabel = getString(R.string.update_only_this_button),
+            iconRes = R.drawable.ic_notification, // Using notification icon for sync
+            accentColor = accentColor,
+            iconBubbleColor = accentBubbleColor(),
+            onPrimaryAction = {
+                viewModel.updateSchedule(newTime, true)
+            }
+        ).show()
+    }
+
+    @StyleRes
+    private fun resolveDatePickerThemeRes(): Int {
+        val context = requireContext()
+        return when (accentColor) {
+            ContextCompat.getColor(context, R.color.category_red) -> R.style.Theme_GrowDaily_MaterialDatePicker_Red
+            ContextCompat.getColor(context, R.color.category_orange) -> R.style.Theme_GrowDaily_MaterialDatePicker_Orange
+            ContextCompat.getColor(context, R.color.category_yellow) -> R.style.Theme_GrowDaily_MaterialDatePicker_Yellow
+            ContextCompat.getColor(context, R.color.category_green) -> R.style.Theme_GrowDaily_MaterialDatePicker_Green
+            ContextCompat.getColor(context, R.color.category_teal) -> R.style.Theme_GrowDaily_MaterialDatePicker_Teal
+            ContextCompat.getColor(context, R.color.category_blue) -> R.style.Theme_GrowDaily_MaterialDatePicker_Blue
+            ContextCompat.getColor(context, R.color.category_purple) -> R.style.Theme_GrowDaily_MaterialDatePicker_Purple
+            else -> R.style.Theme_GrowDaily_MaterialDatePicker_DarkBlue
+        }
+    }
+
+    @StyleRes
+    private fun resolveTimePickerThemeRes(): Int {
+        val context = requireContext()
+        return when (accentColor) {
+            ContextCompat.getColor(context, R.color.category_red) -> R.style.Theme_GrowDaily_MaterialTimePicker_Red
+            ContextCompat.getColor(context, R.color.category_orange) -> R.style.Theme_GrowDaily_MaterialTimePicker_Orange
+            ContextCompat.getColor(context, R.color.category_yellow) -> R.style.Theme_GrowDaily_MaterialTimePicker_Yellow
+            ContextCompat.getColor(context, R.color.category_green) -> R.style.Theme_GrowDaily_MaterialTimePicker_Green
+            ContextCompat.getColor(context, R.color.category_teal) -> R.style.Theme_GrowDaily_MaterialTimePicker_Teal
+            ContextCompat.getColor(context, R.color.category_blue) -> R.style.Theme_GrowDaily_MaterialTimePicker_Blue
+            ContextCompat.getColor(context, R.color.category_purple) -> R.style.Theme_GrowDaily_MaterialTimePicker_Purple
+            else -> R.style.Theme_GrowDaily_MaterialTimePicker_DarkBlue
+        }
     }
 
     private fun handleStartDateSelection(selectedDate: String) {
         if (args.task == null) {
+            viewModel.updateStartDate(selectedDate)
+            return
+        }
+
+        if (selectedType != TaskType.DAILY) {
             viewModel.updateStartDate(selectedDate)
             return
         }
@@ -692,13 +1143,13 @@ class AddTaskFragment : Fragment() {
         val newDisplayDate = newDate.format(formatter)
         TaskActionDialog(
             context = requireContext(),
-            title = "Keep new start date?",
-            message = "Changing the start date from $originalDisplayDate to $newDisplayDate will delete completion history before $newDisplayDate when you save.",
-            primaryLabel = "Keep $newDisplayDate",
-            secondaryLabel = "Keep $originalDisplayDate",
+            title = getString(R.string.use_new_start_date_title),
+            message = getString(R.string.use_new_start_date_message, originalDisplayDate, newDisplayDate),
+            primaryLabel = getString(R.string.keep_new_date_button, newDisplayDate),
+            secondaryLabel = getString(R.string.keep_original_date_button, originalDisplayDate),
             iconRes = R.drawable.ic_warning,
-            accentColor = ContextCompat.getColor(requireContext(), R.color.brand_blue),
-            iconBubbleColor = 0x332196F3,
+            accentColor = accentColor,
+            iconBubbleColor = accentBubbleColor(),
             onPrimaryAction = {
                 viewModel.updateStartDate(selectedDate)
             },
@@ -712,17 +1163,27 @@ class AddTaskFragment : Fragment() {
         val today = LocalDate.parse(CommonMethods.getTodayDate())
         PauseOptionsDialog(
             context = requireContext(),
-            title = "Pause daily task?",
-            message = "Choose when this task should stop showing up. Past progress will stay intact.",
+            title = getString(R.string.pause_daily_task_title),
+            message = getString(R.string.pause_daily_task_message),
             iconRes = R.drawable.ic_pause,
-            accentColor = ContextCompat.getColor(requireContext(), R.color.brand_blue),
-            iconBubbleColor = 0x332196F3,
+            accentColor = accentColor,
+            iconBubbleColor = accentBubbleColor(),
             onPauseFromTomorrow = {
-                viewModel.updateTask(task.copy(taskRemovedDate = today.toString()))
+                viewModel.updateTask(
+                    task.copy(
+                        taskRemovedDate = today.toString(),
+                        inactiveReason = TaskInactiveReason.PAUSED
+                    )
+                )
                 findNavController().popBackStack()
             },
             onPauseFromToday = {
-                viewModel.updateTask(task.copy(taskRemovedDate = today.minusDays(1).toString()))
+                viewModel.updateTask(
+                    task.copy(
+                        taskRemovedDate = today.minusDays(1).toString(),
+                        inactiveReason = TaskInactiveReason.PAUSED
+                    )
+                )
                 findNavController().popBackStack()
             }
         ).show()
@@ -734,7 +1195,7 @@ class AddTaskFragment : Fragment() {
         val selectedIds = viewModel.selectedListIds.value ?: emptyList()
         val allLists    = viewModel.allLists.value ?: emptyList()
         if (selectedIds.isEmpty()) {
-            binding.addToListLayout.txtListSummary.text = "None"
+            binding.addToListLayout.txtListSummary.text = getString(R.string.list_summary_none)
             binding.addToListLayout.txtListSummary.setTextColor(
                 ContextCompat.getColor(requireContext(), R.color.add_form_text_secondary)
             )
@@ -743,12 +1204,10 @@ class AddTaskFragment : Fragment() {
         val firstList  = allLists.firstOrNull { it.id == selectedIds.first() }
         val extraCount = selectedIds.size - 1
         binding.addToListLayout.txtListSummary.text = if (extraCount > 0)
-            "${firstList?.listTitle ?: "List"} +$extraCount"
+            getString(R.string.list_summary_multiple, firstList?.listTitle ?: getString(R.string.list_placeholder), extraCount)
         else
-            firstList?.listTitle ?: "List"
-        binding.addToListLayout.txtListSummary.setTextColor(
-            ContextCompat.getColor(requireContext(), R.color.brand_blue)
-        )
+            firstList?.listTitle ?: getString(R.string.list_placeholder)
+        binding.addToListLayout.txtListSummary.setTextColor(accentColor)
     }
 
     // ── Save ──────────────────────────────────────────────────────────────────
@@ -757,65 +1216,44 @@ class AddTaskFragment : Fragment() {
         val state = viewModel.uiState.value ?: return
 
         if (state.title.isBlank()) {
-            Toast.makeText(requireContext(), "Please enter a task title", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.error_enter_task_title), Toast.LENGTH_SHORT).show()
             return
         }
         if (state.isScheduled && state.scheduleTime == null) {
-            Toast.makeText(requireContext(), "Please select schedule time", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.error_select_schedule_time), Toast.LENGTH_SHORT).show()
             return
         }
         if (state.isReminderEnabled && state.reminderTime == null) {
-            Toast.makeText(requireContext(), "Please select reminder time", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.error_select_reminder_time), Toast.LENGTH_SHORT).show()
             return
         }
 
-        val originalDate = originalStartDate.takeIf { it.isNotBlank() }?.let {
-            runCatching { LocalDate.parse(it) }.getOrNull()
-        }
-        val newDate = runCatching { LocalDate.parse(state.startDate) }.getOrNull()
-
-        val shouldDeleteBeforeNewStart =
-            args.task != null &&
-                originalDate != null &&
-                newDate != null &&
-                newDate.isAfter(originalDate)
-
-        performSave(deleteCompletionsBeforeNewStart = shouldDeleteBeforeNewStart)
+        performSave()
     }
 
     private fun attemptClose() {
         if (!hasUnsavedChanges()) {
-            navigateBackWithLoading()
+            findNavController().popBackStack()
             return
         }
 
         TaskActionDialog(
             context = requireContext(),
-            title = "Discard changes?",
+            title = getString(R.string.discard_changes_title),
             message = if (args.task != null) {
-                "You have unsaved edits to this task. If you leave now, those changes will be lost."
+                getString(R.string.discard_changes_message_edit)
             } else {
-                "You have started creating a task. If you leave now, those changes will be lost."
+                getString(R.string.discard_changes_message_add)
             },
-            primaryLabel = "Discard",
-            secondaryLabel = "Keep editing",
+            primaryLabel = getString(R.string.discard_button),
+            secondaryLabel = getString(R.string.keep_editing_button),
             iconRes = R.drawable.ic_warning,
-            accentColor = ContextCompat.getColor(requireContext(), R.color.brand_blue),
-            iconBubbleColor = 0x332196F3,
+            accentColor = accentColor,
+            iconBubbleColor = accentBubbleColor(),
             onPrimaryAction = {
-                navigateBackWithLoading()
+                findNavController().popBackStack()
             }
         ).show()
-    }
-
-    private fun navigateBackWithLoading(message: String = "Going back...") {
-        binding.tvNavigationLoading.text = message
-        binding.navigationLoadingOverlay.visibility = View.VISIBLE
-        binding.buttonSave.isEnabled = false
-        binding.root.post {
-            if (_binding == null || !isAdded) return@post
-            findNavController().popBackStack()
-        }
     }
 
     private fun hasUnsavedChanges(): Boolean {
@@ -861,6 +1299,18 @@ class AddTaskFragment : Fragment() {
         )
     }
 
+    private fun accentBubbleColor(): Int {
+        return ColorUtils.setAlphaComponent(accentColor, (255 * 0.20f).toInt())
+    }
+
+    private fun onAccentTextColor(color: Int): Int {
+        return ContextCompat.getColor(requireContext(), R.color.white)
+    }
+
+    private fun dpToPx(value: Int): Int {
+        return (value * resources.displayMetrics.density).toInt()
+    }
+
     @Deprecated("Deprecated in Java")
     override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
         return when (item.itemId) {
@@ -872,8 +1322,7 @@ class AddTaskFragment : Fragment() {
         }
     }
 
-    private fun performSave(deleteCompletionsBeforeNewStart: Boolean) {
-        val state = viewModel.uiState.value ?: return
+    private fun performSave() {
         viewModel.saveTask(
             isEdit = args.task != null,
             existingId = args.task?.id,
@@ -881,11 +1330,8 @@ class AddTaskFragment : Fragment() {
             originalTask = args.task
         ) { success, error ->
             if (!success) {
-                Toast.makeText(requireContext(), error ?: "Save failed", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), error ?: getString(R.string.save_failed_toast), Toast.LENGTH_SHORT).show()
                 return@saveTask
-            }
-            if (deleteCompletionsBeforeNewStart && args.task != null) {
-                viewModel.deleteCompletionsBefore(args.task!!.id, state.startDate)
             }
         }
     }
@@ -893,5 +1339,21 @@ class AddTaskFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun maybeApplyAccentAsDefaultTaskColor(color: Int) {
+        if (args.task != null || hasUserSelectedTaskAppearance) return
+
+        val matchedTaskColor = TaskColor.entries.firstOrNull {
+            ContextCompat.getColor(requireContext(), it.resId) == color
+        } ?: return
+
+        val currentState = viewModel.uiState.value ?: return
+        if (currentState.color == matchedTaskColor.name) return
+
+        viewModel.updateIconAndColor(
+            icon = currentState.icon,
+            color = matchedTaskColor.name
+        )
     }
 }

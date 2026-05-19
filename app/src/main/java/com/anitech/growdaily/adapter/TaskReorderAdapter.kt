@@ -66,9 +66,6 @@ class TaskReorderAdapter(
 
             binding.weightContainer.visibility = View.GONE
             binding.streakContainer.visibility = View.GONE
-            binding.doneContainer.backgroundTintList = ColorStateList.valueOf(
-                ContextCompat.getColor(binding.root.context, color.resId)
-            )
 
             binding.taskType.setTextColor(ColorStateList.valueOf(
                 ContextCompat.getColor(binding.root.context, color.resId)
@@ -77,7 +74,8 @@ class TaskReorderAdapter(
 
             binding.taskType.text = itemView.context.getString(task.taskType.labelRes)
 
-
+            binding.done.background = null
+            binding.doneView.visibility = View.GONE
             // 🔥 IMPORTANT CHANGE
             if (task.isScheduled) {
                 binding.doneContainer.visibility = View.GONE

@@ -17,16 +17,10 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <include
-                android:id="@+id/iconLayout"
-                layout="@layout/layout_analysis_task_icon"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp" />
 
             <include
                 android:id="@+id/header"
-                layout="@layout/layout_analysis_header"
+                layout="@layout/layout_combined_icon_header"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp" />
@@ -68,32 +62,4 @@
 
         </LinearLayout>
     </ScrollView>
-
-    <LinearLayout
-        android:id="@+id/navigationLoadingOverlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/task_screen_bg"
-        android:clickable="true"
-        android:focusable="true"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:indeterminate="true"
-            android:indeterminateTint="@color/brand_blue" />
-
-        <TextView
-            android:id="@+id/tvNavigationLoading"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="Going back..."
-            android:textColor="@color/task_text_secondary"
-            android:textSize="14sp" />
-    </LinearLayout>
-
 </FrameLayout>

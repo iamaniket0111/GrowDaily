@@ -20,8 +20,7 @@ class BarView @JvmOverloads constructor(
 
     private var score: Float = 0f
     private val maxScore = 10
-    private val defaultBarColor = ContextCompat.getColor(context, R.color.task_bar_fill)
-    private val completeBarColor = ContextCompat.getColor(context, R.color.task_bar_fill_complete)
+    private var defaultBarColor = ContextCompat.getColor(context, R.color.task_bar_fill)
     private var barColor: Int = defaultBarColor
     private var emptyColor: Int = lightenHeatmapColor(barColor, 0.88f)
     private var useProgressPalette: Boolean = false
@@ -33,6 +32,11 @@ class BarView @JvmOverloads constructor(
 
     fun setScore(value: Float) {
         score = value
+        invalidate()
+    }
+
+    fun setDefaultBarColor(color: Int) {
+        defaultBarColor = color
         invalidate()
     }
 
@@ -60,13 +64,15 @@ class BarView @JvmOverloads constructor(
         val top = usableHeight - barHeight
         val rect = RectF(0f, top, width.toFloat(), usableHeight)
 
-        barPaint.color = if (useSolidBarColor) {
-            barColor
-        } else if (useProgressPalette) {
-            val progressPercent = ((score / maxScore.toFloat()) * 100).toInt()
-            resolveHeatmapProgressColor(barColor, progressPercent, emptyColor)
-        } else {
-            if (score.toInt() == 10) completeBarColor else defaultBarColor
+        barPaint.color = when {
+            useSolidBarColor -> barColor
+
+            useProgressPalette -> {
+                val progressPercent = ((score / maxScore.toFloat()) * 100).toInt()
+                resolveHeatmapProgressColor(barColor, progressPercent, emptyColor)
+            }
+
+            else -> defaultBarColor
         }
 
         canvas.drawRoundRect(rect, cornerRadius, cornerRadius, barPaint)

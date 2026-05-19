@@ -13,6 +13,8 @@ class ListVerticalAdapter(
     private val dragStart: (RecyclerView.ViewHolder) -> Unit
 ) : RecyclerView.Adapter<ListVerticalAdapter.ListViewHolder>() {
 
+    private var accentColor: Int? = null
+
     interface OnItemClickListener {
         fun onItemClick(item: ListEntity)
     }
@@ -37,6 +39,10 @@ class ListVerticalAdapter(
 
         holder.binding.txtTitle.text = item.listTitle
 
+        accentColor?.let { color ->
+            holder.binding.imgDrag.setColorFilter(color)
+        }
+
         holder.itemView.setOnClickListener {
             listener.onItemClick(item)
         }
@@ -51,6 +57,11 @@ class ListVerticalAdapter(
     }
 
     override fun getItemCount() = listItems.size
+
+    fun setAccentColor(color: Int) {
+        this.accentColor = color
+        notifyDataSetChanged()
+    }
 
     fun updateList(newList: List<ListEntity>) {
         listItems = newList.toMutableList()

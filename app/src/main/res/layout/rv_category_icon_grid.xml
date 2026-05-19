@@ -22,7 +22,7 @@
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_gravity="center"
-        android:background="@drawable/circular"
+        android:background="@drawable/circle_background"
         android:src="@drawable/ic_check"
         app:tint="@color/white" />
 </FrameLayout>

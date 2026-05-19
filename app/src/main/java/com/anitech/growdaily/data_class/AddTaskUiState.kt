@@ -9,6 +9,7 @@ data class AddTaskUiState(
     val title: String = "",
     val note: String = "",
     val startDate: String = CommonMethods.getTodayDate(),
+    val endDate: String? = null,
     val scheduleTime: String? = null,
     val reminderTime: String? = null,
     val isScheduled: Boolean = false,

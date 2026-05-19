@@ -15,10 +15,8 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:textColor="@color/add_form_text_secondary"
         android:text="Repeats"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        style="@style/TitleLabel" />
 
     <TextView
         android:id="@+id/txtRepeatSummary"
@@ -26,13 +24,8 @@
         android:layout_height="wrap_content"
         android:text="Every day"
         android:textColor="@color/brand_blue"
-        android:textSize="14sp"
-        android:layout_marginEnd="8dp"/>
+        style="@style/ValueText"/>
 
     <ImageView
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:src="@drawable/ic_right_arrow"
-        app:tint="@color/add_form_icon"
-      />
+        style="@style/ChevronImageView" />
 </LinearLayout>

@@ -38,6 +38,10 @@ class HistoryAdapter(
         return WeekViewHolder(view)
     }
 
+    override fun getItemId(position: Int): Long {
+        return weekList[position].date?.toEpochDay() ?: position.toLong()
+    }
+
     override fun onBindViewHolder(holder: WeekViewHolder, position: Int) {
         val item = weekList[position]
         val date = item.date ?: return
@@ -54,9 +58,9 @@ class HistoryAdapter(
         val hasProgress = progress > 0
 
         holder.tvDay?.text = item.dayLetter
-        holder.tvDate?.text = "${date.dayOfMonth}/${date.monthValue}"
-
         val context = holder.itemView.context
+        holder.tvDate?.text = context.getString(R.string.history_date_format, date.dayOfMonth, date.monthValue)
+
         val primaryText = ContextCompat.getColor(context, R.color.task_text_primary)
         val secondaryText = ContextCompat.getColor(context, R.color.task_text_secondary)
         val dateTextColor = if (hasProgress) taskColor else adjustAlpha(secondaryText, 0.9f)
@@ -139,5 +143,9 @@ class HistoryAdapter(
     private fun adjustAlpha(color: Int, factor: Float): Int {
         val alpha = (Color.alpha(color) * factor).toInt().coerceIn(0, 255)
         return Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color))
+    }
+
+    init {
+        setHasStableIds(true)
     }
 }

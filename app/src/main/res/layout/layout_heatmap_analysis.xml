@@ -9,14 +9,9 @@
     <!-- YEAR HEADER -->
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        style="@style/AnalysisTitle"
         android:text="HEATMAP"
-        android:textStyle="normal"
-        android:layout_marginBottom="12dp"
-        android:textColor="@color/task_text_primary"
-        android:letterSpacing="0.05"
-      />
+        />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -30,7 +25,7 @@
             android:layout_height="28dp"
              android:src="@drawable/ic_left_arrow"
             android:contentDescription="Previous year"
-            android:background="@drawable/circular"
+            android:background="@drawable/circle_background"
             android:backgroundTint="@color/task_done_track"
             app:tint="@color/brand_blue"
             />
@@ -56,7 +51,7 @@
             android:layout_width="28dp"
             android:layout_height="28dp"
              android:src="@drawable/ic_right_arrow"
-            android:background="@drawable/circular"
+            android:background="@drawable/circle_background"
             android:backgroundTint="@color/task_done_track"
             android:contentDescription="Next year"
             app:tint="@color/brand_blue"

@@ -10,6 +10,8 @@ data class RepeatTaskUi(
     val taskIdByDate: Map<LocalDate, String>,
     val completedDays: Set<LocalDate>,
     val trackingVersions: List<TaskTrackingVersionEntity>,
+    val historyItems: List<WeekHabit>,
+    val unavailableDates: Set<LocalDate>,
     val currentStreak: Int,
     val completionOutOf10: Float,
     val completedCount: Int,

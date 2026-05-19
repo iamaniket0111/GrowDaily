@@ -98,4 +98,10 @@
         android:label="Settings"
         tools:layout="@layout/fragment_settings" />
 
+    <fragment
+        android:id="@+id/manageRepeatTasksFragment"
+        android:name="com.anitech.growdaily.fragment.ManageRepeatTasksFragment"
+        android:label="@string/manage_repeat_tasks_title"
+        tools:layout="@layout/fragment_manage_repeat_tasks" />
+
 </navigation>

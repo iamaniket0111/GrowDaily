@@ -12,7 +12,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_marginBottom="16dp"
-        android:background="@drawable/circular"
+        android:background="@drawable/circle_background"
         android:backgroundTint="@color/category_dark_blue_25"
         android:contentDescription="Pause"
         android:padding="10dp"

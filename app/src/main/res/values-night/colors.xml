@@ -19,7 +19,7 @@
     <color name="task_chip_surface">#1A1D23</color>
     <color name="task_chip_stroke">#272C35</color>
     <color name="task_timeline_line">#5D7DFF</color>
-    <color name="task_done_track">#252932</color>
+    <color name="task_done_track">#343945</color>
     <color name="task_filter_surface">#1B1D22</color>
     <color name="task_filter_selected_bg">#263251</color>
     <color name="task_filter_icon">#F4F6FA</color>
@@ -45,6 +45,15 @@
     <color name="dialog_text_primary">#F4F6FA</color>
     <color name="dialog_text_secondary">#A8B0C0</color>
     <color name="dialog_secondary_action">#F4F6FA</color>
+    <color name="picker_surface">#1C2028</color>
+    <color name="picker_control_surface">#272D38</color>
+    <color name="picker_control_surface_checked">#30384A</color>
+    <color name="picker_text_primary">@color/dialog_text_primary</color>
+    <color name="picker_text_secondary">@color/dialog_text_secondary</color>
+    <color name="picker_outline">#3A4351</color>
+    <color name="picker_range_fill">#263251</color>
+    <color name="picker_on_light_accent">#111827</color>
+    <color name="picker_on_yellow">#171717</color>
     <color name="completion_dialog_inner_surface">#23272F</color>
     <color name="completion_dialog_center_surface">#1A1D23</color>
     <color name="completion_dialog_chip_surface">#2A2F38</color>

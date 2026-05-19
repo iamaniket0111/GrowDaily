@@ -12,12 +12,14 @@ import com.anitech.growdaily.data_class.TaskTrackingVersionEntity
 import com.anitech.growdaily.database.repository.AppRepository
 import com.anitech.growdaily.database.util.resolveTrackingSettings
 import com.anitech.growdaily.enum_class.RepeatType
+import com.anitech.growdaily.enum_class.TaskInactiveReason
 import com.anitech.growdaily.enum_class.TaskType
 import com.anitech.growdaily.enum_class.TaskWeight
 import com.anitech.growdaily.enum_class.TrackingType
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.util.UUID
 
 class AddTaskViewModel(
@@ -43,7 +45,17 @@ class AddTaskViewModel(
     }
 
     fun updateStartDate(date: String) {
-        _uiState.value = _uiState.value?.copy(startDate = date)
+        val current = _uiState.value ?: return
+        val sanitizedEndDate = current.endDate?.let { endDate ->
+            val start = runCatching { LocalDate.parse(date) }.getOrNull()
+            val end = runCatching { LocalDate.parse(endDate) }.getOrNull()
+            if (start != null && end != null && end.isBefore(start)) null else endDate
+        }
+        _uiState.value = current.copy(startDate = date, endDate = sanitizedEndDate)
+    }
+
+    fun updateEndDate(date: String?) {
+        _uiState.value = _uiState.value?.copy(endDate = date)
     }
 
     fun updateSchedule(time: String?, isScheduled: Boolean) {
@@ -130,6 +142,9 @@ class AddTaskViewModel(
             title = task.title,
             note = task.note ?: "",
             startDate = task.taskAddedDate,
+            endDate = if (task.taskType == TaskType.DAILY && task.inactiveReason == TaskInactiveReason.ENDED) {
+                task.taskRemovedDate
+            } else null,
             scheduleTime = task.scheduledTime,
             reminderTime = task.reminderTime,
             isScheduled = task.isScheduled,
@@ -212,9 +227,24 @@ class AddTaskViewModel(
                 else existingId ?: UUID.randomUUID().toString()
                 val seriesId = originalTask?.seriesId?.ifBlank { null } ?: taskId
                 val taskAddedDate = if (shouldSplitRepeatSegment) today else currentState.startDate
+                val requestedEndDate = if (taskType == TaskType.DAILY) currentState.endDate else null
+                if (requestedEndDate != null && requestedEndDate < taskAddedDate) {
+                    _uiState.value = currentState.copy(
+                        isLoading = false,
+                        errorMessage = "End date must be on or after the start date"
+                    )
+                    onComplete(false, "End date must be on or after the start date")
+                    return@launch
+                }
                 val taskRemovedDate = when {
-                    shouldSplitRepeatSegment -> null
+                    taskType == TaskType.DAILY -> requestedEndDate
                     isEdit -> originalTask?.taskRemovedDate
+                    else -> null
+                }
+                val inactiveReason = when {
+                    taskType == TaskType.DAILY && requestedEndDate != null -> TaskInactiveReason.ENDED
+                    taskType == TaskType.DAILY -> null
+                    isEdit -> originalTask?.inactiveReason
                     else -> null
                 }
 
@@ -230,6 +260,7 @@ class AddTaskViewModel(
                     isScheduled = currentState.isScheduled,
                     taskAddedDate = taskAddedDate,
                     taskRemovedDate = taskRemovedDate,
+                    inactiveReason = inactiveReason,
                     iconResId = currentState.icon,
                     colorCode = currentState.color,
                     taskType = taskType,
@@ -251,7 +282,10 @@ class AddTaskViewModel(
 
                 if (shouldSplitRepeatSegment && originalTask != null) {
                     repository.updateTask(
-                        originalTask.copy(taskRemovedDate = CommonMethods.getYesterdayDate())
+                        originalTask.copy(
+                            taskRemovedDate = CommonMethods.getYesterdayDate(),
+                            inactiveReason = null
+                        )
                     )
                     repository.insertTask(task)
                 } else if (isEdit) {
@@ -290,10 +324,6 @@ class AddTaskViewModel(
         listIds.forEach { listId -> repository.addTaskToList(listId, taskId) }
     }
 
-    fun deleteCompletionsBefore(taskId: String, newStartDate: String) {
-        viewModelScope.launch { repository.deleteCompletionsBefore(taskId, newStartDate) }
-    }
-
     fun resetSaveState() {
         _uiState.value = _uiState.value?.copy(isSaved = false, errorMessage = null)
     }
@@ -312,7 +342,8 @@ class AddTaskViewModel(
             id = UUID.randomUUID().toString(),
             seriesId = task.seriesId.ifBlank { task.id },
             taskAddedDate = today,
-            taskRemovedDate = null
+            taskRemovedDate = null,
+            inactiveReason = null
         )
 
         repository.insertTask(resumedTask)
@@ -358,9 +389,9 @@ class AddTaskViewModel(
 
         val effectiveDate = if (
             isEdit &&
-            task.taskType == TaskType.DAILY &&
             originalTask != null &&
-            originalTask.taskAddedDate < today
+            originalTask.taskAddedDate < today &&
+            task.taskType == TaskType.DAILY
         ) {
             today
         } else {
@@ -371,7 +402,7 @@ class AddTaskViewModel(
             isEdit &&
             originalTask != null &&
             originalTask.taskAddedDate < effectiveDate &&
-            weightChanged
+            (weightChanged || trackingChanged)
         ) {
             repository.upsertTaskTrackingVersion(
                 TaskTrackingVersionEntity(

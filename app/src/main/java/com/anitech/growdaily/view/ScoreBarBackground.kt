@@ -33,6 +33,11 @@ class ScoreBarBackground @JvmOverloads constructor(
     private var avgScore: Float = 0f
     private val maxScore = 10
 
+    fun setAccentColor(color: Int) {
+        avgLinePaint.color = color
+        invalidate()
+    }
+
     fun setAverageScore(score: Float) {
         avgScore = score
        // requestLayout()

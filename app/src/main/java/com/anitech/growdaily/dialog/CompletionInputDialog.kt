@@ -23,6 +23,7 @@ import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.database.util.EffectiveTrackingSettings
 import com.anitech.growdaily.enum_class.CompletionAction
 import com.anitech.growdaily.enum_class.TaskColor
+import com.anitech.growdaily.enum_class.TaskIcon
 import com.anitech.growdaily.enum_class.TrackingType
 import com.anitech.growdaily.view.CircularSeekBarView
 import com.google.android.material.progressindicator.LinearProgressIndicator
@@ -61,7 +62,9 @@ class CompletionInputDialog(
         dialog.setCancelable(true)
         dialog.setCanceledOnTouchOutside(true)
 
-        applyDialogAccent(view, resolveTaskColor())
+        val taskColor = resolveTaskColor()
+        applyDialogAccent(view, taskColor)
+        bindHeader(view, taskColor)
 
         when (task.trackingType) {
             TrackingType.COUNT -> setupCount(view)
@@ -74,10 +77,30 @@ class CompletionInputDialog(
         return dialog
     }
 
+    private fun bindHeader(view: View, color: Int) {
+        val header = view.findViewById<View>(R.id.header)
+        val txtTitle = header.findViewById<TextView>(R.id.txtTaskTitle)
+        val txtNote = header.findViewById<TextView>(R.id.txtTaskNote)
+        val iconLayout = view.findViewById<View>(R.id.iconLayout)
+        val imgIcon = iconLayout.findViewById<android.widget.ImageView>(R.id.imgTaskIcon)
+        val viewIconBg = iconLayout.findViewById<View>(R.id.viewIconBg)
+
+        txtTitle.text = task.title
+        if (task.note.isNullOrBlank()) {
+            txtNote.visibility = View.GONE
+        } else {
+            txtNote.visibility = View.VISIBLE
+            txtNote.text = task.note
+        }
+
+        // Bind Icon
+        val iconRes = TaskIcon.fromName(task.iconResId).resId
+        imgIcon.setImageResource(iconRes)
+        viewIconBg.setSolidBackgroundColorCompat(color)
+    }
+
     private fun setupCount(view: View) {
         val section = view.findViewById<View>(R.id.timerCountLayout)
-        val tvTitle = view.findViewById<TextView>(R.id.tvDialogTitle)
-        val tvSubtitle = view.findViewById<TextView>(R.id.tvDialogSubtitle)
         val tvValue = view.findViewById<TextView>(R.id.tvCurrentValue)
         val tvDateBadge = view.findViewById<TextView>(R.id.tvDateBadge)
         val circularSeek = view.findViewById<CircularSeekBarView>(R.id.circularSeekBar)
@@ -91,9 +114,7 @@ class CompletionInputDialog(
         var current = (currentCompletion?.count ?: 0).coerceIn(0, target)
         val ringColor = resolveTaskColor()
 
-        tvTitle.text = task.title
-        tvSubtitle.text = "Count progress"
-        tvHint.text = "Drag the ring or use the controls"
+        tvHint.setText(R.string.count_hint)
         btnDown.text = "-1"
         btnUp.text = "+1"
         tvDateBadge.text = resolveDateBadgeText()
@@ -104,7 +125,7 @@ class CompletionInputDialog(
         circularSeek.progress = current
 
         fun refresh() {
-            tvValue.text = "$current / $target"
+            tvValue.text = getString(R.string.count_value_format, current, target)
             tvValue.setTextColor(
                 if (current >= target) ringColor
                 else ContextCompat.getColor(requireContext(), R.color.completion_dialog_value_pending)
@@ -147,8 +168,6 @@ class CompletionInputDialog(
 
     private fun setupTimer(view: View) {
         val section = view.findViewById<View>(R.id.timerCountLayout)
-        val tvTitle = view.findViewById<TextView>(R.id.tvDialogTitle)
-        val tvSubtitle = view.findViewById<TextView>(R.id.tvDialogSubtitle)
         val tvValue = view.findViewById<TextView>(R.id.tvCurrentValue)
         val tvDateBadge = view.findViewById<TextView>(R.id.tvDateBadge)
         val circularSeek = view.findViewById<CircularSeekBarView>(R.id.circularSeekBar)
@@ -163,9 +182,7 @@ class CompletionInputDialog(
         var currentSec = (currentCompletion?.durationSeconds ?: 0L).coerceAtLeast(0L)
         val ringColor = resolveTaskColor()
 
-        tvTitle.text = task.title
-        tvSubtitle.text = "Time progress"
-        tvHint.text = "Drag the ring or adjust by 1 minute"
+        tvHint.setText(R.string.timer_hint)
         btnDown.text = "-1 min"
         btnUp.text = "+1 min"
         tvDateBadge.text = resolveDateBadgeText()
@@ -178,7 +195,7 @@ class CompletionInputDialog(
         fun refresh() {
             val totalMin = currentSec / 60L
             val remSec = currentSec % 60L
-            tvValue.text = String.format("%d:%02d / %d:00", totalMin, remSec, targetMin)
+            tvValue.text = getString(R.string.timer_value_format, totalMin, remSec, targetMin)
             tvValue.setTextColor(
                 if (totalMin >= targetMin.toLong()) ringColor
                 else ContextCompat.getColor(requireContext(), R.color.completion_dialog_value_pending)
@@ -224,13 +241,11 @@ class CompletionInputDialog(
     private fun setupChecklist(view: View) {
         val sectionHeader = view.findViewById<View>(R.id.checklistHeaderSection)
         val container = view.findViewById<LinearLayout>(R.id.checklistContainer)
-        val tvTitle = view.findViewById<TextView>(R.id.tvDialogTitle)
         val tvDoneCount = view.findViewById<TextView>(R.id.tvChecklistDoneCount)
         val progressBar = view.findViewById<LinearProgressIndicator>(R.id.checklistProgress)
         val taskColor = resolveTaskColor()
 
         sectionHeader.visibility = View.VISIBLE
-        tvTitle.text = task.title
         tvDoneCount.visibility = View.VISIBLE
         progressBar.max = 100
         progressBar.setIndicatorColor(taskColor)
@@ -299,7 +314,7 @@ class CompletionInputDialog(
             }
 
             val percent = if (array.length() > 0) (doneCount * 100) / array.length() else 0
-            tvDoneCount.text = "$doneCount / ${array.length()} done"
+            tvDoneCount.text = getString(R.string.checklist_status_format, doneCount, array.length())
             progressBar.setProgress(percent, true)
         }
 
@@ -338,8 +353,8 @@ class CompletionInputDialog(
         val targetDate = runCatching { LocalDate.parse(date) }.getOrNull() ?: return ""
         val today = LocalDate.now()
         return when (targetDate) {
-            today -> "Today"
-            today.minusDays(1) -> "Yesterday"
+            today -> getString(R.string.today)
+            today.minusDays(1) -> getString(R.string.yesterday)
             else -> targetDate.format(badgeFormatter)
         }
     }

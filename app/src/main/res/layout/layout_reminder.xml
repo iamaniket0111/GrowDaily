@@ -22,9 +22,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Enable Reminder"
-            android:textColor="@color/add_form_text_secondary"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            style="@style/TitleLabel" />
 
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/switchReminder"
@@ -53,12 +51,22 @@
 
             <TextView
                 android:id="@+id/txtReminderTime"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:paddingStart="12dp"
                 android:text="--"
-                android:textColor="@color/add_form_text_primary"
+                android:textColor="@color/brand_blue"
                 android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/ivBatteryWarning"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_warning"
+                android:contentDescription="@string/battery_optimization_content_description"
+                android:visibility="visible"
+                app:tint="@color/add_form_text_secondary" />
         </LinearLayout>
 
 

@@ -10,7 +10,7 @@
     android:orientation="horizontal"
     android:paddingStart="16dp"
     android:paddingTop="14dp"
-    android:paddingEnd="12dp"
+    android:paddingEnd="16dp"
     android:paddingBottom="14dp">
 
     <LinearLayout
@@ -23,9 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Show until completed"
-            android:textColor="@color/add_form_text_primary"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            style="@style/TitleLabel" />
 
         <TextView
             android:layout_width="match_parent"
@@ -36,7 +34,7 @@
             android:textSize="13sp" />
     </LinearLayout>
 
-    <Switch
+    <androidx.appcompat.widget.SwitchCompat
         android:id="@+id/switchUntilComplete"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />

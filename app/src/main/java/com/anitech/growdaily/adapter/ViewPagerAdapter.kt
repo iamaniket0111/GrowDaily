@@ -1,24 +1,26 @@
 package com.anitech.growdaily.adapter
 
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.anitech.growdaily.fragment.RepeatTaskFragment
 import com.anitech.growdaily.fragment.TaskFragment
 
-class ViewPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activity) {
+class ViewPagerAdapter(private val fragment: Fragment) : FragmentStateAdapter(fragment) {
 
-    private val fragments = mutableMapOf<Int, Fragment>()
     override fun getItemCount() = 2 // only 2 pages, no middle one
     override fun createFragment(position: Int): Fragment {
-        val fragment = when (position) {
+        return when (position) {
             0 -> TaskFragment()
             1 -> RepeatTaskFragment()
             else -> Fragment()
         }
-        fragments[position] = fragment
-        return fragment
     }
 
-    fun getFragment(position: Int): Fragment? = fragments[position]
+    /**
+     * Retrieves the fragment at the given position.
+     * FragmentStateAdapter uses the tag "f" + position internally.
+     */
+    fun getFragment(position: Int): Fragment? {
+        return fragment.childFragmentManager.findFragmentByTag("f$position")
+    }
 }

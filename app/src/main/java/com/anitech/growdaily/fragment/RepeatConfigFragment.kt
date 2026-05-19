@@ -8,12 +8,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.GridLayout
+import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.anitech.growdaily.MainActivity
 import com.anitech.growdaily.R
 import com.anitech.growdaily.databinding.FragmentRepeatConfigBinding
 import com.anitech.growdaily.enum_class.RepeatType
@@ -23,6 +26,7 @@ class RepeatConfigFragment : Fragment() {
     private var _binding: FragmentRepeatConfigBinding? = null
     private val binding get() = _binding!!
     private val selectedMonthDays = linkedSetOf<Int>()
+    private var accentColor: Int = 0
 
     private val weekChecks by lazy {
         listOf(
@@ -48,6 +52,7 @@ class RepeatConfigFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        observeAccentColor()
         setupMonthDayGrid()
         bindInitialState()
 
@@ -61,13 +66,13 @@ class RepeatConfigFragment : Fragment() {
                 RepeatType.DAILY -> emptyList()
                 RepeatType.DAYS_OF_WEEK -> selectedWeekDays().also {
                     if (it.isEmpty()) {
-                        Toast.makeText(requireContext(), "Select at least one weekday", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), R.string.error_select_weekday, Toast.LENGTH_SHORT).show()
                         return@setOnClickListener
                     }
                 }
                 RepeatType.DAYS_OF_MONTH -> parseMonthDays().also {
                     if (it.isEmpty()) {
-                        Toast.makeText(requireContext(), "Select at least one day of month", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), R.string.error_select_month_day, Toast.LENGTH_SHORT).show()
                         return@setOnClickListener
                     }
                 }
@@ -89,6 +94,66 @@ class RepeatConfigFragment : Fragment() {
 
             findNavController().popBackStack()
         }
+    }
+
+    private fun observeAccentColor() {
+        (requireActivity() as? MainActivity)?.accentColor?.observe(viewLifecycleOwner) { color ->
+            accentColor = color
+            updateAccentColorUi(color)
+        }
+    }
+
+    private fun updateAccentColorUi(color: Int) {
+        val buttonTint = ColorStateList(
+            arrayOf(
+                intArrayOf(android.R.attr.state_checked),
+                intArrayOf(-android.R.attr.state_checked)
+            ),
+            intArrayOf(
+                color,
+                ContextCompat.getColor(requireContext(), R.color.task_text_secondary)
+            )
+        )
+        val switchThumbTint = ColorStateList(
+            arrayOf(
+                intArrayOf(android.R.attr.state_checked),
+                intArrayOf(-android.R.attr.state_checked)
+            ),
+            intArrayOf(
+                color,
+                ContextCompat.getColor(requireContext(), R.color.white)
+            )
+        )
+        val switchTrackTint = ColorStateList(
+            arrayOf(
+                intArrayOf(android.R.attr.state_checked),
+                intArrayOf(-android.R.attr.state_checked)
+            ),
+            intArrayOf(
+                ColorUtils.setAlphaComponent(color, 110),
+                ContextCompat.getColor(requireContext(), R.color.task_done_track)
+            )
+        )
+
+        listOf(binding.radioEveryDay, binding.radioWeekly, binding.radioMonthly).forEach { radio ->
+            radio.buttonTintList = buttonTint
+        }
+        weekChecks.forEach { (_, checkbox) ->
+            checkbox.buttonTintList = buttonTint
+        }
+        tintSwitch(binding.switchGapCarryWeekly, switchThumbTint, switchTrackTint)
+        tintSwitch(binding.switchGapCarryMonthly, switchThumbTint, switchTrackTint)
+        binding.btnDone.backgroundTintList = ColorStateList.valueOf(color)
+        binding.btnDone.setTextColor(onAccentTextColor(color))
+        binding.txtMonthDaySummary.setTextColor(color)
+        binding.txtMonthDaySummary.backgroundTintList =
+            ColorStateList.valueOf(ColorUtils.setAlphaComponent(color, 32))
+        refreshMonthDayGrid()
+    }
+
+    private fun tintSwitch(switch: Switch, thumbTint: ColorStateList, trackTint: ColorStateList) {
+        switch.thumbTintList = thumbTint
+        switch.trackTintList = trackTint
     }
 
     private fun bindInitialState() {
@@ -202,24 +267,30 @@ class RepeatConfigFragment : Fragment() {
             val isSelected = selectedMonthDays.contains(day)
 
             dayView.backgroundTintList = ColorStateList.valueOf(
-                ContextCompat.getColor(
-                    context,
-                    if (isSelected) R.color.brand_blue else R.color.task_done_track
-                )
+                if (isSelected) {
+                    accentColor.takeIf { it != 0 }
+                        ?: ContextCompat.getColor(context, R.color.brand_blue)
+                } else {
+                    ContextCompat.getColor(context, R.color.task_done_track)
+                }
             )
             dayView.setTextColor(
-                ContextCompat.getColor(
-                    context,
-                    if (isSelected) R.color.white else R.color.task_text_primary
-                )
+                if (isSelected) onAccentTextColor(
+                    accentColor.takeIf { it != 0 }
+                        ?: ContextCompat.getColor(context, R.color.brand_blue)
+                ) else ContextCompat.getColor(context, R.color.task_text_primary)
             )
         }
 
         val sortedDays = selectedMonthDays.toList().sorted()
         binding.txtMonthDaySummary.text = when {
-            sortedDays.isEmpty() -> "No dates selected"
+            sortedDays.isEmpty() -> getString(R.string.no_dates_selected)
             sortedDays.size <= 6 -> sortedDays.joinToString(", ")
-            else -> "${sortedDays.take(6).joinToString(", ")} +${sortedDays.size - 6}"
+            else -> getString(
+                R.string.month_day_summary_extra,
+                sortedDays.take(6).joinToString(", "),
+                sortedDays.size - 6
+            )
         }
     }
 
@@ -229,6 +300,10 @@ class RepeatConfigFragment : Fragment() {
             value.toFloat(),
             resources.displayMetrics
         ).toInt()
+    }
+
+    private fun onAccentTextColor(color: Int): Int {
+        return ContextCompat.getColor(requireContext(), R.color.white)
     }
 
     override fun onDestroyView() {

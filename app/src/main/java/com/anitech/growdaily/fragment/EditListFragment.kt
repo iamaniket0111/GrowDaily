@@ -17,7 +17,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.anitech.growdaily.MainActivity
 import com.anitech.growdaily.R
+import com.anitech.growdaily.adjustAlpha
 import com.anitech.growdaily.adapter.TaskForListAdapter
 import com.anitech.growdaily.data_class.ListEntity
 import com.anitech.growdaily.database.viewmodel.AppViewModel
@@ -47,6 +49,8 @@ class EditListFragment : Fragment() {
     private var initialNameSnapshot: String? = null
     private var initialSelectedTaskIdsSnapshot: Set<String>? = null
 
+    private var currentAccentColor: Int? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -66,9 +70,9 @@ class EditListFragment : Fragment() {
             isEditMode = false
             listId = UUID.randomUUID().toString()
 
-            binding.defName.text = "New List"
+            binding.defName.text = getString(R.string.new_list_default_title)
             binding.infoText.text =
-                getString(R.string.list_message, "New List")
+                getString(R.string.list_message, getString(R.string.new_list_default_title))
 
         } else {
             // EDIT MODE
@@ -96,7 +100,18 @@ class EditListFragment : Fragment() {
         setupSaveButton()
         setupMenu()
         setupDiscardHandling()
+        observeAccentColor()
         captureInitialSnapshotsIfNeeded()
+    }
+
+    private fun observeAccentColor() {
+        (requireActivity() as? MainActivity)?.accentColor?.observe(viewLifecycleOwner) { color ->
+            currentAccentColor = color
+            binding.defName.setTextColor(color)
+            binding.txtTaskCount.setTextColor(color)
+            binding.txtTaskCount.backgroundTintList = android.content.res.ColorStateList.valueOf(color.adjustAlpha(0.12f))
+            binding.buttonSave.backgroundTintList = android.content.res.ColorStateList.valueOf(color)
+        }
     }
 
     private fun setupMenu() {
@@ -134,7 +149,7 @@ class EditListFragment : Fragment() {
             list = listToDelete,
             onDeleteList = { list ->
                 viewModel.deleteList(list)
-                Toast.makeText(requireContext(), "List deleted", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.list_deleted_toast), Toast.LENGTH_SHORT).show()
                 findNavController().popBackStack()
             }
         ).show()
@@ -175,7 +190,7 @@ class EditListFragment : Fragment() {
             val finalName = binding.edListName.text.toString().trim()
 
             if (finalName.isBlank()) {
-                binding.edListName.error = "Enter a list name"
+                binding.edListName.error = getString(R.string.error_enter_list_name)
                 binding.edListName.requestFocus()
                 return@setOnClickListener
             }
@@ -188,7 +203,7 @@ class EditListFragment : Fragment() {
                 }
 
             if (hasDuplicateName) {
-                binding.edListName.error = "List name already exists"
+                binding.edListName.error = getString(R.string.error_list_name_exists)
                 binding.edListName.requestFocus()
                 return@setOnClickListener
             }
@@ -215,14 +230,14 @@ class EditListFragment : Fragment() {
                 taskIds = tempSelectedTaskIds.toList()
             )
 
-            Toast.makeText(requireContext(), "Saved successfully", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.saved_successfully_toast), Toast.LENGTH_SHORT).show()
             findNavController().popBackStack()
         }
     }
 
     private fun updateSelectedCount() {
         val count = tempSelectedTaskIds.size
-        binding.txtTaskCount.text = if (count == 1) "1 selected" else "$count selected"
+        binding.txtTaskCount.text = resources.getQuantityString(R.plurals.selected_count_plural, count, count)
     }
 
     private fun setupDiscardHandling() {
@@ -244,17 +259,17 @@ class EditListFragment : Fragment() {
 
         TaskActionDialog(
             context = requireContext(),
-            title = "Discard changes?",
+            title = getString(R.string.discard_changes_title),
             message = if (isEditMode) {
-                "You have unsaved edits to this list. If you leave now, those changes will be lost."
+                getString(R.string.discard_list_message_edit)
             } else {
-                "You have started creating a list. If you leave now, those changes will be lost."
+                getString(R.string.discard_list_message_add)
             },
-            primaryLabel = "Discard",
-            secondaryLabel = "Keep editing",
+            primaryLabel = getString(R.string.discard_button),
+            secondaryLabel = getString(R.string.keep_editing_button),
             iconRes = R.drawable.ic_warning,
-            accentColor = ContextCompat.getColor(requireContext(), R.color.brand_blue),
-            iconBubbleColor = 0x332196F3,
+            accentColor = currentAccentColor ?: ContextCompat.getColor(requireContext(), R.color.brand_blue),
+            iconBubbleColor = (currentAccentColor ?: ContextCompat.getColor(requireContext(), R.color.brand_blue)).adjustAlpha(0.2f),
             onPrimaryAction = {
                 findNavController().popBackStack()
             }

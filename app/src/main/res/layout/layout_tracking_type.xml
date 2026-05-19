@@ -9,6 +9,7 @@
 
     <!-- ── Row 1: 4 type selector buttons ─────────────────────────────── -->
     <LinearLayout
+        android:id="@+id/typeSelectorContainer"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:orientation="horizontal"

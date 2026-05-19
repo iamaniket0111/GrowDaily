@@ -9,6 +9,8 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.anitech.growdaily.R
@@ -32,6 +34,7 @@ import java.util.UUID
 class TaskListBottomSheet(
     private val allListsLiveData: LiveData<List<ListEntity>>,
     private val preselectedIds: List<String>,
+    private val accentColor: Int,
     private val onInsertList: (ListEntity) -> Unit,
     private val onListsSelected: (List<String>) -> Unit
 ) : BottomSheetDialogFragment() {
@@ -68,12 +71,16 @@ class TaskListBottomSheet(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = ListCheckAdapter(emptyList()) { _, _ ->
+        adapter = ListCheckAdapter(
+            lists = emptyList(),
+            accentColor = accentColor
+        ) { _, _ ->
             updateSheetState()
         }
 
         binding.rvLists.layoutManager = LinearLayoutManager(requireContext())
         binding.rvLists.adapter = adapter
+        applyAccentColor()
 
         // Apply selections before the first emission so there is no flash of unchecked state
         adapter.setPreselectedIds(preselectedIds)
@@ -153,6 +160,18 @@ class TaskListBottomSheet(
             binding.createListContainer.visibility = View.GONE
             hideKeyboard(binding.etListName)
             updateSheetState()
+    }
+
+    private fun applyAccentColor() {
+        binding.txtSelectionBadge.backgroundTintList = android.content.res.ColorStateList.valueOf(accentColor)
+        binding.txtCreateChip.backgroundTintList =
+            android.content.res.ColorStateList.valueOf(ColorUtils.setAlphaComponent(accentColor, 36))
+        binding.txtCreateChip.setTextColor(accentColor)
+        binding.btnCreate.backgroundTintList = android.content.res.ColorStateList.valueOf(accentColor)
+        binding.btnDone.backgroundTintList = android.content.res.ColorStateList.valueOf(accentColor)
+        binding.btnCloseCreate.setTextColor(
+            ContextCompat.getColor(requireContext(), R.color.task_text_secondary)
+        )
     }
 
     private fun updateSheetState() {

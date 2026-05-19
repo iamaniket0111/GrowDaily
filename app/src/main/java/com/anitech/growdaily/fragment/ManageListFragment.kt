@@ -11,7 +11,10 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.anitech.growdaily.MainActivity
 import com.anitech.growdaily.R
+import com.anitech.growdaily.adjustAlpha
+import com.anitech.growdaily.setSolidBackgroundColorCompat
 import com.anitech.growdaily.adapter.ListVerticalAdapter
 import com.anitech.growdaily.data_class.ListEntity
 import com.anitech.growdaily.database.viewmodel.AppViewModel
@@ -44,6 +47,7 @@ class ManageListFragment : Fragment() {
 
         setupRecycler()
         observeLists()
+        observeAccentColor()
 
         binding.btnAddList.setOnClickListener {
             findNavController().navigate(R.id.editList)
@@ -51,6 +55,16 @@ class ManageListFragment : Fragment() {
 
         binding.btnClose.setOnClickListener {
             findNavController().popBackStack()
+        }
+    }
+
+    private fun observeAccentColor() {
+        (requireActivity() as? MainActivity)?.accentColor?.observe(viewLifecycleOwner) { color ->
+            binding.txtCount.setTextColor(color)
+            binding.txtCount.backgroundTintList = android.content.res.ColorStateList.valueOf(color.adjustAlpha(0.12f))
+            binding.btnAddList.setSolidBackgroundColorCompat(color)
+            binding.btnClose.backgroundTintList = android.content.res.ColorStateList.valueOf(color)
+            adapter.setAccentColor(color)
         }
     }
 
@@ -120,7 +134,7 @@ class ManageListFragment : Fragment() {
 
     private fun observeLists() {
         viewModel.allLists.observe(viewLifecycleOwner) { lists ->
-            binding.txtCount.text = if (lists.size == 1) "1 list" else "${lists.size} lists"
+            binding.txtCount.text = resources.getQuantityString(R.plurals.list_count_plural, lists.size, lists.size)
             binding.emptyStateContainer.visibility = if (lists.isEmpty()) View.VISIBLE else View.GONE
             binding.RvCondition.visibility = if (lists.isEmpty()) View.GONE else View.VISIBLE
             if (isReordering) {

@@ -4,6 +4,7 @@ import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.R
 import com.anitech.growdaily.data_class.ListEntity
@@ -11,6 +12,7 @@ import com.anitech.growdaily.databinding.RvConditionCheckItemBinding
 
 class ListCheckAdapter(
     private var lists: List<ListEntity>,
+    private val accentColor: Int,
     private val onCheckedChange: (String, Boolean) -> Unit
 ) : RecyclerView.Adapter<ListCheckAdapter.ListViewHolder>() {
 
@@ -37,10 +39,11 @@ class ListCheckAdapter(
                 context.getString(R.string.state_add)
             }
             binding.tvSelectionState.backgroundTintList = ColorStateList.valueOf(
-                ContextCompat.getColor(
-                    context,
-                    if (isSelected) R.color.brand_blue else R.color.task_done_track
-                )
+                if (isSelected) {
+                    accentColor
+                } else {
+                    ContextCompat.getColor(context, R.color.task_done_track)
+                }
             )
             binding.tvSelectionState.setTextColor(
                 ContextCompat.getColor(
@@ -49,16 +52,15 @@ class ListCheckAdapter(
                 )
             )
             binding.rowContainer.backgroundTintList = ColorStateList.valueOf(
-                ContextCompat.getColor(
-                    context,
-                    if (isSelected) R.color.task_filter_selected_bg else R.color.task_card_surface
-                )
+                if (isSelected) {
+                    ColorUtils.setAlphaComponent(accentColor, 28)
+                } else {
+                    ContextCompat.getColor(context, R.color.task_card_surface)
+                }
             )
             binding.tvListTitle.setTextColor(
-                ContextCompat.getColor(
-                    context,
-                    if (isSelected) R.color.brand_blue else R.color.task_text_primary
-                )
+                if (isSelected) accentColor
+                else ContextCompat.getColor(context, R.color.task_text_primary)
             )
 
             binding.rowContainer.setOnClickListener {

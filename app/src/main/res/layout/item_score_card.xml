@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/ScoreCardContainer">
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center">
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/score_progress"
+            style="@style/ScoreCardProgress"
+            tools:indicatorColor="@color/category_dark_blue"
+            tools:trackColor="@color/category_dark_blue_25"
+            tools:progress="65" />
+
+        <TextView
+            android:id="@+id/score_weight"
+            style="@style/ScoreCardWeightText"
+            android:layout_gravity="center"
+            tools:text="6.5"
+            tools:textColor="@color/brand_blue" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/score_label"
+        style="@style/ScoreCardLabelText"
+        tools:text="Feb 3" />
+
+</LinearLayout>

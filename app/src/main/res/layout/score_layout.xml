@@ -1,183 +1,178 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="4dp"
-    android:layout_marginVertical="8dp"
-    android:baselineAligned="false"
-    android:orientation="horizontal"
-    android:weightSum="3">
+    android:layout_marginHorizontal="10dp"
+    android:layout_marginVertical="10dp"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/task_card_stroke"
+    app:cardBackgroundColor="@color/task_card_surface">
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="4dp"
-        android:layout_weight="1"
-        android:background="@drawable/task_fragment_card"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:paddingVertical="16dp">
+        android:orientation="horizontal"
+        android:paddingVertical="20dp"
+        android:weightSum="3">
 
-        <!-- res/layout/progress_circle_with_text.xml -->
-        <FrameLayout
-            android:layout_width="wrap_content"
+        <!-- Today Section -->
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:foregroundGravity="center">
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
 
-            <!-- Circular progress (determinate) -->
-
-            <com.google.android.material.progressindicator.CircularProgressIndicator
-                android:id="@+id/cpi"
+            <FrameLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:indicatorColor="@color/category_dark_blue"
-                app:indicatorSize="60dp"
-                app:trackColor="#40708CFF" />
+                android:layout_height="wrap_content">
 
-            <!-- Center text -->
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/cpi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:indicatorSize="52dp"
+                    app:trackThickness="4.5dp"
+                    app:trackCornerRadius="10dp"
+                    tools:progress="65"
+                    app:indicatorColor="@color/category_dark_blue"
+                    app:trackColor="@color/task_done_track" />
+
+                <TextView
+                    android:id="@+id/doneWeight"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="sans-serif-black"
+                    android:textColor="@color/task_text_primary"
+                    android:textSize="15sp"
+                    tools:text="6.5" />
+            </FrameLayout>
+
             <TextView
-                android:id="@+id/doneWeight"
+                android:id="@+id/dayText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:text="6.5"
-                android:textColor="@color/brand_blue"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-        </FrameLayout>
+                android:layout_marginTop="10dp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/task_text_secondary"
+                android:textSize="11sp"
+                tools:text="Feb 3" />
+        </LinearLayout>
 
+        <!-- Divider -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_vertical"
+            android:background="@color/task_card_stroke"
+            android:alpha="0.5" />
 
-        <TextView
-            android:id="@+id/dayText"
-            android:layout_width="wrap_content"
+        <!-- Week Section -->
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Feb 3"
-            android:maxLines="1"
-            android:singleLine="true"
-            android:ellipsize="end"
-            android:textColor="@color/task_text_primary" />
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/cpiWeek"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:indicatorSize="52dp"
+                    app:trackThickness="4.5dp"
+                    app:trackCornerRadius="10dp"
+                    tools:progress="45"
+                    app:indicatorColor="@color/category_purple"
+                    app:trackColor="@color/task_done_track" />
+
+                <TextView
+                    android:id="@+id/doneWeekWeight"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="sans-serif-black"
+                    android:textColor="@color/task_text_primary"
+                    android:textSize="15sp"
+                    tools:text="4.2" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/weekText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:paddingHorizontal="4dp"
+                android:textColor="@color/task_text_secondary"
+                android:textSize="11sp"
+                tools:text="29 Jan–4 Feb" />
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_vertical"
+            android:background="@color/task_card_stroke"
+            android:alpha="0.5" />
+
+        <!-- Month Section -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/cpiMonth"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:indicatorSize="52dp"
+                    app:trackThickness="4.5dp"
+                    app:trackCornerRadius="10dp"
+                    tools:progress="80"
+                    app:indicatorColor="@color/category_teal"
+                    app:trackColor="@color/task_done_track" />
+
+                <TextView
+                    android:id="@+id/doneMonthWeight"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="sans-serif-black"
+                    android:textColor="@color/task_text_primary"
+                    android:textSize="15sp"
+                    tools:text="18.5" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/monthText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/task_text_secondary"
+                android:textSize="11sp"
+                tools:text="January" />
+        </LinearLayout>
+
 
     </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="4dp"
-        android:layout_weight="1"
-        android:background="@drawable/task_fragment_card"
-        android:baselineAligned="false"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:paddingVertical="16dp"
-        >
-
-
-        <!-- res/layout/progress_circle_with_text.xml -->
-        <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:foregroundGravity="center">
-
-            <!-- Circular progress (determinate) -->
-
-            <com.google.android.material.progressindicator.CircularProgressIndicator
-                android:id="@+id/cpiWeek"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:indicatorColor="@color/category_red"
-                app:indicatorSize="60dp"
-                app:trackColor="#40FF6B6B" />
-
-            <!-- Center text -->
-            <TextView
-                android:id="@+id/doneWeekWeight"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:text="6.5"
-                android:textColor="@color/category_red"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-        </FrameLayout>
-
-        <TextView
-            android:id="@+id/weekText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="29 Jan–4 Feb"
-            android:maxLines="1"
-            android:singleLine="true"
-            android:ellipsize="end"
-            android:textColor="@color/task_text_primary" />
-
-
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="4dp"
-        android:layout_weight="1"
-        android:background="@drawable/task_fragment_card"
-        android:baselineAligned="false"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:paddingVertical="16dp">
-
-        <!-- res/layout/progress_circle_with_text.xml -->
-        <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:foregroundGravity="center">
-
-            <!-- Circular progress (determinate) -->
-            <com.google.android.material.progressindicator.CircularProgressIndicator
-                android:id="@+id/cpiMonth"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:indicatorColor="@color/category_green"
-                app:indicatorSize="60dp"
-                app:trackColor="#404ADE80"/>
-
-            <!-- Center text -->
-            <TextView
-                android:id="@+id/doneMonthWeight"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:text="6.5"
-                android:textColor="@color/category_green"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-        </FrameLayout>
-
-        <TextView
-            android:id="@+id/monthText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="January"
-            android:maxLines="1"
-            android:singleLine="true"
-            android:ellipsize="end"
-            android:textColor="@color/task_text_primary" />
-
-    </LinearLayout>
-
-
-
-</LinearLayout>
-    <!--
-What can be improved
-A lot of repeated XML. This should ideally be a reusable layout using include or a custom view. Right now, it’s copy-paste heavy.
-singleLine="true" is deprecated. Use maxLines="1" only. You already have that.
-Hardcoded texts like 6.5, Feb 3, Month should be moved to string resources.
-foregroundGravity on FrameLayout isn’t doing anything here. You can remove it.
-Consider setting app:trackThickness and app:indicatorThickness for better visual balance.
-Accessibility could be better. Content descriptions are missing for progress indicators.
--->
-
-
-
+</com.google.android.material.card.MaterialCardView>

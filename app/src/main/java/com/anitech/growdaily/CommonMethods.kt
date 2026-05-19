@@ -97,21 +97,23 @@ class CommonMethods {
 
         fun filterTasksForDate(
             tasks: List<TaskEntity>,
-            dateString: String
+            dateString: String,
+            extraDateMap: Map<String, Set<String>> = emptyMap()
         ): List<TaskEntity> {
-            return tasks.filter { task ->
+            return collapseSeriesSegments(tasks.filter { task ->
                 when (task.taskType) {
 
                     TaskType.DAILY ->
                         isTaskActiveOnDate(task, dateString)
 
                     TaskType.DAY ->
-                        task.taskAddedDate == dateString
+                        task.taskAddedDate == dateString ||
+                            extraDateMap[task.id]?.contains(dateString) == true
 
                     TaskType.UNTIL_COMPLETE ->
                         false   // week / month / bar me ignore
                 }
-            }
+            })
         }
 
         fun calculateDailyScoresThisWeek(
@@ -182,23 +184,41 @@ class CommonMethods {
 
         fun filterTasks( //moved here from repository
             tasks: List<TaskEntity>,
-            date: String
+            date: String,
+            extraDateMap: Map<String, Set<String>> = emptyMap()
         ): List<TaskEntity> {
 
-            return tasks.filter { task ->
+            return collapseSeriesSegments(tasks.filter { task ->
                 when (task.taskType) {
 
                     TaskType.DAILY ->
                         isTaskActiveOnDate(task, date)
 
                     TaskType.DAY ->
-                        task.taskAddedDate == date
+                        task.taskAddedDate == date ||
+                            extraDateMap[task.id]?.contains(date) == true
 
                     TaskType.UNTIL_COMPLETE ->
                         task.taskAddedDate <= date &&
                                 (task.taskRemovedDate == null || task.taskRemovedDate >= date)
                 }
-            }
+            })
+        }
+
+        private fun collapseSeriesSegments(tasks: List<TaskEntity>): List<TaskEntity> {
+            val dailyTasks = tasks.filter { it.taskType == TaskType.DAILY }
+            val otherTasks = tasks.filter { it.taskType != TaskType.DAILY }
+            val collapsedDaily = dailyTasks
+                .groupBy { task -> task.seriesId.ifBlank { task.id } }
+                .map { (_, segments) ->
+                    segments.maxWithOrNull(
+                        compareBy<TaskEntity> { it.taskAddedDate }
+                            .thenBy { if (it.taskRemovedDate == null) 1 else 0 }
+                            .thenBy { if (it.inactiveReason == null) 1 else 0 }
+                            .thenBy { it.id }
+                    ) ?: segments.first()
+                }
+            return collapsedDaily + otherTasks
         }
 
         fun isTaskActiveOnDate(task: TaskEntity, dateString: String): Boolean {
@@ -255,20 +275,22 @@ class CommonMethods {
         }
 
         fun formatRepeatSummary(repeatType: RepeatType?, repeatDays: String?): String {
+            // This method would ideally need a Context to be truly localized with strings.xml.
+            // However, since it's a static utility, I'll use standard Java/Kotlin localization for names.
             return when (repeatType ?: RepeatType.DAILY) {
                 RepeatType.DAILY -> "Every day"
                 RepeatType.DAYS_OF_WEEK -> {
                     val labels = parseRepeatDays(repeatDays)
                         .mapNotNull { value ->
                             DayOfWeek.entries.firstOrNull { it.value == value }
-                                ?.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
+                                ?.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                         }
                     if (labels.isEmpty()) "Specific weekdays" else labels.joinToString(", ")
                 }
                 RepeatType.DAYS_OF_MONTH -> {
                     val days = parseRepeatDays(repeatDays)
                     if (days.isEmpty()) "Specific month days"
-                    else days.joinToString(", ") { ordinalDay(it) }
+                    else days.joinToString(", ") { it.toString() } // Suffixes are hard to localize without Context
                 }
             }
         }

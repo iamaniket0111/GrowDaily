@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.GrowDaily.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/app_bar_surface</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo_round</item>
+        <item name="postSplashScreenTheme">@style/Theme.GrowDaily.NoActionBar</item>
+        <item name="android:statusBarColor">@color/app_bar_surface</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

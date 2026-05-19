@@ -1,18 +1,28 @@
 package com.anitech.growdaily.fragment
 
+import android.content.res.ColorStateList
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
+import android.graphics.drawable.StateListDrawable
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.widget.ViewPager2
 import com.anitech.growdaily.CommonMethods
+import com.anitech.growdaily.MainActivity
 import com.anitech.growdaily.R
 import com.anitech.growdaily.adapter.ViewPagerAdapter
 import com.anitech.growdaily.databinding.FragmentMainBinding
 import com.anitech.growdaily.dialog.TaskTypeDialog
+import com.anitech.growdaily.enum_class.TaskColor
 
 class MainFragment : Fragment() {
     private var _binding: FragmentMainBinding? = null
@@ -29,8 +39,11 @@ class MainFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val adapter = ViewPagerAdapter(requireActivity())
+        val adapter = ViewPagerAdapter(this)
         binding.viewPager.adapter = adapter
+        binding.viewPager.isUserInputEnabled = false
+
+        observeAccentColor()
 
         binding.fab.setImageResource(R.drawable.ic_add) // Home icon
         binding.fab.setOnClickListener {
@@ -77,45 +90,64 @@ class MainFragment : Fragment() {
                         binding.bottomNav.selectedItemId = R.id.repeatTaskFragment
                     }
                 }
+                // Notify Activity to refresh menu visibility based on active page
+                requireActivity().invalidateOptionsMenu()
             }
         })
 
 
         CommonMethods.getTodayDate()
-        //val today ="2025-10-09"
-
-//        viewModel.getTodaysMoodLive(today).observe(viewLifecycleOwner) { mood ->
-//            if (mood != null) {
-//                binding.moodFabBtn.visibility = View.GONE
-//                binding.moodFabBtn.isClickable = false
-//            } else {
-//                binding.moodFabBtn.visibility = View.VISIBLE
-//                binding.moodFabBtn.isClickable = true
-//                val rotate = AnimationUtils.loadAnimation(requireContext(), R.anim.rotate_fab)
-//                binding.moodFabBtn.startAnimation(rotate)
-//                binding.moodFabBtn.setOnClickListener {
-//                    val moodHistoryItem = MoodHistoryItem(
-//                        id = 0,
-//                        emoji = "😐",
-//                        date = today
-//                    )
-//                    MoodDialog(
-//                        requireContext(),
-//                        moodHistoryItem,
-//                        object : MoodDialog.OnMoodSelectedListener {
-//                            override fun onMoodSelected(updatedMood: MoodHistoryItem) {
-//                                viewModel.insertMood(updatedMood)
-//                            }
-//                        }).show()
-//                }
-//            }
-//        }
     }
-
 
     fun getCurrentFragment(): Fragment? {
         val adapter = binding.viewPager.adapter as? ViewPagerAdapter ?: return null
         return adapter.getFragment(binding.viewPager.currentItem)
+    }
+
+    fun isTaskPageActive(): Boolean {
+        return _binding != null && binding.viewPager.currentItem == 0
+    }
+
+    private fun observeAccentColor() {
+        (requireActivity() as? MainActivity)?.accentColor?.observe(viewLifecycleOwner) { color ->
+            updateUiWithAccentColor(color)
+        }
+    }
+
+    private fun updateUiWithAccentColor(color: Int) = with(binding) {
+        fab.backgroundTintList = ColorStateList.valueOf(color)
+        
+        val navItemColor = ColorStateList(
+            arrayOf(
+                intArrayOf(android.R.attr.state_checked),
+                intArrayOf(-android.R.attr.state_checked)
+            ),
+            intArrayOf(color, ContextCompat.getColor(requireContext(), R.color.main_bottom_bar_icon))
+        )
+        bottomNav.itemIconTintList = navItemColor
+        bottomNav.itemBackground = createBottomNavItemBackground(color)
+    }
+
+    private fun createBottomNavItemBackground(color: Int): StateListDrawable {
+        val radius = resources.displayMetrics.density * 16f
+        val selectedBg = ColorUtils.setAlphaComponent(color, (255 * 0.26f).toInt())
+        val pill = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = radius
+            setColor(selectedBg)
+        }
+        val selected = LayerDrawable(arrayOf(pill)).apply {
+            val width = (resources.displayMetrics.density * 56).toInt()
+            val height = (resources.displayMetrics.density * 32).toInt()
+            setLayerGravity(0, Gravity.CENTER)
+            setLayerWidth(0, width)
+            setLayerHeight(0, height)
+        }
+
+        return StateListDrawable().apply {
+            addState(intArrayOf(android.R.attr.state_checked), selected)
+            addState(intArrayOf(), ColorDrawable(android.graphics.Color.TRANSPARENT))
+        }
     }
 
 

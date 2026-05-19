@@ -22,7 +22,8 @@ android {
     buildTypes {
 
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -45,6 +46,7 @@ android {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.constraintlayout)
@@ -63,6 +65,8 @@ dependencies {
     // ROOM (Required)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.sqlite)
+    implementation(libs.sqlcipher)
     kapt(libs.androidx.room.compiler)
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 

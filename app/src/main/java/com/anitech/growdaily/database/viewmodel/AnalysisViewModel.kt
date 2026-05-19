@@ -64,11 +64,11 @@ class AnalysisViewModel(
             _selectedTask.value = task
 
             // Reset anchors when task changes
-            val today = LocalDate.now()
-            _weekAnchor.value = today
-            _monthAnchor.value = today
-            _yearAnchor.value = today
-            _heatmapYear.value = today.year
+            val anchorDate = effectiveAnalysisEnd(task)
+            _weekAnchor.value = anchorDate
+            _monthAnchor.value = anchorDate
+            _yearAnchor.value = anchorDate
+            _heatmapYear.value = anchorDate.year
         }
     }
 
@@ -132,13 +132,13 @@ class AnalysisViewModel(
                         val displayTask = seriesTasks.last()
                         val taskIds = seriesTasks.map { it.id }.toSet()
                         val taskStart = LocalDate.parse(seriesTasks.minOf { it.taskAddedDate })
-                        val today = LocalDate.now()
+                        val analysisEnd = effectiveAnalysisEnd(displayTask)
                         val scheduledDates = seriesTasks
                             .flatMapTo(sortedSetOf()) { segment ->
                                 CommonMethods.scheduledDatesBetween(
                                     segment,
                                     LocalDate.parse(segment.taskAddedDate),
-                                    today
+                                    analysisEnd
                                 )
                             }
                         val seriesSnapshots = snapshots.filter { it.taskId in taskIds }
@@ -161,7 +161,7 @@ class AnalysisViewModel(
                         val currentSegmentScheduledDates = CommonMethods.scheduledDatesBetween(
                             currentSegment,
                             currentSegmentStart,
-                            today
+                            analysisEnd
                         )
                         val totalDays = scheduledDates.size
                         val completedCount = completedDates.count { scheduledDates.contains(it) }
@@ -183,6 +183,7 @@ class AnalysisViewModel(
                         AnalysisOverviewState(
                             task = displayTask,
                             seriesStartDate = taskStart,
+                            seriesEndDate = analysisEnd,
                             scheduledDates = scheduledDates,
                             progressByDate = progressByDate,
                             completedDates = completedDates,
@@ -237,7 +238,7 @@ class AnalysisViewModel(
                         val displayTask = seriesTasks.last()
                         val taskIds = seriesTasks.map { it.id }.toSet()
                         val taskStart = LocalDate.parse(seriesTasks.minOf { it.taskAddedDate })
-                        val today = LocalDate.now()
+                        val analysisEnd = effectiveAnalysisEnd(displayTask)
                         val completionDates = completions
                             .filter { it.taskId in taskIds }
                             .mapNotNull {
@@ -273,7 +274,7 @@ class AnalysisViewModel(
                                 val ym = YearMonth.from(firstDay)
                                 val days = (1..ym.lengthOfMonth()).map { ym.atDay(it) }
                                     .filter {
-                                        !it.isAfter(today) && seriesTasks.any { segment ->
+                                        !it.isAfter(analysisEnd) && seriesTasks.any { segment ->
                                             CommonMethods.isTaskActiveOnDate(segment, it.toString())
                                         }
                                     }
@@ -284,7 +285,7 @@ class AnalysisViewModel(
                                 if (days.isNotEmpty()) (totalProgress.toFloat() / days.size) / 10f else 0f
                             }
                             else -> barDates.map { date ->
-                                if (date.isAfter(today) || seriesTasks.none { segment ->
+                                if (date.isAfter(analysisEnd) || seriesTasks.none { segment ->
                                         CommonMethods.isTaskActiveOnDate(segment, date.toString())
                                     }) 0f
                                 else (snapshotByDate[date]?.progressPercent
@@ -304,9 +305,9 @@ class AnalysisViewModel(
                         }
 
                         val isNextEnabled = when (period) {
-                            PeriodType.WEEK -> anchor.plusWeeks(1).isBefore(today.plusDays(1))
-                            PeriodType.MONTH -> YearMonth.from(anchor) < YearMonth.from(today)
-                            PeriodType.YEAR -> anchor.year < today.year
+                            PeriodType.WEEK -> anchor.plusWeeks(1).isBefore(analysisEnd.plusDays(1))
+                            PeriodType.MONTH -> YearMonth.from(anchor) < YearMonth.from(analysisEnd)
+                            PeriodType.YEAR -> anchor.year < analysisEnd.year
                         }
 
                         val isPrevEnabled = when (period) {
@@ -318,6 +319,7 @@ class AnalysisViewModel(
                         AnalysisBarState(
                             period = period,
                             anchorDate = anchor,
+                            seriesEndDate = analysisEnd,
                             barDates = barDates,
                             barScores = barScores,
                             periodTitle = periodTitle,
@@ -367,13 +369,14 @@ class AnalysisViewModel(
                         if (seriesTasks.isEmpty()) return@withContext null
                         val taskIds = seriesTasks.map { it.id }.toSet()
                         val taskStart = LocalDate.parse(seriesTasks.minOf { it.taskAddedDate })
-                        val today = LocalDate.now()
+                        val displayTask = seriesTasks.last()
+                        val analysisEnd = effectiveAnalysisEnd(displayTask)
                         val scheduledDates = seriesTasks
                             .flatMapTo(sortedSetOf()) { segment ->
                                 CommonMethods.scheduledDatesBetween(
                                     segment,
                                     LocalDate.parse(segment.taskAddedDate),
-                                    today
+                                    analysisEnd
                                 )
                             }
                         val snapshotByDate = snapshots
@@ -393,9 +396,10 @@ class AnalysisViewModel(
                         AnalysisHeatmapState(
                             heatmapYear = heatmapYear,
                             seriesStartDate = taskStart,
+                            seriesEndDate = analysisEnd,
                             scheduledDates = scheduledDates,
                             progressByDate = progressByDate,
-                            isHeatmapNextEnabled = heatmapYear < today.year,
+                            isHeatmapNextEnabled = heatmapYear < analysisEnd.year,
                             isHeatmapPrevEnabled = heatmapYear > taskStart.year
                         )
                     }
@@ -413,4 +417,12 @@ class AnalysisViewModel(
             addSource(allSnapshots) { snapshots = it; build() }
             addSource(_heatmapYear) { heatmapYear = it; build() }
         }
+
+    private fun effectiveAnalysisEnd(task: TaskEntity): LocalDate {
+        val today = LocalDate.now()
+        val removedDate = task.taskRemovedDate
+            ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+            ?: return today
+        return if (removedDate.isBefore(today)) removedDate else today
+    }
 }

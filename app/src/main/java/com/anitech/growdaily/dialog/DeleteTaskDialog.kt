@@ -12,9 +12,9 @@ class DeleteTaskDialog(
     fun show() {
         TaskActionDialog(
             context = context,
-            title = "Delete task?",
-            message = "This will remove the task and its related progress data. This action cannot be undone.",
-            primaryLabel = "Delete",
+            title = context.getString(R.string.delete_task_title),
+            message = context.getString(R.string.delete_task_message),
+            primaryLabel = context.getString(R.string.delete_button),
             iconRes = R.drawable.ic_warning,
             accentColor = context.getColor(R.color.category_red),
             iconBubbleColor = 0x50EF5350,

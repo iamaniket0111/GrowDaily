@@ -12,7 +12,7 @@
         <item name="android:layout_width">27dp</item>
         <item name="android:layout_height">27dp</item>
         <item name="android:layout_gravity">center</item>
-        <item name="android:background">@drawable/circular</item>
+        <item name="android:background">@drawable/circle_background</item>
         <item name="android:contentDescription">@string/none</item>
         <item name="android:tint">@color/white</item>
     </style>
@@ -47,8 +47,380 @@
         <item name="android:layout_marginBottom">1dp</item>
     </style>
 
+    <style name="ScoreCardContainer">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginHorizontal">4dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:background">@drawable/task_fragment_card</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingVertical">16dp</item>
+    </style>
+
+    <style name="ScoreCardProgress" parent="Widget.Material3.CircularProgressIndicator">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="indicatorSize">60dp</item>
+        <item name="trackThickness">4dp</item>
+    </style>
+
+    <style name="ScoreCardWeightText">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="ScoreCardLabelText">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:textColor">@color/task_text_primary</item>
+        <item name="android:layout_marginTop">8dp</item>
+    </style>
 
 
 
 
+
+    <style name="Theme.GrowDaily.Picker.Base" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
+        <item name="colorAccent">?attr/colorSecondary</item>
+        <item name="android:colorAccent">?attr/colorSecondary</item>
+        <item name="colorControlActivated">?attr/colorSecondary</item>
+        <item name="android:colorControlActivated">?attr/colorSecondary</item>
+    </style>
+
+    <style name="Theme.GrowDaily.Picker.Red" parent="Theme.GrowDaily.Picker.Base">
+        <item name="colorAccent">@color/category_red</item>
+        <item name="android:colorAccent">@color/category_red</item>
+        <item name="colorControlActivated">@color/category_red</item>
+        <item name="android:colorControlActivated">@color/category_red</item>
+    </style>
+
+    <style name="Theme.GrowDaily.Picker.Orange" parent="Theme.GrowDaily.Picker.Base">
+        <item name="colorAccent">@color/category_orange</item>
+        <item name="android:colorAccent">@color/category_orange</item>
+        <item name="colorControlActivated">@color/category_orange</item>
+        <item name="android:colorControlActivated">@color/category_orange</item>
+    </style>
+
+    <style name="Theme.GrowDaily.Picker.Yellow" parent="Theme.GrowDaily.Picker.Base">
+        <item name="colorAccent">@color/category_yellow</item>
+        <item name="android:colorAccent">@color/category_yellow</item>
+        <item name="colorControlActivated">@color/category_yellow</item>
+        <item name="android:colorControlActivated">@color/category_yellow</item>
+    </style>
+
+    <style name="Theme.GrowDaily.Picker.Green" parent="Theme.GrowDaily.Picker.Base">
+        <item name="colorAccent">@color/category_green</item>
+        <item name="android:colorAccent">@color/category_green</item>
+        <item name="colorControlActivated">@color/category_green</item>
+        <item name="android:colorControlActivated">@color/category_green</item>
+    </style>
+
+    <style name="Theme.GrowDaily.Picker.Teal" parent="Theme.GrowDaily.Picker.Base">
+        <item name="colorAccent">@color/category_teal</item>
+        <item name="android:colorAccent">@color/category_teal</item>
+        <item name="colorControlActivated">@color/category_teal</item>
+        <item name="android:colorControlActivated">@color/category_teal</item>
+    </style>
+
+    <style name="Theme.GrowDaily.Picker.Blue" parent="Theme.GrowDaily.Picker.Base">
+        <item name="colorAccent">@color/category_blue</item>
+        <item name="android:colorAccent">@color/category_blue</item>
+        <item name="colorControlActivated">@color/category_blue</item>
+        <item name="android:colorControlActivated">@color/category_blue</item>
+    </style>
+
+    <style name="Theme.GrowDaily.Picker.Purple" parent="Theme.GrowDaily.Picker.Base">
+        <item name="colorAccent">@color/category_purple</item>
+        <item name="android:colorAccent">@color/category_purple</item>
+        <item name="colorControlActivated">@color/category_purple</item>
+        <item name="android:colorControlActivated">@color/category_purple</item>
+    </style>
+
+    <style name="Theme.GrowDaily.Picker.DarkBlue" parent="Theme.GrowDaily.Picker.Base">
+        <item name="colorAccent">@color/category_dark_blue</item>
+        <item name="android:colorAccent">@color/category_dark_blue</item>
+        <item name="colorControlActivated">@color/category_dark_blue</item>
+        <item name="android:colorControlActivated">@color/category_dark_blue</item>
+    </style>
+
+    <!-- Material picker themes aligned with the app's base theme -->
+    <style name="Theme.GrowDaily.MaterialPicker.Base" parent="ThemeOverlay.Material3.MaterialCalendar">
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSurface">@color/picker_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/picker_surface</item>
+        <item name="colorSurfaceContainerHighest">@color/picker_control_surface</item>
+        <item name="colorOnSurface">@color/picker_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/picker_text_secondary</item>
+        <item name="colorOutline">@color/picker_outline</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="materialCalendarStyle">@style/Widget.GrowDaily.MaterialCalendar.Premium</item>
+        <item name="materialCalendarHeaderLayout">@style/Widget.GrowDaily.MaterialCalendar.HeaderLayout</item>
+        <item name="materialCalendarHeaderSelection">@style/Widget.GrowDaily.MaterialCalendar.HeaderSelection</item>
+        <item name="materialCalendarHeaderTitle">@style/Widget.GrowDaily.MaterialCalendar.HeaderTitle</item>
+        <item name="materialCalendarHeaderToggleButton">@style/Widget.GrowDaily.MaterialCalendar.HeaderToggleButton</item>
+        <item name="materialCalendarMonthNavigationButton">@style/Widget.GrowDaily.MaterialCalendar.NavigationButton</item>
+        <item name="materialCalendarYearNavigationButton">@style/Widget.GrowDaily.MaterialCalendar.NavigationButton</item>
+        <item name="materialCalendarDay">@style/Widget.GrowDaily.MaterialCalendar.DayTextView</item>
+        <item name="materialCalendarDayOfWeekLabel">@style/Widget.GrowDaily.MaterialCalendar.DayOfWeekLabel</item>
+        <item name="materialCalendarMonth">@style/Widget.GrowDaily.MaterialCalendar.MonthTextView</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.GrowDaily.Picker.PositiveButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.GrowDaily.Picker.NegativeButton</item>
+    </style>
+
+    <style name="Theme.GrowDaily.MaterialDatePicker.Red" parent="Theme.GrowDaily.MaterialPicker.Base">
+        <item name="colorPrimary">@color/category_red</item>
+        <item name="colorOnPrimary">@color/picker_on_light_accent</item>
+    </style>
+    <style name="Theme.GrowDaily.MaterialDatePicker.Orange" parent="Theme.GrowDaily.MaterialPicker.Base">
+        <item name="colorPrimary">@color/category_orange</item>
+        <item name="colorOnPrimary">@color/picker_on_light_accent</item>
+    </style>
+    <style name="Theme.GrowDaily.MaterialDatePicker.Yellow" parent="Theme.GrowDaily.MaterialPicker.Base">
+        <item name="colorPrimary">@color/category_yellow</item>
+        <item name="colorOnPrimary">@color/picker_on_yellow</item>
+    </style>
+    <style name="Theme.GrowDaily.MaterialDatePicker.Green" parent="Theme.GrowDaily.MaterialPicker.Base">
+        <item name="colorPrimary">@color/category_green</item>
+        <item name="colorOnPrimary">@color/picker_on_light_accent</item>
+    </style>
+    <style name="Theme.GrowDaily.MaterialDatePicker.Teal" parent="Theme.GrowDaily.MaterialPicker.Base">
+        <item name="colorPrimary">@color/category_teal</item>
+        <item name="colorOnPrimary">@color/picker_on_light_accent</item>
+    </style>
+    <style name="Theme.GrowDaily.MaterialDatePicker.Blue" parent="Theme.GrowDaily.MaterialPicker.Base">
+        <item name="colorPrimary">@color/category_blue</item>
+        <item name="colorOnPrimary">@color/picker_on_light_accent</item>
+    </style>
+    <style name="Theme.GrowDaily.MaterialDatePicker.Purple" parent="Theme.GrowDaily.MaterialPicker.Base">
+        <item name="colorPrimary">@color/category_purple</item>
+    </style>
+    <style name="Theme.GrowDaily.MaterialDatePicker.DarkBlue" parent="Theme.GrowDaily.MaterialPicker.Base">
+        <item name="colorPrimary">@color/category_dark_blue</item>
+    </style>
+
+    <style name="Theme.GrowDaily.MaterialTimePicker.Base" parent="ThemeOverlay.Material3.MaterialTimePicker">
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSurface">@color/picker_surface</item>
+        <item name="colorOnSurface">@color/picker_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/picker_text_secondary</item>
+        <item name="colorOutline">@color/picker_outline</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="materialTimePickerStyle">@style/Widget.GrowDaily.TimePicker.Premium</item>
+        <item name="materialClockStyle">@style/Widget.GrowDaily.TimePicker.Clock</item>
+        <item name="chipStyle">@style/Widget.GrowDaily.TimePicker.Display</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.GrowDaily.TimePicker.PeriodButton</item>
+        <item name="materialDisplayDividerStyle">@style/Widget.GrowDaily.TimePicker.Display.Divider</item>
+        <item name="imageButtonStyle">@style/Widget.GrowDaily.TimePicker.ImageButton</item>
+        <item name="materialTimePickerTitleStyle">@style/TextAppearance.GrowDaily.TimePicker.Title</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.GrowDaily.Picker.PositiveButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.GrowDaily.Picker.NegativeButton</item>
+    </style>
+
+    <style name="Theme.GrowDaily.MaterialTimePicker.Red" parent="Theme.GrowDaily.MaterialTimePicker.Base">
+        <item name="colorPrimary">@color/category_red</item>
+        <item name="colorOnPrimary">@color/picker_on_light_accent</item>
+    </style>
+    <style name="Theme.GrowDaily.MaterialTimePicker.Orange" parent="Theme.GrowDaily.MaterialTimePicker.Base">
+        <item name="colorPrimary">@color/category_orange</item>
+        <item name="colorOnPrimary">@color/picker_on_light_accent</item>
+    </style>
+    <style name="Theme.GrowDaily.MaterialTimePicker.Yellow" parent="Theme.GrowDaily.MaterialTimePicker.Base">
+        <item name="colorPrimary">@color/category_yellow</item>
+        <item name="colorOnPrimary">@color/picker_on_yellow</item>
+    </style>
+    <style name="Theme.GrowDaily.MaterialTimePicker.Green" parent="Theme.GrowDaily.MaterialTimePicker.Base">
+        <item name="colorPrimary">@color/category_green</item>
+        <item name="colorOnPrimary">@color/picker_on_light_accent</item>
+    </style>
+    <style name="Theme.GrowDaily.MaterialTimePicker.Teal" parent="Theme.GrowDaily.MaterialTimePicker.Base">
+        <item name="colorPrimary">@color/category_teal</item>
+        <item name="colorOnPrimary">@color/picker_on_light_accent</item>
+    </style>
+    <style name="Theme.GrowDaily.MaterialTimePicker.Blue" parent="Theme.GrowDaily.MaterialTimePicker.Base">
+        <item name="colorPrimary">@color/category_blue</item>
+        <item name="colorOnPrimary">@color/picker_on_light_accent</item>
+    </style>
+    <style name="Theme.GrowDaily.MaterialTimePicker.Purple" parent="Theme.GrowDaily.MaterialTimePicker.Base">
+        <item name="colorPrimary">@color/category_purple</item>
+    </style>
+    <style name="Theme.GrowDaily.MaterialTimePicker.DarkBlue" parent="Theme.GrowDaily.MaterialTimePicker.Base">
+        <item name="colorPrimary">@color/category_dark_blue</item>
+    </style>
+
+    <style name="ShapeAppearance.GrowDaily.Picker.Container" parent="ShapeAppearance.Material3.Corner.ExtraLarge">
+        <item name="cornerSize">28dp</item>
+    </style>
+
+    <style name="ShapeAppearance.GrowDaily.Picker.Day" parent="ShapeAppearance.Material3.Corner.Full" />
+
+    <style name="ShapeAppearance.GrowDaily.Picker.Control" parent="ShapeAppearance.MaterialComponents.MediumComponent">
+        <item name="cornerSize">18dp</item>
+    </style>
+
+    <style name="TextAppearance.GrowDaily.Picker.Title" parent="TextAppearance.MaterialComponents.Subtitle2">
+        <item name="android:textColor">@color/picker_text_secondary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textSize">11sp</item>
+    </style>
+
+    <style name="TextAppearance.GrowDaily.Picker.Headline" parent="TextAppearance.MaterialComponents.Headline5">
+        <item name="android:textColor">@color/picker_text_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="TextAppearance.GrowDaily.TimePicker.Title" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="android:textColor">@color/picker_text_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="TextAppearance.GrowDaily.Picker.Day" parent="TextAppearance.MaterialComponents.Body2">
+        <item name="android:textColor">@color/picker_text_primary</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <style name="TextAppearance.GrowDaily.Picker.DayOfWeek" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textColor">@color/picker_text_secondary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="TextAppearance.GrowDaily.Picker.Month" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="android:textColor">@color/picker_text_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <style name="Widget.GrowDaily.Picker.PositiveButton" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="rippleColor">?attr/colorPrimary</item>
+    </style>
+
+    <style name="Widget.GrowDaily.Picker.NegativeButton" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/picker_text_secondary</item>
+        <item name="rippleColor">@color/picker_control_surface</item>
+    </style>
+
+    <style name="Widget.GrowDaily.MaterialCalendar.Premium" parent="Widget.MaterialComponents.MaterialCalendar">
+        <item name="backgroundTint">@color/picker_surface</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.GrowDaily.Picker.Container</item>
+        <item name="dayStyle">@style/Widget.GrowDaily.MaterialCalendar.Day</item>
+        <item name="daySelectedStyle">@style/Widget.GrowDaily.MaterialCalendar.Day.Selected</item>
+        <item name="dayTodayStyle">@style/Widget.GrowDaily.MaterialCalendar.Day.Today</item>
+        <item name="yearSelectedStyle">@style/Widget.GrowDaily.MaterialCalendar.Year.Selected</item>
+        <item name="yearTodayStyle">@style/Widget.GrowDaily.MaterialCalendar.Year.Today</item>
+        <item name="rangeFillColor">@color/picker_range_fill</item>
+    </style>
+
+    <style name="Widget.GrowDaily.MaterialCalendar.HeaderLayout" parent="Widget.MaterialComponents.MaterialCalendar.HeaderLayout">
+        <item name="android:background">?attr/colorPrimary</item>
+    </style>
+
+    <style name="Widget.GrowDaily.MaterialCalendar.HeaderSelection" parent="Widget.MaterialComponents.MaterialCalendar.HeaderSelection">
+        <item name="android:textAppearance">@style/TextAppearance.GrowDaily.Picker.Headline</item>
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+    </style>
+
+    <style name="Widget.GrowDaily.MaterialCalendar.HeaderTitle" parent="Widget.MaterialComponents.MaterialCalendar.HeaderTitle">
+        <item name="android:textAppearance">@style/TextAppearance.GrowDaily.Picker.Title</item>
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+    </style>
+
+    <style name="Widget.GrowDaily.MaterialCalendar.HeaderToggleButton" parent="Widget.MaterialComponents.MaterialCalendar.HeaderToggleButton">
+        <item name="android:tint">?attr/colorOnPrimary</item>
+    </style>
+
+    <style name="Widget.GrowDaily.MaterialCalendar.NavigationButton" parent="Widget.MaterialComponents.MaterialCalendar.MonthNavigationButton">
+        <item name="iconTint">@color/picker_text_secondary</item>
+        <item name="rippleColor">@color/picker_control_surface</item>
+    </style>
+
+    <style name="Widget.GrowDaily.MaterialCalendar.DayTextView" parent="Widget.MaterialComponents.MaterialCalendar.DayTextView">
+        <item name="android:textAppearance">@style/TextAppearance.GrowDaily.Picker.Day</item>
+    </style>
+
+    <style name="Widget.GrowDaily.MaterialCalendar.DayOfWeekLabel" parent="Widget.MaterialComponents.MaterialCalendar.DayOfWeekLabel">
+        <item name="android:textAppearance">@style/TextAppearance.GrowDaily.Picker.DayOfWeek</item>
+        <item name="android:textColor">@color/picker_text_secondary</item>
+    </style>
+
+    <style name="Widget.GrowDaily.MaterialCalendar.MonthTextView" parent="Widget.MaterialComponents.MaterialCalendar.MonthTextView">
+        <item name="android:textAppearance">@style/TextAppearance.GrowDaily.Picker.Month</item>
+        <item name="android:textColor">@color/picker_text_primary</item>
+    </style>
+
+    <style name="Widget.GrowDaily.MaterialCalendar.Day" parent="Widget.MaterialComponents.MaterialCalendar.Day">
+        <item name="itemTextColor">@color/picker_text_primary</item>
+        <item name="itemStrokeColor">@android:color/transparent</item>
+        <item name="itemStrokeWidth">0dp</item>
+        <item name="itemShapeAppearance">@style/ShapeAppearance.GrowDaily.Picker.Day</item>
+    </style>
+
+    <style name="Widget.GrowDaily.MaterialCalendar.Day.Selected" parent="Widget.MaterialComponents.MaterialCalendar.Day.Selected">
+        <item name="itemFillColor">?attr/colorPrimary</item>
+        <item name="itemTextColor">?attr/colorOnPrimary</item>
+        <item name="itemStrokeWidth">0dp</item>
+    </style>
+
+    <style name="Widget.GrowDaily.MaterialCalendar.Day.Today" parent="Widget.MaterialComponents.MaterialCalendar.Day.Today">
+        <item name="itemTextColor">?attr/colorPrimary</item>
+        <item name="itemStrokeColor">?attr/colorPrimary</item>
+        <item name="itemStrokeWidth">1.5dp</item>
+    </style>
+
+    <style name="Widget.GrowDaily.MaterialCalendar.Year.Selected" parent="Widget.MaterialComponents.MaterialCalendar.Year.Selected">
+        <item name="itemFillColor">?attr/colorPrimary</item>
+        <item name="itemTextColor">?attr/colorOnPrimary</item>
+    </style>
+
+    <style name="Widget.GrowDaily.MaterialCalendar.Year.Today" parent="Widget.MaterialComponents.MaterialCalendar.Year.Today">
+        <item name="itemTextColor">?attr/colorPrimary</item>
+        <item name="itemStrokeColor">?attr/colorPrimary</item>
+    </style>
+
+    <style name="Widget.GrowDaily.TimePicker.Premium" parent="Widget.MaterialComponents.TimePicker">
+        <item name="backgroundTint">@color/picker_surface</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.GrowDaily.Picker.Container</item>
+    </style>
+
+    <style name="Widget.GrowDaily.TimePicker.Clock" parent="Widget.MaterialComponents.TimePicker.Clock">
+        <item name="clockFaceBackgroundColor">@color/picker_control_surface</item>
+        <item name="clockHandColor">?attr/colorPrimary</item>
+        <item name="clockNumberTextColor">@color/picker_clock_text</item>
+    </style>
+
+    <style name="Widget.GrowDaily.TimePicker.Display" parent="Widget.MaterialComponents.TimePicker.Display">
+        <item name="android:textColor">@color/picker_time_display_text</item>
+        <item name="chipBackgroundColor">@color/picker_time_display_background</item>
+        <item name="rippleColor">?attr/colorPrimary</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.GrowDaily.Picker.Control</item>
+    </style>
+
+    <style name="Widget.GrowDaily.TimePicker.Display.Divider" parent="Widget.MaterialComponents.TimePicker.Display.Divider">
+        <item name="android:textColor">@color/picker_text_secondary</item>
+    </style>
+
+    <style name="Widget.GrowDaily.TimePicker.PeriodButton" parent="Widget.MaterialComponents.TimePicker.Button">
+        <item name="android:textColor">@color/picker_period_text</item>
+        <item name="backgroundTint">@color/picker_period_background</item>
+        <item name="strokeColor">@color/picker_outline</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="rippleColor">?attr/colorPrimary</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.GrowDaily.Picker.Control</item>
+    </style>
+
+    <style name="Widget.GrowDaily.TimePicker.ImageButton" parent="Widget.MaterialComponents.TimePicker.ImageButton">
+        <item name="iconTint">@color/picker_text_secondary</item>
+        <item name="rippleColor">@color/picker_control_surface</item>
+    </style>
 </resources>

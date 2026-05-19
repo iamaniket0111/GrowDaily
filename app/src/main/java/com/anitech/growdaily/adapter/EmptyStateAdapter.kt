@@ -13,8 +13,8 @@ class EmptyStateAdapter : RecyclerView.Adapter<EmptyStateAdapter.ViewHolder>() {
     private var isVisible: Boolean = false
     @DrawableRes
     private var imageRes: Int = R.drawable.add_task_ic
-    private var title: String = "Nothing scheduled for this day"
-    private var subtitle: String = "Tap + to add a task for today."
+    private var title: String? = null
+    private var subtitle: String? = null
 
     fun setVisible(visible: Boolean) {
         if (this.isVisible != visible) {
@@ -43,8 +43,8 @@ class EmptyStateAdapter : RecyclerView.Adapter<EmptyStateAdapter.ViewHolder>() {
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.itemView.visibility = if (isVisible) View.VISIBLE else View.GONE
         holder.binding.ivEmptyStateImage.setImageResource(imageRes)
-        holder.binding.tvEmptyStateTitle.text = title
-        holder.binding.tvEmptyStateSubtitle.text = subtitle
+        holder.binding.tvEmptyStateTitle.text = title ?: holder.itemView.context.getString(R.string.empty_day_tasks_title_default)
+        holder.binding.tvEmptyStateSubtitle.text = subtitle ?: holder.itemView.context.getString(R.string.empty_day_tasks_subtitle_default)
         // Adjust layout params to ensure it doesn't take space when hidden
         val params = holder.itemView.layoutParams
         if (!isVisible) {

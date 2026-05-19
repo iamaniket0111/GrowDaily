@@ -11,6 +11,7 @@ fun buildTaskDaySnapshots(
     tasks: List<TaskEntity>,
     completionEntityMap: Map<String, Map<String, TaskCompletionEntity>>,
     trackingVersionsMap: Map<String, List<TaskTrackingVersionEntity>>,
+    extraDateMap: Map<String, Set<String>>,
     startDate: LocalDate,
     endDate: LocalDate
 ): List<TaskDaySnapshotEntity> {
@@ -21,7 +22,7 @@ fun buildTaskDaySnapshots(
 
     while (!currentDate.isAfter(endDate)) {
         val dateString = currentDate.toString()
-        val tasksForDate = CommonMethods.filterTasksForDate(tasks, dateString)
+        val tasksForDate = CommonMethods.filterTasksForDate(tasks, dateString, extraDateMap)
         tasksForDate.forEach { task ->
             val completion = completionEntityMap[dateString]?.get(task.id)
             val settings = resolveTrackingSettings(task, dateString, trackingVersionsMap[task.id].orEmpty())

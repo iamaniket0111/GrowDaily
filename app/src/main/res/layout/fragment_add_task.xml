@@ -20,7 +20,10 @@
             android:gravity="center_horizontal"
             android:orientation="vertical">
 
+
+            <!-- icon & background -->
             <FrameLayout
+                android:id="@+id/iconLayout"
                 android:layout_width="80dp"
                 android:layout_height="80dp"
                 android:layout_marginTop="16dp">
@@ -30,7 +33,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_margin="6dp"
-                    android:background="@drawable/circular"
+                    android:background="@drawable/circle_background"
                     android:contentDescription="@string/none"
                     android:padding="16dp"
                     android:scaleType="centerCrop"
@@ -41,8 +44,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom|end"
-                    android:background="@drawable/circular"
-                    android:backgroundTint="@color/add_form_muted_surface"
+                    android:background="@drawable/circle_background"
+                    android:backgroundTint="@color/task_surface"
                     android:contentDescription="@string/none"
                     android:padding="4dp"
                     android:src="@drawable/ic_add"
@@ -61,54 +64,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp" />
 
-            <LinearLayout
-                android:id="@+id/tvVersioningHint"
+            <include
+                android:id="@+id/warningLayout"
+                layout="@layout/edit_task_warning"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/add_task_info_card"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingStart="12dp"
-                android:paddingTop="10dp"
-                android:paddingEnd="12dp"
-                android:paddingBottom="10dp"
-                android:visibility="gone">
-
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_marginEnd="10dp"
-                    android:background="@drawable/circular"
-                    android:backgroundTint="@color/task_filter_selected_bg"
-                    android:padding="6dp"
-                    android:src="@drawable/ic_warning"
-                    app:tint="@color/brand_blue" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Changes apply going forward"
-                        android:textColor="@color/add_form_text_primary"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:lineSpacingExtra="1dp"
-                        android:text="Priority, tracking, and repeat changes apply from today onward only. Past progress stays unchanged."
-                        android:textColor="@color/add_form_text_secondary"
-                        android:textSize="12sp" />
-                </LinearLayout>
-            </LinearLayout>
+                android:layout_marginBottom="16dp"/>
 
             <!-- Priority (Fixed 56dp) -->
             <include
@@ -138,6 +99,13 @@
             <include
                 android:id="@+id/startDateLayout"
                 layout="@layout/task_start_date_layout"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="16dp" />
+
+            <include
+                android:id="@+id/endDateLayout"
+                layout="@layout/task_end_date_layout"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:layout_marginBottom="16dp" />
@@ -196,37 +164,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <LinearLayout
-        android:id="@+id/navigationLoadingOverlay"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@color/task_screen_bg"
-        android:clickable="true"
-        android:focusable="true"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:indeterminate="true"
-            android:indeterminateTint="@color/brand_blue" />
-
-        <TextView
-            android:id="@+id/tvNavigationLoading"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Going back..."
-            android:textColor="@color/task_text_secondary"
-            android:textSize="14sp" />
-    </LinearLayout>
 
     <Button
         android:id="@+id/buttonSave"

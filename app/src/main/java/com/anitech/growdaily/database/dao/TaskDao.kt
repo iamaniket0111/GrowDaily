@@ -38,5 +38,11 @@ interface TaskDao {
     @Query("SELECT * FROM daily_tasks WHERE id = :taskId LIMIT 1")
     fun getTaskById(taskId: String): LiveData<TaskEntity>
 
+    @Query("SELECT * FROM daily_tasks WHERE id = :taskId LIMIT 1")
+    suspend fun getTaskByIdNow(taskId: String): TaskEntity?
+
+    @Query("SELECT * FROM daily_tasks")
+    suspend fun getAllTasksNow(): List<TaskEntity>
+
 
 }

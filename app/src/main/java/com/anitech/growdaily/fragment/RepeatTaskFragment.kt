@@ -10,6 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.anitech.growdaily.MainActivity
 import com.anitech.growdaily.MyApp
 import com.anitech.growdaily.R
 import com.anitech.growdaily.adapter.RepeatTaskAdapter
@@ -46,8 +47,14 @@ class RepeatTaskFragment : Fragment() {
         return binding.root
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        observeAccentColor()
 
         repeatTaskAdapter = RepeatTaskAdapter(
             object : RepeatTaskAdapter.OnItemClickListener {
@@ -147,20 +154,20 @@ class RepeatTaskFragment : Fragment() {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = repeatTaskAdapter
             itemAnimator = null
+            setHasFixedSize(true)
+            setItemViewCacheSize(8)
         }
 
         binding.emptyState.findViewById<View>(R.id.ivEmptyStateImage)?.let { imageView ->
             (imageView as? android.widget.ImageView)?.setImageResource(R.drawable.ic_personal_goals)
         }
         binding.emptyState.findViewById<View>(R.id.tvEmptyStateTitle)?.let { titleView ->
-            (titleView as? android.widget.TextView)?.text = "No repeat tasks yet"
+            (titleView as? android.widget.TextView)?.text = getString(R.string.empty_repeat_tasks_title)
         }
         binding.emptyState.findViewById<View>(R.id.tvEmptyStateSubtitle)?.let { subtitleView ->
             (subtitleView as? android.widget.TextView)?.text =
-                "Create a repeating task to track it over time."
+                getString(R.string.empty_repeat_tasks_subtitle)
         }
-
-        showLoading()   // spinner visible until first data arrives
 
         viewModel.heatmapUiList.observe(viewLifecycleOwner) { tasks ->
             when {
@@ -179,21 +186,24 @@ class RepeatTaskFragment : Fragment() {
     // ── state helpers ─────────────────────────────────────────────────────────
 
     private fun showLoading() = with(binding) {
-        loadingState.visibility   = View.VISIBLE
-        analysisListRv.visibility = View.GONE
+        analysisListRv.visibility = View.VISIBLE
         emptyState.visibility     = View.GONE
     }
 
     private fun showEmpty() = with(binding) {
-        loadingState.visibility   = View.GONE
         analysisListRv.visibility = View.GONE
         emptyState.visibility     = View.VISIBLE
     }
 
     private fun showList() = with(binding) {
-        loadingState.visibility   = View.GONE
         analysisListRv.visibility = View.VISIBLE
         emptyState.visibility     = View.GONE
+    }
+
+    private fun observeAccentColor() {
+        (requireActivity() as? MainActivity)?.accentColor?.observe(viewLifecycleOwner) { color ->
+            repeatTaskAdapter.setAccentColor(color)
+        }
     }
 
     override fun onDestroyView() {

@@ -7,6 +7,7 @@ import java.time.LocalDate
 data class AnalysisOverviewState(
     val task: TaskEntity,
     val seriesStartDate: LocalDate = LocalDate.now(),
+    val seriesEndDate: LocalDate = LocalDate.now(),
     val scheduledDates: Set<LocalDate> = emptySet(),
     val progressByDate: Map<LocalDate, Int> = emptyMap(),
     val completedDates: Set<LocalDate>,
@@ -23,6 +24,7 @@ data class AnalysisOverviewState(
 data class AnalysisBarState(
     val period: PeriodType = PeriodType.WEEK,
     val anchorDate: LocalDate = LocalDate.now(),
+    val seriesEndDate: LocalDate = LocalDate.now(),
     val barDates: List<LocalDate> = emptyList(),
     val barScores: List<Float> = emptyList(),
     val periodTitle: String = "",
@@ -34,6 +36,7 @@ data class AnalysisBarState(
 data class AnalysisHeatmapState(
     val heatmapYear: Int = LocalDate.now().year,
     val seriesStartDate: LocalDate = LocalDate.now(),
+    val seriesEndDate: LocalDate = LocalDate.now(),
     val scheduledDates: Set<LocalDate> = emptySet(),
     val progressByDate: Map<LocalDate, Int> = emptyMap(),
     val isHeatmapNextEnabled: Boolean = true,

@@ -10,16 +10,20 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.anitech.growdaily.CommonMethods
+import com.anitech.growdaily.MainActivity
 import com.anitech.growdaily.MyApp
 import com.anitech.growdaily.R
+import com.anitech.growdaily.adjustAlpha
 import com.anitech.growdaily.setSolidBackgroundColorCompat
 import com.anitech.growdaily.adapter.BarAdapter2
 import com.anitech.growdaily.adapter.HistoryAdapter
@@ -49,16 +53,12 @@ class AnalysisRepeatTaskFragment : Fragment() {
     private var hasAutoScrolledHistory = false
     private var heatmapBindJob: Job? = null
     private var isHeatmapDeferredFirstBind = true
+    private var accentColor: Int? = null
 
     private val viewModel: AnalysisViewModel by viewModels {
         AnalysisViewModelFactory(
             (requireActivity().application as MyApp).repository
         )
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
     }
 
     override fun onCreateView(
@@ -72,11 +72,110 @@ class AnalysisRepeatTaskFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupMenu()
         setupHistoryAdapter()
         setupBarAdapter()
         viewModel.setTaskId(args.taskId)
+        observeAccentColor()
         setClickListeners()
         observeViewModel()
+    }
+
+    private fun setupMenu() {
+        requireActivity().addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.analysis_menu, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    android.R.id.home -> {
+                        findNavController().popBackStack()
+                        true
+                    }
+
+                    R.id.menu_edit -> {
+                        val currentTask = viewModel.overviewState.value?.task ?: return true
+
+                        val bundle = Bundle().apply {
+                            putParcelable("task", currentTask)
+                        }
+
+                        findNavController().navigate(
+                            R.id.nav_add_task,
+                            bundle
+                        )
+
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    private fun observeAccentColor() {
+        (requireActivity() as? MainActivity)?.accentColor?.observe(viewLifecycleOwner) { color ->
+            accentColor = color
+            // Trigger rebuild of UI elements that use accentColor if necessary
+            // For now, let's update the existing state if it's already there
+            viewModel.overviewState.value?.let { state ->
+                updateOverviewColors(state, color)
+            }
+            if (viewModel.barState.value != null) {
+                updateBarColors(color)
+            }
+            viewModel.heatmapState.value?.let { state ->
+                updateHeatmapColors(state, color)
+            }
+        }
+    }
+
+    private fun updateOverviewColors(state: com.anitech.growdaily.data_class.AnalysisOverviewState, color: Int) {
+        val taskColor = TaskColor.fromName(state.task.colorCode)?.toColorInt(requireContext())
+            ?: ContextCompat.getColor(requireContext(), R.color.brand_blue)
+            
+        binding.overview.txtCurrentStreakValue.setTextColor(color)
+        binding.overview.txtBestStreakValue.setTextColor(color)
+        binding.totalCompletion.txtMainPercentage.setTextColor(color)
+        binding.totalCompletion.txtMainPercentageLabel.setTextColor(color)
+        binding.totalCompletion.progressOverall.setProgressColor(color)
+
+        bindHeader(state.task, state.seriesStartDate, state.seriesEndDate, color)
+        bindTaskIcon(state.task, taskColor) // Fixed to task color
+        
+        historyAdapter.updateData(
+            progressByDate = state.progressByDate,
+            taskColor = color
+        )
+        binding.weekExpanded.btnPrevYear.setColorFilter(color)
+        binding.weekExpanded.btnNextYear.setColorFilter(color)
+    }
+
+    private fun updateBarColors(color: Int) {
+        barAdapter.setBarColor(color)
+        binding.progressBar.btnNext.setColorFilter(color)
+        binding.progressBar.btnPrevious.setColorFilter(color)
+    }
+
+    private fun updateHeatmapColors(state: com.anitech.growdaily.data_class.AnalysisHeatmapState, color: Int) {
+        binding.yearHeapMap.btnNextYear.setColorFilter(color)
+        binding.yearHeapMap.btnPrevYear.setColorFilter(color)
+        
+        val unavailableDates = buildUnavailableDatesForYear(
+            seriesStartDate = state.seriesStartDate,
+            scheduledDates = state.scheduledDates,
+            year = state.heatmapYear
+        )
+        
+        scheduleHeatmapBind(
+            heatmapYear = state.heatmapYear,
+            taskStart = state.seriesStartDate,
+            progressByDate = state.progressByDate,
+            unavailableDates = unavailableDates,
+            color = color
+        )
     }
 
     // --------------------------------------------------
@@ -104,7 +203,7 @@ class AnalysisRepeatTaskFragment : Fragment() {
 
     private fun setupBarAdapter() {
 
-        barAdapter = BarAdapter2(null)
+        barAdapter = BarAdapter2()
 
         binding.progressBar.barGraph2.recyclerViewBar.apply {
             layoutManager =
@@ -129,38 +228,48 @@ class AnalysisRepeatTaskFragment : Fragment() {
         // ---- OVERVIEW: rebuilds only on task/completions change ----
         viewModel.overviewState.observe(viewLifecycleOwner) { state ->
             val task = state.task
-            val color = TaskColor.fromName(task.colorCode)?.toColorInt(requireContext())
+            val taskColor = TaskColor.fromName(task.colorCode)?.toColorInt(requireContext())
                 ?: ContextCompat.getColor(requireContext(), R.color.brand_blue)
+            val displayColor = accentColor ?: taskColor
             val taskStart = state.seriesStartDate
             val historyItems = buildHistoryItems(state.scheduledDates)
 
-            bindHeader(task, taskStart)
-            bindTaskIcon(task, color)
+            bindHeader(task, taskStart, state.seriesEndDate, displayColor)
+            bindTaskIcon(task, taskColor) // Fixed to task color as requested
 
             binding.overview.txtCurrentStreakValue.text = "${state.currentStreak}"
-            binding.overview.txtCurrentStreakValue.setTextColor(color)
+            binding.overview.txtCurrentStreakValue.setTextColor(displayColor)
             binding.overview.txtBestStreakValue.text = "${state.bestStreak}"
-            binding.overview.txtBestStreakValue.setTextColor(color)
-            binding.overview.txtLastCompletedDate.text = state.lastCompletedDate?.toDisplayFormat() ?: "None"
-            binding.overview.txtLastMissedDate.text = state.lastMissedDate?.toDisplayFormat() ?: "None"
+            binding.overview.txtBestStreakValue.setTextColor(displayColor)
+            binding.overview.txtLastCompletedDate.text = state.lastCompletedDate?.let { date ->
+                getString(R.string.analysis_period_month_format, date.month.getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault()), date.dayOfMonth) + ", ${date.year}"
+            } ?: getString(R.string.none_capitalized)
+            binding.overview.txtLastMissedDate.text = state.lastMissedDate?.let { date ->
+                getString(R.string.analysis_period_month_format, date.month.getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault()), date.dayOfMonth) + ", ${date.year}"
+            } ?: getString(R.string.none_capitalized)
 
             binding.totalCompletion.txtMainPercentage.text = "${state.completionPercent}"
-            binding.totalCompletion.txtMainPercentage.setTextColor(color)
-            binding.totalCompletion.txtMainPercentageLabel.setTextColor(color)
-            binding.totalCompletion.txtTotalAchieved.text = "${state.completedCount}"
-            binding.totalCompletion.txtTotalMissed.text = "${state.totalDays - state.completedCount}"
-            binding.totalCompletion.txtTotalDays.text = "${state.totalDays}"
-            binding.totalCompletion.progressOverall.setProgressColor(color)
+            binding.totalCompletion.txtMainPercentage.setTextColor(displayColor)
+            binding.totalCompletion.txtMainPercentageLabel.setTextColor(displayColor)
+            
+            binding.totalCompletion.txtTotalAchieved.text = "${state.completedCount} Completed"
+            binding.totalCompletion.txtTotalAchieved.setTextColor(displayColor)
+            
+            binding.totalCompletion.txtTotalMissed.text = "${state.totalDays - state.completedCount} Incomplete"
+            
+            binding.totalCompletion.txtCompletionRatio.text = "${state.completedCount}/${state.totalDays}"
+
+            binding.totalCompletion.progressOverall.setProgressColor(displayColor)
             binding.totalCompletion.progressOverall.setProgress(state.completionPercent)
 
             historyAdapter.replaceData(
                 taskAddedDate = taskStart,
                 progressByDate = state.progressByDate,
-                taskColor = color,
+                taskColor = displayColor,
                 weekList = historyItems
             )
-            binding.weekExpanded.btnPrevYear.setColorFilter(color)
-            binding.weekExpanded.btnNextYear.setColorFilter(color)
+            binding.weekExpanded.btnPrevYear.setColorFilter(displayColor)
+            binding.weekExpanded.btnNextYear.setColorFilter(displayColor)
             if (!hasAutoScrolledHistory && historyAdapter.itemCount > 0) {
                 binding.weekExpanded.weekExpandedRv.post {
                     binding.weekExpanded.weekExpandedRv.scrollToPosition(historyAdapter.itemCount - 1)
@@ -171,14 +280,24 @@ class AnalysisRepeatTaskFragment : Fragment() {
 
         // ---- BAR GRAPH: rebuilds only on period/anchor change ----
         viewModel.barState.observe(viewLifecycleOwner) { state ->
-            val color = viewModel.overviewState.value?.task?.colorCode
+            val color = accentColor ?: viewModel.overviewState.value?.task?.colorCode
                 ?.let { TaskColor.fromName(it)?.toColorInt(requireContext()) }
                 ?: ContextCompat.getColor(requireContext(), R.color.brand_blue)
 
             barAdapter.setPeriod(state.period)
             barAdapter.setBarColor(color)
             barAdapter.submitData(dates = state.barDates, scores = state.barScores)
-            binding.progressBar.txtCurrentPeriod.text = state.periodTitle
+
+            val formattedPeriodTitle = when (state.period) {
+                PeriodType.WEEK -> {
+                    val start = state.anchorDate.with(java.time.DayOfWeek.MONDAY)
+                    val end = start.plusDays(6)
+                    getString(R.string.analysis_period_week_format, start.dayOfMonth, start.month.getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault()), end.dayOfMonth, end.month.getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault()))
+                }
+                PeriodType.MONTH -> getString(R.string.analysis_period_month_format, state.anchorDate.month.getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.getDefault()), state.anchorDate.year)
+                PeriodType.YEAR -> getString(R.string.analysis_period_year_format, state.anchorDate.year)
+            }
+            binding.progressBar.txtCurrentPeriod.text = formattedPeriodTitle
             updateTabUI(state.period)
             binding.progressBar.btnNext.isEnabled = state.isNextEnabled
             binding.progressBar.btnNext.alpha = if (state.isNextEnabled) 1f else 0.3f
@@ -192,7 +311,7 @@ class AnalysisRepeatTaskFragment : Fragment() {
         viewModel.heatmapState.observe(viewLifecycleOwner) { state ->
             val task = viewModel.overviewState.value?.task ?: return@observe
             val taskStart = state.seriesStartDate
-            val color = TaskColor.fromName(task.colorCode)?.toColorInt(requireContext())
+            val color = accentColor ?: TaskColor.fromName(task.colorCode)?.toColorInt(requireContext())
                 ?: ContextCompat.getColor(requireContext(), R.color.brand_blue)
             val unavailableDates = buildUnavailableDatesForYear(
                 seriesStartDate = state.seriesStartDate,
@@ -293,15 +412,17 @@ class AnalysisRepeatTaskFragment : Fragment() {
     }
 
     private fun updateTabUI(period: PeriodType) {
+        val color = accentColor ?: ContextCompat.getColor(requireContext(), R.color.brand_blue)
+        val alphaColor = ColorUtils.setAlphaComponent(color, 40)
 
-        val activeTextColor = ContextCompat.getColor(requireContext(), R.color.task_text_primary)
         val inactiveTextColor = ContextCompat.getColor(requireContext(), R.color.task_text_secondary)
 
         fun styleTab(view: TextView, isActive: Boolean) {
-            view.setTextColor(if (isActive) activeTextColor else inactiveTextColor)
+            view.setTextColor(if (isActive) color else inactiveTextColor)
 
             if (isActive) {
                 view.setBackgroundResource(R.drawable.analysis_segment_active_bg)
+                view.backgroundTintList = ColorStateList.valueOf(alphaColor)
             } else {
                 view.background = null
             }
@@ -316,87 +437,75 @@ class AnalysisRepeatTaskFragment : Fragment() {
     // HEADER + ICON
     // --------------------------------------------------
 
-    private fun bindHeader(task: TaskEntity, taskStart: LocalDate) {
-        val header = binding.header
+    private fun bindHeader(task: TaskEntity, taskStart: LocalDate, seriesEndDate: LocalDate, color: Int) {
+        val header = binding.header.body
         header.txtTaskTitle.text = task.title
 
         if (task.note.isNullOrBlank()) {
             header.txtTaskNote.visibility = View.GONE
         } else {
+            header.txtTaskNote.visibility = View.VISIBLE
             header.txtTaskNote.text = task.note
         }
 
+        header.txtType.text = header.root.context.getString(task.taskType.labelRes)
+        header.imgType.setColorFilter(color)
+
         header.txtReminder.text =
-            if (task.reminderEnabled) "Reminder at ${task.reminderTime}" else "Reminder off"
+            if (task.reminderEnabled) getString(R.string.reminder_on_format, task.reminderTime) else getString(R.string.reminder_off)
+        header.imgReminder.setColorFilter(color)
 
         header.txtSchedule.text =
-            if (task.isScheduled) "Scheduled at ${task.scheduledTime}" else "Not scheduled"
+            if (task.isScheduled) getString(R.string.scheduled_on_format, task.scheduledTime) else getString(R.string.not_scheduled)
+        header.imgSchedule.setColorFilter(color)
 
         header.txtWeight.text =
-            "Priority: ${task.weight.name.lowercase().replaceFirstChar { it.uppercase() }}"
+            getString(R.string.priority_format, task.weight.name.lowercase().replaceFirstChar { it.uppercase() })
+        header.imgWeight.setColorFilter(color)
 
         val today = LocalDate.now()
+        val endDate = task.taskRemovedDate
+            ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        val hasPastEndDate = endDate != null && endDate.isBefore(today)
 
         header.txtStartedSince.text =
-            "Started since ${taskStart.dayOfMonth} ${taskStart.month.name.take(3)} ${taskStart.year}"
+            getString(R.string.started_since_format, taskStart.dayOfMonth, taskStart.month.getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault()), taskStart.year)
+        header.txtStartedSince.setTextColor(color)
+        header.imgStartedSince.setColorFilter(color)
+
+        val isNight = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        val alphaFactor = if (isNight) 0.05f else 0.07f
+        header.startedSinceContainer.backgroundTintList = ColorStateList.valueOf(color.adjustAlpha(alphaFactor))
 
         val daysRunning =
-            ChronoUnit.DAYS.between(taskStart, today).toInt() + 1
+            ChronoUnit.DAYS.between(taskStart, seriesEndDate).toInt() + 1
 
-        header.txtRunningFor.text = "• $daysRunning days"
-
-    }
-
-    private fun bindTaskIcon(task: TaskEntity, color: Int) = with(binding.iconLayout) {
-        val iconRes =
-            TaskIcon.fromName(task.iconResId)?.resId ?: R.drawable.ic_trophy
-        imgTaskIcon.setImageResource(iconRes)
-
-        viewIconBg.setSolidBackgroundColorCompat(color)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.analysis_menu, menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            android.R.id.home -> {
-                navigateBackWithLoading()
-                true
+        header.txtRunningFor.text = getString(R.string.running_for_days_format, daysRunning)
+        header.txtRunningFor.setTextColor(color.adjustAlpha(0.7f))
+        if (endDate != null) {
+            header.endDateRow.visibility = View.VISIBLE
+            header.imgEndDate.setColorFilter(color)
+            header.txtEndDate.text = if (hasPastEndDate) {
+                getString(R.string.ended_on_format, endDate.toDisplayFormat())
+            } else {
+                getString(R.string.ends_on_format, endDate.toDisplayFormat())
             }
-
-            R.id.menu_edit -> {
-                val currentTask = viewModel.overviewState.value?.task ?: return true
-
-                val bundle = Bundle().apply {
-                    putParcelable("task", currentTask)
-                }
-
-                findNavController().navigate(
-                    R.id.nav_add_task,
-                    bundle
-                )
-
-                true
-            }
-
-            else -> super.onOptionsItemSelected(item)
+        } else {
+            header.endDateRow.visibility = View.GONE
         }
+
     }
 
-    private fun navigateBackWithLoading(message: String = "Going back...") {
-        binding.tvNavigationLoading.text = message
-        binding.navigationLoadingOverlay.visibility = View.VISIBLE
-        binding.root.post {
-            if (_binding == null || !isAdded) return@post
-            findNavController().popBackStack()
-        }
+    private fun bindTaskIcon(task: TaskEntity, color: Int) {
+        val iconLayout = binding.header.iconLayout
+        val iconRes = TaskIcon.fromName(task.iconResId).resId
+        iconLayout.imgTaskIcon.setImageResource(iconRes)
+
+        iconLayout.viewIconBg.setSolidBackgroundColorCompat(color)
     }
 
     private fun LocalDate.toDisplayFormat(): String {
-        val month = month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }
-        return "$month $dayOfMonth, $year"
+        return context?.getString(R.string.analysis_period_month_format, month.getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault()), dayOfMonth) + ", $year"
     }
 
     private fun buildUnavailableDatesForYear(
@@ -426,7 +535,7 @@ class AnalysisRepeatTaskFragment : Fragment() {
             .map { date ->
                 WeekHabit(
                     date = date,
-                    dayLetter = date.dayOfWeek.name.first().toString()
+                    dayLetter = date.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW, java.util.Locale.getDefault())
                 )
             }
     }

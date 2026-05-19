@@ -17,10 +17,8 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="Add to List"
-        android:textStyle="bold"
-
-        android:textColor="@color/add_form_text_secondary"
-        android:textSize="16sp" />
+        style="@style/TitleLabel"
+        />
 
     <!-- Selected list summary -->
     <TextView
@@ -28,17 +26,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="None"
-        android:textSize="15sp"
+        style="@style/ValueText"
         android:textColor="@color/add_form_text_secondary"
-        android:paddingEnd="8dp" />
+         />
 
     <!-- Arrow -->
     <ImageView
-        android:id="@+id/ivChevron"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:contentDescription="Open priority selector"
-        android:src="@drawable/ic_right_arrow"
-        app:tint="@color/add_form_icon"
-      />
+        style="@style/ChevronImageView" />
 </LinearLayout>

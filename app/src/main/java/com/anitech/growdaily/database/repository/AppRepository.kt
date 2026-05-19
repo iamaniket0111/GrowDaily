@@ -7,13 +7,17 @@ import com.anitech.growdaily.data_class.ListTaskCrossRef
 import com.anitech.growdaily.data_class.TaskCompletionEntity
 import com.anitech.growdaily.data_class.TaskDaySnapshotEntity
 import com.anitech.growdaily.data_class.TaskEntity
+import com.anitech.growdaily.data_class.TaskExtraDateEntity
 import com.anitech.growdaily.data_class.TaskTrackingVersionEntity
+import com.anitech.growdaily.data_class.UntilCompleteChildEntity
 import com.anitech.growdaily.database.dao.ChecklistProgressDao
 import com.anitech.growdaily.database.dao.ListDao
 import com.anitech.growdaily.database.dao.TaskCompletionDao
 import com.anitech.growdaily.database.dao.TaskDao
 import com.anitech.growdaily.database.dao.TaskDaySnapshotDao
+import com.anitech.growdaily.database.dao.TaskExtraDateDao
 import com.anitech.growdaily.database.dao.TaskTrackingVersionDao
+import com.anitech.growdaily.database.dao.UntilCompleteChildDao
 import com.anitech.growdaily.database.util.buildTaskDaySnapshots
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineScope
@@ -31,15 +35,30 @@ class AppRepository(
     internal  val completionDao: TaskCompletionDao,
     private val checklistProgressDao: ChecklistProgressDao,
     private val taskTrackingVersionDao: TaskTrackingVersionDao,
-    private val taskDaySnapshotDao: TaskDaySnapshotDao
+    private val taskDaySnapshotDao: TaskDaySnapshotDao,
+    private val taskExtraDateDao: TaskExtraDateDao,
+    private val untilCompleteChildDao: UntilCompleteChildDao
 ) {
     private var snapshotSyncJob: Job? = null
+    private val snapshotTaskSignatures = mutableMapOf<String, Int>()
     //day score
     suspend fun insertTask(task: TaskEntity) = taskDao.insertTask(task)
 
     suspend fun updateTask(task: TaskEntity) = taskDao.updateTask(task)
 
-    suspend fun deleteTask(task: TaskEntity) = taskDao.deleteTask(task)
+    suspend fun deleteTask(task: TaskEntity) {
+        taskExtraDateDao.deleteAllForTask(task.id)
+        val untilChildren = untilCompleteChildDao.getAllNowForParent(task.id)
+        untilCompleteChildDao.deleteAllForParent(task.id)
+        untilChildren.forEach { child ->
+            completionDao.deleteAllForTask(child.childTaskId)
+            checklistProgressDao.deleteAllForTask(child.childTaskId)
+        }
+        if (untilChildren.isNotEmpty()) {
+            taskDaySnapshotDao.deleteForTasks(untilChildren.map { it.childTaskId })
+        }
+        taskDao.deleteTask(task)
+    }
 
     fun getTaskById(taskId: String): LiveData<TaskEntity> {
         return taskDao.getTaskById(taskId)
@@ -79,6 +98,44 @@ class AppRepository(
         return taskDaySnapshotDao.getAllFlow()
     }
 
+    fun getAllTaskExtraDatesFlow(): Flow<List<TaskExtraDateEntity>> {
+        return taskExtraDateDao.getAllFlow()
+    }
+
+    fun getAllUntilCompleteChildrenFlow(): Flow<List<UntilCompleteChildEntity>> {
+        return untilCompleteChildDao.getAllFlow()
+    }
+
+    suspend fun addTaskForExtraDate(taskId: String, date: String) {
+        taskExtraDateDao.upsert(TaskExtraDateEntity(taskId = taskId, date = date))
+    }
+
+    suspend fun removeTaskFromExtraDate(taskId: String, date: String) {
+        taskExtraDateDao.delete(taskId, date)
+    }
+
+    suspend fun addUntilCompleteChild(parentTaskId: String, date: String): UntilCompleteChildEntity {
+        val existing = untilCompleteChildDao.getChildForParentDate(parentTaskId, date)
+        if (existing != null) return existing
+        val child = UntilCompleteChildEntity(
+            childTaskId = java.util.UUID.randomUUID().toString(),
+            parentTaskId = parentTaskId,
+            taskAddedDate = date
+        )
+        untilCompleteChildDao.upsert(child)
+        return child
+    }
+
+    suspend fun getUntilCompleteChildForParentDate(parentTaskId: String, date: String): UntilCompleteChildEntity? {
+        return untilCompleteChildDao.getChildForParentDate(parentTaskId, date)
+    }
+
+    suspend fun removeUntilCompleteChild(child: UntilCompleteChildEntity) {
+        untilCompleteChildDao.deleteByChildId(child.childTaskId)
+        completionDao.deleteAllForTask(child.childTaskId)
+        checklistProgressDao.deleteAllForTask(child.childTaskId)
+    }
+
     suspend fun replaceTaskDaySnapshots(
         taskIds: List<String>,
         startDate: String,
@@ -86,10 +143,7 @@ class AppRepository(
         snapshots: List<TaskDaySnapshotEntity>
     ) {
         if (taskIds.isEmpty()) return
-        taskDaySnapshotDao.deleteForTasks(taskIds)
-        if (snapshots.isNotEmpty()) {
-            taskDaySnapshotDao.upsertAll(snapshots)
-        }
+        taskDaySnapshotDao.replaceForTasks(taskIds, snapshots)
     }
 
     fun startTaskDaySnapshotSync(scope: CoroutineScope) {
@@ -99,43 +153,101 @@ class AppRepository(
             combine(
                 getAllTasksFlow(),
                 getAllCompletionsFlow(),
-                getAllTaskTrackingVersionsFlow()
-            ) { tasks, completions, trackingVersions ->
-                Triple(tasks, completions, trackingVersions)
-            }.collectLatest { (tasks, completions, trackingVersions) ->
+                getAllTaskTrackingVersionsFlow(),
+                getAllTaskExtraDatesFlow()
+            ) { tasks, completions, trackingVersions, extraDates ->
+                SnapshotSyncInput(tasks, completions, trackingVersions, extraDates)
+            }.collectLatest { input ->
+                val tasks = input.tasks
+                val completions = input.completions
+                val trackingVersions = input.trackingVersions
                 if (tasks.isEmpty()) {
+                    snapshotTaskSignatures.clear()
                     taskDaySnapshotDao.clearAll()
                     return@collectLatest
                 }
 
                 val today = LocalDate.now()
-                val start = tasks.minOfOrNull {
-                    runCatching { LocalDate.parse(it.taskAddedDate) }.getOrElse { today }
-                } ?: today
                 val end = today.plusDays(120)
                 val completionEntityMap = completions
                     .groupBy { it.date }
                     .mapValues { entry -> entry.value.associateBy { it.taskId } }
+                val completionByTaskId = completions.groupBy { it.taskId }
                 val trackingVersionMap = trackingVersions
                     .groupBy { it.taskId }
                     .mapValues { entry -> entry.value.sortedBy { it.effectiveFromDate } }
+                val extraDateMap = input.extraDates
+                    .groupBy { it.taskId }
+                    .mapValues { entry -> entry.value.map { it.date }.toSet() }
+                val taskById = tasks.associateBy { it.id }
+                val currentTaskIds = taskById.keys
+
+                val removedTaskIds = snapshotTaskSignatures.keys - currentTaskIds
+                if (removedTaskIds.isNotEmpty()) {
+                    taskDaySnapshotDao.deleteForTasks(removedTaskIds.toList())
+                    removedTaskIds.forEach(snapshotTaskSignatures::remove)
+                }
+
+                val changedTasks = tasks.filter { task ->
+                    val signature = buildSnapshotTaskSignature(
+                        task = task,
+                        completions = completionByTaskId[task.id].orEmpty(),
+                        trackingVersions = trackingVersionMap[task.id].orEmpty(),
+                        extraDates = extraDateMap[task.id].orEmpty()
+                    )
+                    val previous = snapshotTaskSignatures[task.id]
+                    if (previous != signature) {
+                        snapshotTaskSignatures[task.id] = signature
+                        true
+                    } else {
+                        false
+                    }
+                }
+
+                if (changedTasks.isEmpty()) return@collectLatest
+
+                val start = changedTasks.minOfOrNull {
+                    runCatching { LocalDate.parse(it.taskAddedDate) }.getOrElse { today }
+                } ?: today
 
                 val snapshots = buildTaskDaySnapshots(
-                    tasks = tasks,
+                    tasks = changedTasks,
                     completionEntityMap = completionEntityMap,
                     trackingVersionsMap = trackingVersionMap,
+                    extraDateMap = extraDateMap,
                     startDate = start,
                     endDate = end
                 )
 
                 replaceTaskDaySnapshots(
-                    taskIds = tasks.map { it.id },
+                    taskIds = changedTasks.map { it.id },
                     startDate = start.toString(),
                     endDate = end.toString(),
                     snapshots = snapshots
                 )
             }
         }
+    }
+
+    private data class SnapshotSyncInput(
+        val tasks: List<TaskEntity>,
+        val completions: List<TaskCompletionEntity>,
+        val trackingVersions: List<TaskTrackingVersionEntity>,
+        val extraDates: List<TaskExtraDateEntity>
+    )
+
+    private fun buildSnapshotTaskSignature(
+        task: TaskEntity,
+        completions: List<TaskCompletionEntity>,
+        trackingVersions: List<TaskTrackingVersionEntity>,
+        extraDates: Set<String>
+    ): Int {
+        var signature = 17
+        signature = 31 * signature + task.hashCode()
+        signature = 31 * signature + completions.hashCode()
+        signature = 31 * signature + trackingVersions.hashCode()
+        signature = 31 * signature + extraDates.hashCode()
+        return signature
     }
 
     suspend fun markCompleted(taskId: String, date: String) {
@@ -186,11 +298,6 @@ class AppRepository(
 
     fun getAllCompletions(): LiveData<List<TaskCompletionEntity>> {
         return completionDao.getAllCompletions()
-    }
-
-    suspend fun deleteCompletionsBefore(taskId: String, newStartDate: String) {
-        completionDao.deleteCompletionsBefore(taskId, newStartDate)
-        checklistProgressDao.deleteBefore(taskId, newStartDate)
     }
 
     suspend fun getMaxManualOrder(): Int? {

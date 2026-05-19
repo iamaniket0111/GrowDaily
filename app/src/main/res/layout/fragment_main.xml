@@ -12,51 +12,10 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        >
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center|bottom"
-            android:layout_margin="16dp"
-            android:contentDescription="@string/none"
-            android:src="@drawable/emoji_neutral"
-            app:backgroundTint="@color/main_mini_fab_bg"
-            app:fabSize="mini"
-            app:tint="@color/brand_blue"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/view"
-            android:visibility="gone"
-            />
-        <Space
-            android:id="@+id/view"
-            android:layout_width="0dp"
-            android:layout_height="?actionBarSize"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            />
-    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-    <!-- Floating Action Button -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center|bottom"
-        android:layout_margin="16dp"
-        android:contentDescription="@string/none"
-        android:src="@drawable/ic_add"
-        app:backgroundTint="@color/brand_blue"
-        app:elevation="0dp"
-        app:layout_anchor="@id/bottom_app_bar"
-        app:layout_anchorGravity="center"
-        app:tint="@color/white" />
+
+
 
     <!-- BottomAppBar with cutout -->
     <com.google.android.material.bottomappbar.BottomAppBar
@@ -87,4 +46,20 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:menu="@menu/bottom_nav_menu" />
+
+
+    <!-- Floating Action Button -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center|bottom"
+        android:layout_margin="16dp"
+        android:contentDescription="@string/none"
+        android:src="@drawable/ic_add"
+        app:backgroundTint="@color/brand_blue"
+        app:elevation="0dp"
+        app:layout_anchor="@id/bottom_app_bar"
+        app:layout_anchorGravity="center"
+        app:tint="@color/white" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

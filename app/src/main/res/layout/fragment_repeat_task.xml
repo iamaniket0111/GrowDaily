@@ -5,16 +5,12 @@
     android:layout_height="match_parent"
     tools:context=".fragment.RepeatTaskFragment">
 
-    <!-- Main list -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/analysisListRv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="100dp"
         android:clipToPadding="false"
-        android:visibility="gone" />
-
-    <!-- Empty state — shown when list is loaded but empty -->
+        android:paddingBottom="100dp" />
 
     <FrameLayout
         android:id="@+id/emptyState"
@@ -28,29 +24,5 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center" />
     </FrameLayout>
-
-
-    <!-- Loading state — shown until first data arrives -->
-    <LinearLayout
-        android:id="@+id/loadingState"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="vertical">
-
-        <com.google.android.material.progressindicator.CircularProgressIndicator
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:indeterminate="true"
-            android:layout_marginBottom="12dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Loading tasks…"
-            android:textSize="14sp"
-            android:textColor="@color/black" />
-
-    </LinearLayout>
 
 </FrameLayout>

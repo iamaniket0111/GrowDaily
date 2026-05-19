@@ -34,7 +34,7 @@
                 android:id="@+id/previewBackground"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
-                android:background="@drawable/circular"
+                android:background="@drawable/circle_background"
                />
 
             <ImageView

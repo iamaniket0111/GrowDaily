@@ -16,6 +16,6 @@ data class TaskUiItem(
     val isCompleted: Boolean,
     val isListFiltered: Boolean,
     val completionDate: String,
-    val pendingFromText: String? = null
-
+    val pendingFromDate: String? = null,
+    val sourceTask: TaskEntity? = null
 )

@@ -9,13 +9,8 @@
     <!-- Section Title -->
     <TextView
         android:id="@+id/txtOverviewTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        style="@style/AnalysisTitle"
         android:text="ACTIVITY OVERVIEW"
-        android:textColor="@color/task_text_primary"
-        android:textSize="12sp"
-        android:textStyle="normal"
-        android:letterSpacing="0.05"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

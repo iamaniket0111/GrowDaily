@@ -1,5 +1,6 @@
 package com.anitech.growdaily.adapter
 
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -7,6 +8,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.R
+import com.anitech.growdaily.adjustAlpha
 import com.anitech.growdaily.data_class.ListEntity
 
 class ListAdapter(
@@ -16,6 +18,7 @@ class ListAdapter(
 
     private var selectedListId: String? = null
     var isSelectingMode = false
+    private var accentColor: Int? = null
 
     interface OnItemClickListener {
         fun onItemClick(conditionItem: ListEntity, isSelected: Boolean)
@@ -80,20 +83,13 @@ class ListAdapter(
         when (holder) {
 
             is ConditionItemVH -> {
-
+                val isSelected: Boolean
+                
                 // ---------- NONE ----------
                 if (getItemViewType(position) == VIEW_NONE) {
-                    holder.text.text = "None"
-
-                    val isSelected = selectedListId == null
-                    if (isSelected) {
-                        holder.itemView.backgroundTintList =
-                            ContextCompat.getColorStateList(
-                                context,
-                                R.color.category_dark_blue_25
-                            )
-                    }
-
+                    holder.text.text = context.getString(R.string.list_none)
+                    isSelected = selectedListId == null
+                    
                     holder.itemView.setOnClickListener {
                         listener.onAllClick(isSelected)
                     }
@@ -102,15 +98,7 @@ class ListAdapter(
                 else {
                     val item = conditionList[position - 1]
                     holder.text.text = item.listTitle
-
-                    val isSelected = selectedListId == item.id
-                    if (isSelected) {
-                        holder.itemView.backgroundTintList =
-                            ContextCompat.getColorStateList(
-                                context,
-                                R.color.category_dark_blue_25
-                            )
-                    }
+                    isSelected = selectedListId == item.id
 
                     holder.itemView.setOnClickListener {
                         if (!isSelectingMode) {
@@ -125,6 +113,18 @@ class ListAdapter(
                         } else false
                     }
                 }
+
+                // Update Visuals based on selection
+                if (isSelected) {
+                    val color = accentColor ?: ContextCompat.getColor(context, R.color.category_dark_blue)
+                    holder.itemView.backgroundTintList = ColorStateList.valueOf(color.adjustAlpha(0.15f))
+                    holder.text.setTextColor(color)
+                    holder.text.paint.isFakeBoldText = true
+                } else {
+                    holder.itemView.backgroundTintList = ContextCompat.getColorStateList(context, R.color.task_filter_surface)
+                    holder.text.setTextColor(ContextCompat.getColor(context, R.color.task_text_primary))
+                    holder.text.paint.isFakeBoldText = false
+                }
             }
 
             is NewListVH -> holder.itemView.setOnClickListener {
@@ -138,6 +138,11 @@ class ListAdapter(
     }
 
     // ---------------- Public API ----------------
+
+    fun setAccentColor(color: Int) {
+        this.accentColor = color
+        notifyDataSetChanged()
+    }
 
     fun setSelectedListById(id: String?) {
         selectedListId = id

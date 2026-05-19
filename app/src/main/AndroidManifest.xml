@@ -2,6 +2,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Notifications (runtime permission on Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Boot / reschedule triggers -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!--
+        SCHEDULE_EXACT_ALARM  – user-revocable on Android 12+ (API 31+).
+        USE_EXACT_ALARM       – auto-granted on Android 13+ (API 33+) for
+                                calendar/alarm-clock apps; keeps alarms alive
+                                even if the user visits Special App Access.
+        Both are declared so the system picks the right one per API level.
+    -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
     <application
         android:name=".MyApp"
         android:allowBackup="true"
@@ -13,17 +28,63 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GrowDaily"
         tools:targetApi="31">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.GrowDaily.NoActionBar">
+            android:theme="@style/Theme.GrowDaily.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+            TaskReminderReceiver – fired by AlarmManager only.
+            Declaring the action explicitly is required on Android 14+ (API 34+)
+            for implicit broadcast intents sent by the system alarm.
+            exported="false" keeps it private; AlarmManager can still reach it
+            because it is a same-package explicit intent.
+        -->
+        <receiver
+            android:name=".reminder.TaskReminderReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.anitech.growdaily.action.TASK_REMINDER" />
+            </intent-filter>
+        </receiver>
+
+        <!--
+            ReminderRescheduleReceiver – listens for system events that
+            invalidate scheduled alarms so we can rebuild them from the DB.
+
+            exported="false" is safe for all listed actions on API 26+:
+            protected system broadcasts are delivered even to non-exported
+            receivers.  Keeping it false reduces the attack surface.
+
+            BOOT_COMPLETED         – standard boot
+            QUICKBOOT_COMPLETED    – OEM fast-boot (Xiaomi, OnePlus, etc.)
+            locked_boot_completed  – Direct Boot: fires before user unlock
+            MY_PACKAGE_REPLACED    – app update re-registers alarms
+            TIME_SET               – user manually changed clock
+            TIMEZONE_CHANGED       – user changed timezone
+            ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED
+                                   – user toggled exact-alarm permission
+        -->
+        <receiver
+            android:name=".reminder.ReminderRescheduleReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

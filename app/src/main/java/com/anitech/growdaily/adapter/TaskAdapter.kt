@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.CommonMethods.Companion.getTodayDate
 import com.anitech.growdaily.R
+import com.anitech.growdaily.adjustAlpha
 import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.data_class.TaskUiItem
 import com.anitech.growdaily.databinding.RvTaskItemBinding
@@ -28,6 +29,7 @@ class TaskAdapter(
 ) : ListAdapter<TaskUiItem, TaskAdapter.ViewHolder>(TaskDiffCallback()) {
     private var currentDate: String = getTodayDate()
     private var dateMode: DateMode = DateMode.TODAY
+
     private val colorStateListCache = mutableMapOf<Int, ColorStateList>()
 
     interface OnItemClickListener {
@@ -61,12 +63,12 @@ class TaskAdapter(
 
             // Basic data setup
             setTaskData(item)
-            setTaskNote(task, item.pendingFromText)
+            setTaskNote(task, item.pendingFromDate)
             setTaskType(task)
             handleScheduledTime(task)
 
             // Accessibility
-            root.contentDescription = "Task: ${task.title}, Type: ${task.taskType.name}"
+            root.contentDescription = root.context.getString(R.string.task_content_description, task.title, task.taskType.name)
             val color = TaskColor.valueOf(task.colorCode).toColorInt(root.context)
 
             val isPastLike = item.isListFiltered || item.dateMode == DateMode.PAST
@@ -84,15 +86,15 @@ class TaskAdapter(
             setupClickListeners(item, task, currentDate)
         }
 
-        private fun setTaskNote(task: TaskEntity, pendingFromText: String?) = with(binding) {
+        private fun setTaskNote(task: TaskEntity, pendingFromDate: String?) = with(binding) {
             if (!task.note.isNullOrEmpty()) {
                 taskNote.text = task.note
                 taskNote.visibility = View.VISIBLE
             } else {
                 taskNote.visibility = View.GONE
             }
-            if (!pendingFromText.isNullOrBlank()) {
-                taskPendingText.text = pendingFromText
+            if (!pendingFromDate.isNullOrBlank()) {
+                taskPendingText.text = root.context.getString(R.string.pending_from_format, com.anitech.growdaily.CommonMethods.formatDate(pendingFromDate))
                 taskPendingText.visibility = View.VISIBLE
             } else {
                 taskPendingText.visibility = View.GONE
@@ -168,9 +170,7 @@ class TaskAdapter(
             val mutedSurface = ContextCompat.getColor(context, R.color.task_done_track)
             val iconTint = ContextCompat.getColor(context, R.color.iconTint)
 
-
             if (isActive) {
-
                 // TEXT COLORS
                 taskTitle.setTextColor(white)
                 taskNote.setTextColor(white)
@@ -185,12 +185,11 @@ class TaskAdapter(
                 flag.setColorFilter(white)
                 fire.setColorFilter(white)
 
-
                 // DONE
                 styleDoneProgress(
                     progressView = doneView,
                     indicatorColor = white,
-                    trackColor = adjustAlpha(white, 0.28f)
+                    trackColor = white.adjustAlpha(0.28f)
                 )
                 done.setSolidBackgroundColorCompat(if (isCompleted) color else white)
                 done.imageTintList = getCachedColorStateList(white)
@@ -207,7 +206,7 @@ class TaskAdapter(
                 // TEXT COLORS
                 taskTitle.setTextColor(primaryText)
                 taskNote.setTextColor(secondaryText)
-                taskPendingText.setTextColor(color)
+               // taskPendingText.setTextColor(displayAccent)
                 taskType.setTextColor(color)
                 taskWeight.setTextColor(secondaryText)
                 taskStreak.setTextColor(secondaryText)
@@ -223,15 +222,18 @@ class TaskAdapter(
                 styleDoneProgress(
                     progressView = doneView,
                     indicatorColor = color,
-                    trackColor = adjustAlpha(color, 0.18f)
+                    trackColor = color.adjustAlpha(0.18f)
                 )
                 done.setSolidBackgroundColorCompat(if (isCompleted) color else cardSurface)
                 done.imageTintList = getCachedColorStateList(white)
 
                 // BACKGROUND
+                val isNight = (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+                val alphaFactor = if (isNight) 0.12f else 0.07f
+                
                 body.backgroundTintList = getCachedColorStateList(cardSurface)
-                weightContainer.backgroundTintList = getCachedColorStateList(mutedSurface)
-                streakContainer.backgroundTintList = getCachedColorStateList(mutedSurface)
+                weightContainer.backgroundTintList = getCachedColorStateList(color.adjustAlpha(alphaFactor))
+                streakContainer.backgroundTintList = getCachedColorStateList(color.adjustAlpha(alphaFactor))
             }
 
             // shView update
@@ -272,22 +274,17 @@ class TaskAdapter(
             progressView.trackColor = trackColor
         }
 
-        private fun adjustAlpha(color: Int, factor: Float): Int {
-            val alpha = (Color.alpha(color) * factor).toInt().coerceIn(0, 255)
-            return Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color))
-        }
-
         private fun setupClickListeners(
             item: TaskUiItem,
             task: TaskEntity,
             currentDate: String
         ) = with(binding) {
             root.setOnClickListener {
-                listener.moveToEditListener(task)
+                listener.moveToEditListener(item.sourceTask ?: task)
             }
 
             root.setOnLongClickListener {
-                Toast.makeText(root.context, "Not implemented", Toast.LENGTH_SHORT).show()
+                Toast.makeText(root.context, R.string.not_implemented, Toast.LENGTH_SHORT).show()
                 true
             }
 
@@ -308,6 +305,8 @@ class TaskAdapter(
         dateMode = mode
         submitList(newList)
     }
+
+
 }
 
 class TaskDiffCallback : DiffUtil.ItemCallback<TaskUiItem>() {
@@ -326,7 +325,7 @@ class TaskDiffCallback : DiffUtil.ItemCallback<TaskUiItem>() {
                 oldItem.isCompleted == newItem.isCompleted &&
                 oldItem.isListFiltered == newItem.isListFiltered &&
                 oldItem.completionDate == newItem.completionDate &&
-                oldItem.pendingFromText == newItem.pendingFromText
+                oldItem.pendingFromDate == newItem.pendingFromDate
 
     }
 }
