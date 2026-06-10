@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingHorizontal="16dp"
+    android:paddingTop="16dp">
+
+
+    <!-- Day & Repeat segmented control with sliding indicator -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:foregroundGravity="center">
+
+        <LinearLayout
+            android:id="@+id/topToggleContainer"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:background="@drawable/task_filter_chip"
+            android:backgroundTint="@color/task_chip_surface"
+            android:padding="6dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDay"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Day"
+                android:drawablePadding="8dp"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_calendar"
+                app:iconGravity="textStart"
+                app:iconTint="@color/white"
+                app:cornerRadius="24dp"
+
+                  />
+
+            <Space
+                android:layout_width="8dp"
+                android:layout_height="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRepeat"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Repeat"
+                android:drawablePadding="8dp"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_repeat"
+                app:iconGravity="textStart"
+                app:iconTint="@color/white"
+                app:cornerRadius="24dp"
+                />
+        </LinearLayout>
+
+        <!-- sliding selection indicator; width/position updated in code -->
+        <View
+            android:id="@+id/selectionIndicator"
+            android:layout_width="0dp"
+            android:layout_height="4dp"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="6dp"
+            android:backgroundTint="@color/task_text_primary" />
+    </FrameLayout>
+
+    <HorizontalScrollView
+        android:id="@+id/chipContainerDayScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/chipAllDay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/task_filter_chip"
+                android:backgroundTint="@color/task_chip_surface"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="10dp"
+                android:text="@string/manage_tab_all"
+                android:textColor="@color/task_text_secondary"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/chipAddForToday"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/task_filter_chip"
+                android:backgroundTint="@color/task_chip_surface"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="10dp"
+                android:text="@string/manage_tab_add_for_today"
+                android:textColor="@color/task_text_secondary"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <HorizontalScrollView
+        android:id="@+id/chipContainerRepeatScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/chipAllRepeat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/task_filter_chip"
+                android:backgroundTint="@color/task_chip_surface"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="10dp"
+                android:text="@string/manage_tab_all"
+                android:textColor="@color/task_text_secondary"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/chipActive"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/task_filter_chip"
+                android:backgroundTint="@color/task_chip_surface"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="10dp"
+                android:text="@string/manage_tab_active"
+                android:textColor="@color/task_text_secondary"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/chipPaused"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/task_filter_chip"
+                android:backgroundTint="@color/task_chip_surface"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="10dp"
+                android:text="@string/paused_repeat_tasks_tab"
+                android:textColor="@color/task_text_secondary"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/chipEnded"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/task_filter_chip"
+                android:backgroundTint="@color/task_chip_surface"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="10dp"
+                android:text="@string/ended_repeat_tasks_tab"
+                android:textColor="@color/task_text_secondary"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingBottom="48dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerManageRepeatTasks"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="4dp"
+            android:paddingBottom="12dp" />
+
+        <LinearLayout
+            android:id="@+id/emptyStateContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/ivEmptyState"
+                android:layout_width="220dp"
+                android:layout_height="220dp"
+                android:contentDescription="@string/none"
+                android:src="@drawable/ic_to_do_list" />
+
+            <TextView
+                android:id="@+id/txtEmptyTitle"
+                style="@style/EmptyStateTitle"
+                android:layout_width="match_parent"
+                android:gravity="center" />
+
+            <TextView
+                android:id="@+id/txtEmptySubtitle"
+                style="@style/EmptyStateSubtitle" />
+        </LinearLayout>
+    </FrameLayout>
+
+</LinearLayout>

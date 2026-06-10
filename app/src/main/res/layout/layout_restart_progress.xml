@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/restartProgressRow"
+    style="@style/AddFormRow"
+    android:visibility="gone">
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Restart task progress"
+        style="@style/TitleLabel" />
+
+    <ImageView
+        android:id="@+id/imgRestartProgress"
+        style="@style/ChevronImageView" />
+
+</LinearLayout>

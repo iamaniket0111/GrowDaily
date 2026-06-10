@@ -1,0 +1,12 @@
+package com.anitech.growdaily.enum_class
+
+enum class AddTaskValidationError {
+    TITLE_REQUIRED,
+    SCHEDULE_TIME_REQUIRED,
+    REMINDER_TIME_REQUIRED,
+    CHECKLIST_EMPTY,
+    CHECKLIST_DUPLICATE,
+    END_DATE_BEFORE_START,
+    REPEAT_WEEKDAYS_REQUIRED,
+    REPEAT_MONTH_DAYS_REQUIRED
+}

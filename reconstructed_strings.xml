@@ -1,0 +1,223 @@
+Created At: 2026-06-10T07:42:32Z
+Completed At: 2026-06-10T07:42:32Z
+File Path: `file:///c:/Users/anike/AndroidStudioProjects/GrowDaily/app/src/main/res/values/strings.xml`
+Total Lines: 305
+Total Bytes: 20696
+Showing lines 285 to 305
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+# Helper function to parse XML file using regex
+function Parse-StringsFile($filePath) {
+if (Test-Path $filePath) {
+$content = Get-Content $filePath -Raw
+# Match <string name="name">value</string>
+$matches = [regex]::Matches($content, '<string\s+name="([^"]+)"[^>]*?>(.*?)</string>', [System.Text.RegularExpressions.RegexOptions]::Singleline)
+foreach ($m in $matches) {
+$name = $m.Groups[1].Value
+$val = $m.Groups[2].Value
+# Clean up JSON backslash escapes: replace \\\\ with \\ and \\ with \
+$val = $val.Replace('\\\\', '\').Replace('\\', '\')
+$allStrings[$name] = $val
+}
+foreach ($m in $pluralsMatches) {
+$name = $m.Groups[1].Value
+$val = $m.Groups[2].Value
+$allStrings["PLURAL_$name"] = $val
+}
+}
+}
+305: 
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.
+
+
+# 2. Parse recovered strings.xml (which has 157 clean keys)
+Parse-StringsFile $recoveredPath
+
+# 3. Add manual missing strings (32 strings + 14 = 46 total extra strings)
+$outputLines | Out-File -FilePath "c:\Users\anike\AndroidStudioProjects\GrowDaily\recovered_strings.xml" -Encoding utf8
+Write-Output "Successfully wrote $($strings.Count) strings to recovered_strings.xml"
+
+
+if (Test-Path $path) {
+$content = Get-Content $path -Raw
+# Match <string name="name">value</string>
+$matches = [regex]::Matches($content, '<string\s+name="([^"]+)"[^>]*?>(.*?)</string>', [System.Text.RegularExpressions.RegexOptions]::Singleline)
+foreach ($m in $matches) {
+$name = $m.Groups[1].Value
+$val = $m.Groups[2].Value
+$allStrings[$name] = $val
+}
+# Match <plurals name="name">...</plurals>
+$pluralsMatches = [regex]::Matches($content, '<plurals\s+name="([^"]+)"[^>]*?>(.*?)</plurals>', [System.Text.RegularExpressions.RegexOptions]::Singleline)
+foreach ($m in $pluralsMatches) {
+$name = $m.Groups[1].Value
+$val = $m.Groups[2].Value
+$allStrings["PLURAL_$name"] = $val
+}
+}
+
+# Add new strings
+foreach ($key in $newStrings.Keys) {
+"increase_count" = "Increase"
+"increase_duration" = "Increase minutes"
+"minutes_short" = "min"
+"reminder_time_label" = "Reminder Time:"
+"save_button" = "Save"
+"save_task_button" = "Save Task"
+"schedule_time_label" = "Schedule Time:"
+"scheduled_tasks_filter" = "Scheduled"
+"select_tracking_binary" = "Select binary tracking"
+"select_tracking_checklist" = "Select checklist tracking"
+"select_tracking_count" = "Select count tracking"
+"select_tracking_timer" = "Select timer tracking"
+"set_my_flow" = "Set My Flow"
+"target_duration_label" = "Target duration"
+"task_note_hint" = "Note (Optional)"
+"task_title_hint" = "Title"
+"tasks_in_list_header" = "Tasks in this list"
+"tracking_binary" = "Binary"
+"tracking_checklist" = "Checklist"
+"tracking_count" = "Count"
+"tracking_timer" = "Timer"
+"add_remove_action" = "Add/Remove dates"
+"reorder_tasks_title" = "Reorder Task"
+}
+
+foreach ($key in $manualStrings.Keys) {
+$allStrings[$key] = $manualStrings[$key]
+}
+
+# Generate output
+$out = @("<resources>")
+
+# Sort keys and write
+foreach ($key in ($allStrings.Keys | Sort-Object)) {
+# Skip temporary or invalid keys
+if ($key -eq 'NAME' -or $key -match '^\{name\}' -or $key -match '^\(\[\^') {
+continue
+}
+
+if ($key.StartsWith("PLURAL_")) {
+$realName = $key.Substring(7)
+$out += "    <plurals name=`"$realName`">$($allStrings[$key])</plurals>"
+} else {
+$out += "    <string name=`"$key`">$($allStrings[$key])</string>"
+}
+}
+
+$out += "</resources>"
+
+$out | Out-File -FilePath $targetPath -Encoding utf8
+Write-Output "Successfully merged and wrote $($allStrings.Count) entries to strings.xml"
+
+<string name="reorder_empty_subtitle">Add some tasks first, then you can 
+<string name="selected_count_format">
+-        {count, plural,
+-        =1 {1 selected}
+-        other {# selected}
+-        }
+
+
+
+
+
+<string name="reorder_empty_subtitle">Add some tasks first, then you can 
+
+
+val collapsedDaily = dailyTasks
+.groupBy { task -> task.seriesId.ifBlank { task.id } }
+.map { (_, segments) ->
+segments.maxWithOrNull(
+compareBy<TaskEntity> { it.taskAddedDate }
+.thenBy { if (it.taskRemovedDate == null) 1 else 0 }
+.thenBy { if (it.inactiveReason == null) 1 else 0 }
+.thenBy { it.id }
+) ?: segments.first()
+}
+return collapsedDaily + otherTasks
+}
+
+fun isTaskActiveOnDate(task: TaskEntity, dateString: String): Boolean {
+if (task.taskAddedDate > dateString) return false
+if (task.taskRemovedDate != null && task.taskRemovedDate < dateString) return false
+if (task.taskType != TaskType.DAILY) return true
+return matchesRepeatPattern(task, dateString)
+}
+
+fun isWithinTaskLifetime(task: TaskEntity, dateString: String): Boolean {
+if (task.taskAddedDate > dateString) return false
+
+return true
+}
+
+
+if (task.taskType != TaskType.DAILY) return null
+
+}
+
+while (!cursor.isBefore(start)) {
+val candidate = cursor.format(sdf)
+if (isTaskActiveOnDate(task, candidate)) {
+return candidate
+
+cursor = cursor.minusDays(1)
+}
+return null
+}
+
+fun matchesRepeatPattern(task: TaskEntity, dateString: String): Boolean {
+
+
+val repeatType = task.repeatType ?: RepeatType.DAILY
+if (repeatType == RepeatType.DAILY) return true
+
+val date = runCatching { LocalDate.parse(dateString, sdf) }.getOrNull() ?: return true
+val values = parseRepeatDays(task.repeatDays)
+
+return when (repeatType) {
+RepeatType.DAILY -> true
+RepeatType.DAYS_OF_WEEK -> values.contains(date.dayOfWeek.value)
+RepeatType.DAYS_OF_MONTH -> values.contains(date.dayOfMonth)
+}
+}
+
+fun parseRepeatDays(raw: String?): List<Int> {
+if (raw.isNullOrBlank()) return emptyList()
+return raw.split(",")
+.mapNotNull { it.trim().toIntOrNull() }
+.distinct()
+.sorted()
+}
+
+fun formatRepeatSummary(repeatType: RepeatType?, repeatDays: String?): String {
+// This method would ideally need a Context to be truly localized with strings.xml.
+// However, since it's a static utility, I'll use standard Java/Kotlin localization for names.
+return when (repeatType ?: RepeatType.DAILY) {
+
+
+
+
+<string name="theme_summary_system">Using your device setting</string>
+<string name="time_placeholder">--:--</string>
+<string name="time_progress_subtitle">Time progress</string>
+<string name="timer_hint">Drag the ring or adjust by 1 minute</string>
+<string name="timer_value_format">%1$d:%2$02d / %3$d:00</string>
+<string name="today">Today</string>
+<string name="tomorrow">Tomorrow</string>
+<string name="tracking_binary">Binary</string>
+<string name="tracking_checklist">Checklist</string>
+<string name="tracking_count">Count</string>
+<string name="tracking_timer">Timer</string>
+<string name="update_both_button">Update both</string>
+<string name="update_only_this_button">Update only this</string>
+<string name="use_new_start_date_message">Changing the start date from %1$s to %2$s will make tracking start from %2$s. Earlier progress will stay saved and can appear again if you move the start date back.</string>
+<string name="use_new_start_date_title">Use new start date?</string>
+<string name="use_same_time_button">Use same (%1$s)</string>
+<string name="use_same_time_reminder_message">Use the same time as your reminder (%1$s)?</string>
+<string name="use_same_time_schedule_message">Use the same time as your schedule (%1$s)?</string>
+<string name="week_progress_description">Weekly completion progress</string>
+<string name="week_range_format">%1$sâ€“%2$s</string>
+<string name="yesterday">Yesterday</string>
+<string name="zero_selected">0 selected</string>
+<string name="add_remove_action">Add/Remove dates</string>
+<string name="reorder_tasks_title">Reorder Task</string>
+</resources>

@@ -1,0 +1,29 @@
+Created At: 2026-06-10T07:42:32Z
+Completed At: 2026-06-10T07:42:32Z
+File Path: `file:///c:/Users/anike/AndroidStudioProjects/GrowDaily/app/src/main/res/values/strings.xml`
+Total Lines: 305
+Total Bytes: 20696
+Showing lines 285 to 305
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+285:     <string name="timer_hint">Drag the ring or adjust by 1 minute</string>
+286:     <string name="timer_value_format">%1$d:%2$02d / %3$d:00</string>
+287:     <string name="today">Today</string>
+288:     <string name="tomorrow">Tomorrow</string>
+289:     <string name="tracking_binary">Binary</string>
+290:     <string name="tracking_checklist">Checklist</string>
+291:     <string name="tracking_count">Count</string>
+292:     <string name="tracking_timer">Timer</string>
+293:     <string name="update_both_button">Update both</string>
+294:     <string name="update_only_this_button">Update only this</string>
+295:     <string name="use_new_start_date_message">Changing the start date from %1$s to %2$s will make tracking start from %2$s. Earlier progress will stay saved and can appear again if you move the start date back.</string>
+296:     <string name="use_new_start_date_title">Use new start date?</string>
+297:     <string name="use_same_time_button">Use same (%1$s)</string>
+298:     <string name="use_same_time_reminder_message">Use the same time as your reminder (%1$s)?</string>
+299:     <string name="use_same_time_schedule_message">Use the same time as your schedule (%1$s)?</string>
+300:     <string name="week_progress_description">Weekly completion progress</string>
+301:     <string name="week_range_format">%1$sÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“%2$s</string>
+302:     <string name="yesterday">Yesterday</string>
+303:     <string name="zero_selected">0 selected</string>
+304: </resources>
+305: 
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.
