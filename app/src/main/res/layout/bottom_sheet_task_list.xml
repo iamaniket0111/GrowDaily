@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -17,10 +18,8 @@
         android:backgroundTint="@color/task_card_stroke" />
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        style="@style/GrowDailyCard"
         android:layout_marginTop="16dp"
-        android:background="@drawable/task_fragment_card"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="14dp">
@@ -51,23 +50,21 @@
 
         <TextView
             android:id="@+id/txtSelectionBadge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/circular_corners"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/circle_background"
             android:backgroundTint="@color/brand_blue"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="10dp"
+            android:padding="10dp"
             android:text="0"
+            android:textAlignment="center"
             android:textColor="@android:color/white"
             android:textSize="14sp"
             android:textStyle="bold" />
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        style="@style/GrowDailyCard"
         android:layout_marginTop="14dp"
-        android:background="@drawable/task_fragment_card"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="14dp"
@@ -124,68 +121,77 @@
 
     <LinearLayout
         android:id="@+id/createListContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        style="@style/GrowDailyCard"
         android:layout_marginTop="12dp"
-        android:background="@drawable/task_fragment_card"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="10dp"
-        android:paddingVertical="8dp"
+        android:orientation="vertical"
+        android:paddingHorizontal="14dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="14dp"
         android:visibility="gone">
 
-        <EditText
-            android:id="@+id/etListName"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:hint="@string/list_name_hint"
-            android:imeOptions="actionDone"
-            android:inputType="textCapSentences"
-            android:maxLines="1"
-            android:paddingHorizontal="6dp"
-            android:textColor="@color/task_text_primary"
-            android:textColorHint="@color/task_text_secondary" />
+            android:gravity="end"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/btnCreate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/circular_corners"
-            android:backgroundTint="@color/brand_blue"
-            android:gravity="center"
-            android:text="@string/create_button"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="10dp" />
+            <TextView
+                android:id="@+id/btnCreate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/circular_corners"
+                android:backgroundTint="@color/brand_blue"
+                android:gravity="center"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="10dp"
+                android:text="@string/create_button"
+                android:textColor="@android:color/white"
+                android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/btnCloseCreate"
-            android:layout_width="wrap_content"
+            <TextView
+                android:id="@+id/btnCloseCreate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/task_filter_chip"
+                android:backgroundTint="@color/task_done_track"
+                android:gravity="center"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="10dp"
+                android:text="@string/cancel_button"
+                android:textColor="@color/task_text_secondary"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:background="@drawable/task_filter_chip"
-            android:backgroundTint="@color/task_done_track"
-            android:gravity="center"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="10dp"
-            android:text="@string/cancel_button"
-            android:textColor="@color/task_text_secondary"
-            android:textStyle="bold" />
+            android:layout_marginTop="10dp">
+
+            <EditText
+                android:id="@+id/etListName"
+                style="@style/AddListInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:autofillHints="name"
+                android:hint="@string/list_name_hint"
+                android:imeOptions="actionDone"
+                android:importantForAutofill="yes" />
+
+            <TextView
+                android:id="@+id/txtCharCount"
+                style="@style/AddListCharCount"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="16dp"
+                tools:text="0/30" />
+        </FrameLayout>
     </LinearLayout>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnDone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:backgroundTint="@color/brand_blue"
         android:text="@string/apply_lists"
-        android:textColor="@android:color/white"
-        android:paddingVertical="12dp"
-        android:textSize="16sp"
-        android:textAllCaps="false" />
+       style="@style/PrimaryActionButton"/>
 
 </LinearLayout>

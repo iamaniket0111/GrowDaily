@@ -11,14 +11,19 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.content.res.Configuration
 import androidx.core.graphics.drawable.toDrawable
+import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.setFragmentResult
 import com.anitech.growdaily.MainActivity
 import com.anitech.growdaily.R
 import com.anitech.growdaily.enum_class.TaskType
 
-class TaskTypeDialog(
-    private val onTypeSelected: (TaskType) -> Unit
-) : DialogFragment() {
+class TaskTypeDialog : DialogFragment() {
+
+    companion object {
+        const val REQUEST_KEY = "taskTypeResult"
+        const val TASK_TYPE = "taskType"
+    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
@@ -38,13 +43,11 @@ class TaskTypeDialog(
         }
 
         view.findViewById<View>(R.id.optionDaily).setOnClickListener {
-            onTypeSelected(TaskType.DAILY)
-            dismiss()
+            deliverSelection(TaskType.DAILY)
         }
 
         view.findViewById<View>(R.id.optionDay).setOnClickListener {
-            onTypeSelected(TaskType.DAY)
-            dismiss()
+            deliverSelection(TaskType.DAY)
         }
 
         dialog.window?.setLayout(
@@ -53,6 +56,11 @@ class TaskTypeDialog(
         )
 
         return dialog
+    }
+
+    private fun deliverSelection(type: TaskType) {
+        setFragmentResult(REQUEST_KEY, bundleOf(TASK_TYPE to type.name))
+        dismiss()
     }
 
     private fun applyAccentColor(view: View, color: Int) {

@@ -134,4 +134,20 @@ interface TaskCompletionDao {
 
     @Query("SELECT * FROM task_completions")
     fun getAllCompletionsFlow(): Flow<List<TaskCompletionEntity>>
+
+    @Query(
+        """
+        SELECT * FROM task_completions
+        WHERE date BETWEEN :startDate AND :endDate
+        """
+    )
+    fun getCompletionsBetweenFlow(startDate: String, endDate: String): Flow<List<TaskCompletionEntity>>
+
+    @Query(
+        """
+        DELETE FROM task_completions 
+        WHERE taskId = :taskId AND date < :date
+        """
+    )
+    suspend fun deleteCompletionsBeforeDate(taskId: String, date: String)
 }

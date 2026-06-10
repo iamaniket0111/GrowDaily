@@ -82,6 +82,7 @@ class AnalysisRepeatTaskFragment : Fragment() {
     }
 
     private fun setupMenu() {
+        if (parentFragment is TaskDetailFragment) return
         requireActivity().addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.analysis_menu, menu)
@@ -95,17 +96,19 @@ class AnalysisRepeatTaskFragment : Fragment() {
                     }
 
                     R.id.menu_edit -> {
-                        val currentTask = viewModel.overviewState.value?.task ?: return true
-
-                        val bundle = Bundle().apply {
-                            putParcelable("task", currentTask)
+                        val parent = parentFragment as? TaskDetailFragment
+                        if (parent != null) {
+                            parent.switchToEditTab()
+                        } else {
+                            val currentTask = viewModel.overviewState.value?.task ?: return true
+                            val bundle = Bundle().apply {
+                                putParcelable("task", currentTask)
+                            }
+                            findNavController().navigate(
+                                R.id.nav_add_task,
+                                bundle
+                            )
                         }
-
-                        findNavController().navigate(
-                            R.id.nav_add_task,
-                            bundle
-                        )
-
                         true
                     }
 
@@ -448,7 +451,28 @@ class AnalysisRepeatTaskFragment : Fragment() {
             header.txtTaskNote.text = task.note
         }
 
-        header.txtType.text = header.root.context.getString(task.taskType.labelRes)
+        val label = when (task.taskType) {
+            com.anitech.growdaily.enum_class.TaskType.DAILY -> {
+                when (task.repeatType) {
+                    com.anitech.growdaily.enum_class.RepeatType.DAYS_OF_WEEK -> {
+                        com.anitech.growdaily.CommonMethods.formatRepeatSummary(task.repeatType, task.repeatDays)
+                    }
+                    com.anitech.growdaily.enum_class.RepeatType.DAYS_OF_MONTH -> {
+                        "Days of month"
+                    }
+                    else -> {
+                        "Every day"
+                    }
+                }
+            }
+            com.anitech.growdaily.enum_class.TaskType.DAY -> {
+                "Day task"
+            }
+            com.anitech.growdaily.enum_class.TaskType.UNTIL_COMPLETE -> {
+                header.root.context.getString(task.taskType.labelRes)
+            }
+        }
+        header.txtType.text = label
         header.imgType.setColorFilter(color)
 
         header.txtReminder.text =
@@ -543,6 +567,10 @@ class AnalysisRepeatTaskFragment : Fragment() {
     override fun onDestroyView() {
         heatmapBindJob?.cancel()
         isHeatmapDeferredFirstBind = true
+        if (_binding != null) {
+            binding.weekExpanded.weekExpandedRv.adapter = null
+            binding.progressBar.barGraph2.recyclerViewBar.adapter = null
+        }
         super.onDestroyView()
         _binding = null
     }

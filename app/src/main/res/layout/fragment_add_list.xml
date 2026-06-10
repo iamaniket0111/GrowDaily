@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/task_screen_bg"
+    android:paddingHorizontal="16dp"
+    android:paddingTop="14dp"
+    android:paddingBottom="12dp"
+    tools:context=".fragment.AddListFragment">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/headerCard"
+        style="@style/GrowDailyHeaderCard"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp">
+
+            <View
+                android:id="@+id/iconBg"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:background="@drawable/task_filter_chip"
+                android:backgroundTint="@color/task_filter_selected_bg"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/ivTitleIcon"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:contentDescription="@string/none"
+                android:src="@drawable/ic_document"
+                app:layout_constraintBottom_toBottomOf="@id/iconBg"
+                app:layout_constraintEnd_toEndOf="@id/iconBg"
+                app:layout_constraintStart_toStartOf="@id/iconBg"
+                app:layout_constraintTop_toTopOf="@id/iconBg"
+                app:tint="@color/brand_blue" />
+
+            <TextView
+                android:id="@+id/defName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/new_list_default_title"
+                android:textColor="@color/task_text_primary"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/iconBg"
+                app:layout_constraintTop_toTopOf="@id/iconBg" />
+
+            <TextView
+                android:id="@+id/infoText"
+                style="@style/SectionHeaderSubtitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/list_message"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@id/defName"
+                app:layout_constraintTop_toBottomOf="@id/defName" />
+
+            <TextView
+                android:id="@+id/txtListNameLabel"
+                style="@style/AddListInputLabel"
+                android:layout_marginTop="20dp"
+                android:text="@string/list_name_label"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/iconBg" />
+
+            <EditText
+                android:id="@+id/edListName"
+                style="@style/AddListInput"
+                android:layout_marginTop="8dp"
+                android:autofillHints="name"
+                android:hint="@string/list_name_hint"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/txtListNameLabel" />
+
+            <TextView
+                android:id="@+id/txtCharCount"
+                style="@style/AddListCharCount"
+                android:layout_marginEnd="16dp"
+                android:text="0/30"
+                app:layout_constraintBottom_toBottomOf="@id/edListName"
+                app:layout_constraintEnd_toEndOf="@id/edListName"
+                app:layout_constraintTop_toTopOf="@id/edListName" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/sectionHeader"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/headerCard">
+
+        <TextView
+            style="@style/AddListSectionTitle"
+            android:text="@string/tasks_in_list_header"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/txtTaskCount"
+            style="@style/ManageListCountChip"
+            android:text="@string/zero_selected"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <LinearLayout
+        android:id="@+id/emptyTasksContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingHorizontal="32dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/buttonSave"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sectionHeader">
+
+        <ImageView
+            style="@style/ManageListEmptyIllustration"
+            android:contentDescription="@string/none" />
+
+        <TextView
+            style="@style/ManageListEmptySubtitle"
+            android:text="@string/empty_tasks_for_list_subtitle" />
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingTop="12dp"
+        android:paddingBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@id/buttonSave"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sectionHeader" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonSave"
+        style="@style/PrimaryActionButton"
+         android:text="@string/save_changes"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

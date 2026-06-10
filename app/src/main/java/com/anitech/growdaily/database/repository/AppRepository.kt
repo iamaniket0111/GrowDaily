@@ -47,17 +47,33 @@ class AppRepository(
     suspend fun updateTask(task: TaskEntity) = taskDao.updateTask(task)
 
     suspend fun deleteTask(task: TaskEntity) {
+        val snapshotTaskIds = linkedSetOf(task.id)
         taskExtraDateDao.deleteAllForTask(task.id)
         val untilChildren = untilCompleteChildDao.getAllNowForParent(task.id)
         untilCompleteChildDao.deleteAllForParent(task.id)
         untilChildren.forEach { child ->
+            snapshotTaskIds += child.childTaskId
             completionDao.deleteAllForTask(child.childTaskId)
             checklistProgressDao.deleteAllForTask(child.childTaskId)
         }
-        if (untilChildren.isNotEmpty()) {
-            taskDaySnapshotDao.deleteForTasks(untilChildren.map { it.childTaskId })
-        }
+        completionDao.deleteAllForTask(task.id)
+        checklistProgressDao.deleteAllForTask(task.id)
+        removeTaskFromAllLists(task.id)
+        snapshotTaskIds.forEach(snapshotTaskSignatures::remove)
+        taskDaySnapshotDao.deleteForTasks(snapshotTaskIds.toList())
         taskDao.deleteTask(task)
+    }
+
+    suspend fun deleteRepeatSeries(task: TaskEntity) {
+        val seriesId = task.seriesId.ifBlank { task.id }
+        val segments = taskDao.getAllTasksNow()
+            .filter { it.seriesId.ifBlank { it.id } == seriesId }
+        segments.forEach { deleteTask(it) }
+        snapshotTaskSignatures.remove(seriesId)
+    }
+
+    private fun invalidateTaskSnapshotCache(taskId: String) {
+        snapshotTaskSignatures.remove(taskId)
     }
 
     fun getTaskById(taskId: String): LiveData<TaskEntity> {
@@ -98,8 +114,16 @@ class AppRepository(
         return taskDaySnapshotDao.getAllFlow()
     }
 
+    fun getTaskDaySnapshotsBetweenFlow(startDate: String, endDate: String): Flow<List<TaskDaySnapshotEntity>> {
+        return taskDaySnapshotDao.getBetweenFlow(startDate, endDate)
+    }
+
     fun getAllTaskExtraDatesFlow(): Flow<List<TaskExtraDateEntity>> {
         return taskExtraDateDao.getAllFlow()
+    }
+
+    fun getCompletionsBetweenFlow(startDate: String, endDate: String): Flow<List<TaskCompletionEntity>> {
+        return completionDao.getCompletionsBetweenFlow(startDate, endDate)
     }
 
     fun getAllUntilCompleteChildrenFlow(): Flow<List<UntilCompleteChildEntity>> {
@@ -108,10 +132,13 @@ class AppRepository(
 
     suspend fun addTaskForExtraDate(taskId: String, date: String) {
         taskExtraDateDao.upsert(TaskExtraDateEntity(taskId = taskId, date = date))
+        invalidateTaskSnapshotCache(taskId)
     }
 
     suspend fun removeTaskFromExtraDate(taskId: String, date: String) {
         taskExtraDateDao.delete(taskId, date)
+        resetCompletion(taskId, date)
+        invalidateTaskSnapshotCache(taskId)
     }
 
     suspend fun addUntilCompleteChild(parentTaskId: String, date: String): UntilCompleteChildEntity {
@@ -123,6 +150,7 @@ class AppRepository(
             taskAddedDate = date
         )
         untilCompleteChildDao.upsert(child)
+        invalidateTaskSnapshotCache(parentTaskId)
         return child
     }
 
@@ -134,6 +162,8 @@ class AppRepository(
         untilCompleteChildDao.deleteByChildId(child.childTaskId)
         completionDao.deleteAllForTask(child.childTaskId)
         checklistProgressDao.deleteAllForTask(child.childTaskId)
+        taskDaySnapshotDao.deleteForTasks(listOf(child.childTaskId))
+        invalidateTaskSnapshotCache(child.parentTaskId)
     }
 
     suspend fun replaceTaskDaySnapshots(
@@ -308,6 +338,10 @@ class AppRepository(
         taskDao.updateTaskOrder(taskId, order)
     }
 
+    suspend fun updateManualOrderBatch(orderedIds: List<String>) {
+        taskDao.updateManualOrderBatch(orderedIds)
+    }
+
     //List
     suspend fun insertList(list: ListEntity) {
         listDao.insertList(list)
@@ -316,17 +350,17 @@ class AppRepository(
     fun getAllLists(): LiveData<List<ListEntity>> {
         return listDao.getAllLists()
     }
+
     fun getTaskIdsForListFlow(listId: String): Flow<List<String>> {
         return listDao.getTaskIdsForListFlow(listId)
     }
-
 
     suspend fun updateList(list: ListEntity) {
         listDao.updateList(list)
     }
 
     suspend fun updateListOrder(lists: List<ListEntity>) {
-        listDao.updateLists(lists)
+        listDao.updateListOrderBatch(lists)
     }
 
     suspend fun addTaskToList(listId: String, taskId: String) {
@@ -342,22 +376,7 @@ class AppRepository(
         listId: String,
         newTaskIds: List<String>
     ) {
-        val oldTaskIds = listDao.getTaskIdsForList(listId)
-
-        val toAdd = newTaskIds.minus(oldTaskIds.toSet())
-        val toRemove = oldTaskIds.minus(newTaskIds.toSet())
-
-        toAdd.forEach { taskId ->
-            listDao.insertListTask(
-                ListTaskCrossRef(listId, taskId)
-            )
-        }
-
-        toRemove.forEach { taskId ->
-            listDao.deleteListTask(
-                ListTaskCrossRef(listId, taskId)
-            )
-        }
+        listDao.syncTasksForListBatch(listId, newTaskIds)
     }
 
     suspend fun getTaskIdsForList(listId: String): List<String> {
@@ -368,6 +387,10 @@ class AppRepository(
         return listDao.getListIdsForTask(taskId)
     }
 
+    fun getAllListTaskCrossRefsFlow(): Flow<List<ListTaskCrossRef>> {
+        return listDao.getAllListTaskCrossRefsFlow()
+    }
+
     suspend fun deleteList(list: ListEntity) {
         listDao.deleteAllTaskRefsForList(list.id)   // clean up cross-ref rows first
         listDao.deleteList(list)
@@ -375,6 +398,16 @@ class AppRepository(
 
     suspend fun removeTaskFromAllLists(taskId: String) {
         listDao.removeTaskFromAllLists(taskId)
+    }
+
+    suspend fun clearTaskHistoryBeforeDate(taskId: String, date: String) {
+        completionDao.deleteCompletionsBeforeDate(taskId, date)
+        completionDao.delete(taskId, date)
+        taskDaySnapshotDao.deleteSnapshotsBeforeDate(taskId, date)
+        taskTrackingVersionDao.deleteVersionsBeforeDate(taskId, date)
+        checklistProgressDao.deleteBefore(taskId, date)
+        checklistProgressDao.deleteForTaskDate(taskId, date)
+        invalidateTaskSnapshotCache(taskId)
     }
 
     private fun parseChecklistProgressItems(

@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    style="@style/AddFormCard"
     android:orientation="vertical"
-    android:background="@drawable/add_form_surface_card"
     android:padding="12dp">
 
     <!-- ── Row 1: 4 type selector buttons ─────────────────────────────── -->
@@ -17,59 +15,31 @@
 
         <TextView
             android:id="@+id/binaryType"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
+            style="@style/TrackingTypeSelectorButton"
             android:layout_marginEnd="4dp"
-            android:background="@drawable/circular_corners"
-            android:backgroundTint="@color/add_form_muted_surface"
-            android:gravity="center"
-            android:text="Binary"
-            android:textColor="@color/add_form_text_secondary"
-            android:textSize="13sp"
-            android:textStyle="bold" />
+            android:text="@string/tracking_binary"
+            android:contentDescription="@string/select_tracking_binary" />
 
         <TextView
             android:id="@+id/countType"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
+            style="@style/TrackingTypeSelectorButton"
             android:layout_marginHorizontal="4dp"
-            android:background="@drawable/circular_corners"
-            android:backgroundTint="@color/add_form_muted_surface"
-            android:gravity="center"
-            android:text="Count"
-            android:textColor="@color/add_form_text_secondary"
-            android:textSize="13sp"
-            android:textStyle="bold" />
+            android:text="@string/tracking_count"
+            android:contentDescription="@string/select_tracking_count" />
 
         <TextView
             android:id="@+id/timerType"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
+            style="@style/TrackingTypeSelectorButton"
             android:layout_marginHorizontal="4dp"
-            android:background="@drawable/circular_corners"
-            android:backgroundTint="@color/add_form_muted_surface"
-            android:gravity="center"
-            android:text="Timer"
-            android:textColor="@color/add_form_text_secondary"
-            android:textSize="13sp"
-            android:textStyle="bold" />
+            android:text="@string/tracking_timer"
+            android:contentDescription="@string/select_tracking_timer" />
 
         <TextView
             android:id="@+id/checklistType"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
+            style="@style/TrackingTypeSelectorButton"
             android:layout_marginStart="4dp"
-            android:background="@drawable/circular_corners"
-            android:backgroundTint="@color/add_form_muted_surface"
-            android:gravity="center"
-            android:text="Checklist"
-            android:textColor="@color/add_form_text_secondary"
-            android:textSize="13sp"
-            android:textStyle="bold" />
+            android:text="@string/tracking_checklist"
+            android:contentDescription="@string/select_tracking_checklist" />
 
     </LinearLayout>
 
@@ -87,18 +57,15 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Daily target count"
+            android:text="@string/daily_target_count_label"
             android:textColor="@color/add_form_text_primary"
             android:textSize="14sp" />
 
         <ImageButton
             android:id="@+id/btnCountMinus"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="@drawable/add_form_surface_card"
-            android:contentDescription="Decrease"
-            android:src="@drawable/ic_minus"
-            app:tint="@color/add_form_icon" />
+            style="@style/AddFormCircularIconButton"
+            android:contentDescription="@string/decrease_count"
+            android:src="@drawable/ic_minus" />
 
         <TextView
             android:id="@+id/txtCountValue"
@@ -112,12 +79,9 @@
 
         <ImageButton
             android:id="@+id/btnCountPlus"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="@drawable/add_form_surface_card"
-            android:contentDescription="Increase"
-            android:src="@drawable/ic_add"
-            app:tint="@color/add_form_icon" />
+            style="@style/AddFormCircularIconButton"
+            android:contentDescription="@string/increase_count"
+            android:src="@drawable/ic_add" />
 
     </LinearLayout>
 
@@ -135,7 +99,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Target duration"
+            android:text="@string/target_duration_label"
             android:textColor="@color/add_form_text_primary"
             android:textSize="14sp" />
 
@@ -148,12 +112,11 @@
 
             <ImageButton
                 android:id="@+id/btnMinutesMinus"
+                style="@style/AddFormCircularIconButton"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:background="@drawable/add_form_surface_card"
-                android:contentDescription="Decrease minutes"
-                android:src="@drawable/ic_minus"
-                app:tint="@color/add_form_icon" />
+                android:contentDescription="@string/decrease_duration"
+                android:src="@drawable/ic_minus" />
 
             <TextView
                 android:id="@+id/txtMinutesValue"
@@ -167,18 +130,17 @@
 
             <ImageButton
                 android:id="@+id/btnMinutesPlus"
+                style="@style/AddFormCircularIconButton"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:background="@drawable/add_form_surface_card"
-                android:contentDescription="Increase minutes"
-                android:src="@drawable/ic_add"
-                app:tint="@color/add_form_icon" />
+                android:contentDescription="@string/increase_duration"
+                android:src="@drawable/ic_add" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
-                android:text="min"
+                android:text="@string/minutes_short"
                 android:textColor="@color/add_form_text_secondary"
                 android:textSize="13sp" />
 
@@ -195,12 +157,13 @@
         android:orientation="vertical"
         android:visibility="gone">
 
-        <!-- Existing items list (populated programmatically) -->
-        <LinearLayout
-            android:id="@+id/checklistItemsContainer"
+        <!-- Existing items list (populated via RecyclerView) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/checklistRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            android:overScrollMode="never"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
         <!-- Add item row -->
         <LinearLayout
@@ -217,8 +180,9 @@
                 android:layout_weight="1"
                 android:hint="Add checklist item"
                 android:imeOptions="actionDone"
-                android:inputType="text"
-                android:maxLines="1"
+                android:inputType="textCapSentences"
+                android:maxLength="150"
+                android:maxLines="3"
                 android:textColor="@color/add_form_text_primary"
                 android:textColorHint="@color/add_form_hint"
                 android:textSize="14sp" />

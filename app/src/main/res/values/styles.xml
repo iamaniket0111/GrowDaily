@@ -1,11 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="mainColorText">
-        <item name="android:textSize">18sp</item>
-        <item name="android:textColor">@color/main_text_color</item>
+    <style name="GrowDailyCard">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/task_fragment_card</item>
+    </style>
+
+    <style name="WeekdayCheckBox" parent="Widget.AppCompat.CompoundButton.CheckBox">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:buttonTint">@color/brand_blue</item>
+        <item name="android:textColor">@color/task_text_primary</item>
+    </style>
+
+    <style name="GrowDailyHeaderCard">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="cardBackgroundColor">@color/task_card_surface</item>
+        <item name="cardCornerRadius">24dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeColor">@color/task_card_stroke</item>
+        <item name="strokeWidth">1.2dp</item>
+    </style>
+
+    <style name="GrowDailyDialogContainer">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/dialog_surface_card</item>
+    </style>
+
+    <style name="DialogPrimaryButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">52dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:textAppearance">?attr/textAppearanceSubtitle1</item>
+    </style>
+
+    <style name="DialogSecondaryButton" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">50dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/dialog_secondary_action</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="PriorityRadioButton" parent="Widget.AppCompat.CompoundButton.RadioButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/task_fragment_card</item>
+        <item name="android:button">@null</item>
+        <item name="android:drawableStart">@drawable/radio_selector</item>
+        <item name="android:drawablePadding">12dp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">14dp</item>
+        <item name="android:paddingVertical">16dp</item>
+        <item name="android:textColor">@color/task_text_primary</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
     </style>
 
     <style name="CategoryColorCircle" >
@@ -47,40 +103,93 @@
         <item name="android:layout_marginBottom">1dp</item>
     </style>
 
-    <style name="ScoreCardContainer">
+    <style name="CalendarHeaderDay">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginHorizontal">4dp</item>
         <item name="android:layout_weight">1</item>
-        <item name="android:background">@drawable/task_fragment_card</item>
         <item name="android:gravity">center</item>
-        <item name="android:orientation">vertical</item>
-        <item name="android:paddingVertical">16dp</item>
-    </style>
-
-    <style name="ScoreCardProgress" parent="Widget.Material3.CircularProgressIndicator">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="indicatorSize">60dp</item>
-        <item name="trackThickness">4dp</item>
-    </style>
-
-    <style name="ScoreCardWeightText">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_gravity">center</item>
-        <item name="android:gravity">center</item>
-        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/task_text_secondary</item>
+        <item name="android:textSize">12sp</item>
         <item name="android:textStyle">bold</item>
     </style>
 
-    <style name="ScoreCardLabelText">
-        <item name="android:layout_width">wrap_content</item>
+    <style name="TaskItemIconFrame">
+        <item name="android:layout_width">36dp</item>
+        <item name="android:layout_height">36dp</item>
+    </style>
+
+    <style name="TaskItemIcon">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:background">@drawable/circle_background</item>
+        <item name="android:contentDescription">@string/none</item>
+        <item name="android:padding">6dp</item>
+        <item name="android:scaleType">centerCrop</item>
+        <item name="android:src">@drawable/ic_bell</item>
+        <item name="android:tint">@color/white</item>
+    </style>
+
+    <style name="TaskItemMetaText">
+        <item name="android:textColor">@color/brand_blue</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="TaskItemTitleText">
+        <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:maxLines">1</item>
         <item name="android:ellipsize">end</item>
         <item name="android:textColor">@color/task_text_primary</item>
-        <item name="android:layout_marginTop">8dp</item>
+    </style>
+
+    <style name="TaskItemBadgeContainer">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/circular_corners_less</item>
+        <item name="android:backgroundTint">@color/task_done_track</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+
+    <style name="TaskItemBadgeText">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/task_text_secondary</item>
+        <item name="android:textSize">11sp</item>
+    </style>
+
+    <style name="TaskItemBadgeIcon">
+        <item name="android:layout_width">14dp</item>
+        <item name="android:layout_height">14dp</item>
+    </style>
+
+    <style name="TaskItemBodyCard">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/task_fragment_card</item>
+        <item name="android:baselineAligned">false</item>
+    </style>
+
+    <style name="ReorderFilterChip">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingHorizontal">16dp</item>
+        <item name="android:paddingVertical">10dp</item>
+        <item name="android:background">@drawable/task_filter_chip</item>
+        <item name="android:backgroundTint">@color/task_chip_surface</item>
+        <item name="android:textColor">@color/task_text_secondary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="ReorderDoneButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:layout_margin">24dp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="cornerRadius">28dp</item>
     </style>
 
 
@@ -92,62 +201,6 @@
         <item name="android:colorAccent">?attr/colorSecondary</item>
         <item name="colorControlActivated">?attr/colorSecondary</item>
         <item name="android:colorControlActivated">?attr/colorSecondary</item>
-    </style>
-
-    <style name="Theme.GrowDaily.Picker.Red" parent="Theme.GrowDaily.Picker.Base">
-        <item name="colorAccent">@color/category_red</item>
-        <item name="android:colorAccent">@color/category_red</item>
-        <item name="colorControlActivated">@color/category_red</item>
-        <item name="android:colorControlActivated">@color/category_red</item>
-    </style>
-
-    <style name="Theme.GrowDaily.Picker.Orange" parent="Theme.GrowDaily.Picker.Base">
-        <item name="colorAccent">@color/category_orange</item>
-        <item name="android:colorAccent">@color/category_orange</item>
-        <item name="colorControlActivated">@color/category_orange</item>
-        <item name="android:colorControlActivated">@color/category_orange</item>
-    </style>
-
-    <style name="Theme.GrowDaily.Picker.Yellow" parent="Theme.GrowDaily.Picker.Base">
-        <item name="colorAccent">@color/category_yellow</item>
-        <item name="android:colorAccent">@color/category_yellow</item>
-        <item name="colorControlActivated">@color/category_yellow</item>
-        <item name="android:colorControlActivated">@color/category_yellow</item>
-    </style>
-
-    <style name="Theme.GrowDaily.Picker.Green" parent="Theme.GrowDaily.Picker.Base">
-        <item name="colorAccent">@color/category_green</item>
-        <item name="android:colorAccent">@color/category_green</item>
-        <item name="colorControlActivated">@color/category_green</item>
-        <item name="android:colorControlActivated">@color/category_green</item>
-    </style>
-
-    <style name="Theme.GrowDaily.Picker.Teal" parent="Theme.GrowDaily.Picker.Base">
-        <item name="colorAccent">@color/category_teal</item>
-        <item name="android:colorAccent">@color/category_teal</item>
-        <item name="colorControlActivated">@color/category_teal</item>
-        <item name="android:colorControlActivated">@color/category_teal</item>
-    </style>
-
-    <style name="Theme.GrowDaily.Picker.Blue" parent="Theme.GrowDaily.Picker.Base">
-        <item name="colorAccent">@color/category_blue</item>
-        <item name="android:colorAccent">@color/category_blue</item>
-        <item name="colorControlActivated">@color/category_blue</item>
-        <item name="android:colorControlActivated">@color/category_blue</item>
-    </style>
-
-    <style name="Theme.GrowDaily.Picker.Purple" parent="Theme.GrowDaily.Picker.Base">
-        <item name="colorAccent">@color/category_purple</item>
-        <item name="android:colorAccent">@color/category_purple</item>
-        <item name="colorControlActivated">@color/category_purple</item>
-        <item name="android:colorControlActivated">@color/category_purple</item>
-    </style>
-
-    <style name="Theme.GrowDaily.Picker.DarkBlue" parent="Theme.GrowDaily.Picker.Base">
-        <item name="colorAccent">@color/category_dark_blue</item>
-        <item name="android:colorAccent">@color/category_dark_blue</item>
-        <item name="colorControlActivated">@color/category_dark_blue</item>
-        <item name="android:colorControlActivated">@color/category_dark_blue</item>
     </style>
 
     <!-- Material picker themes aligned with the app's base theme -->
@@ -423,4 +476,248 @@
         <item name="iconTint">@color/picker_text_secondary</item>
         <item name="rippleColor">@color/picker_control_surface</item>
     </style>
+    <style name="ReorderItemTitle">
+        <item name="android:textColor">@color/task_text_primary</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="ReorderItemType">
+        <item name="android:textSize">14sp</item>
+    </style>
+    <style name="EmptyStateTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">20dp</item>
+        <item name="android:textColor">@color/task_text_primary</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="EmptyStateSubtitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">10dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/task_text_secondary</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="ManageListTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/task_text_primary</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="ManageListCountChip">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/task_filter_chip</item>
+        <item name="android:backgroundTint">@color/task_filter_selected_bg</item>
+        <item name="android:paddingHorizontal">12dp</item>
+        <item name="android:paddingVertical">6dp</item>
+        <item name="android:textColor">@color/brand_blue</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="ManageListEmptyIllustration">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">150dp</item>
+        <item name="android:layout_marginBottom">10dp</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:src">@drawable/thinking_mode</item>
+    </style>
+
+    <style name="ManageListItemContainer">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">10dp</item>
+        <item name="android:background">@drawable/task_fragment_card</item>
+        <item name="android:minHeight">72dp</item>
+        <item name="android:paddingHorizontal">16dp</item>
+        <item name="android:paddingVertical">14dp</item>
+    </style>
+
+    <style name="ManageListItemTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">@color/task_text_primary</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="ManageListItemDragHandle">
+        <item name="android:layout_width">34dp</item>
+        <item name="android:layout_height">34dp</item>
+        <item name="android:padding">7dp</item>
+        <item name="android:src">@drawable/ic_drag_handle</item>
+        <item name="android:tint">@color/brand_blue</item>
+    </style>
+
+    <style name="ManageListEmptySubtitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/task_text_secondary</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <style name="PrimaryActionButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="backgroundTint">@color/brand_blue</item>
+    </style>
+
+    <style name="ManageListAddButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="iconPadding">8dp</item>
+        <item name="iconTint">@android:color/white</item>
+    </style>
+
+    <style name="AddListInputLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/task_text_secondary</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="AddListInput">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/edit_list_input_bg</item>
+        <item name="android:inputType">textCapSentences</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:minHeight">54dp</item>
+        <item name="android:textColor">@color/task_text_primary</item>
+        <item name="android:textColorHint">@color/task_text_secondary</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">48dp</item>
+        <item name="android:paddingVertical">14dp</item>
+        <item name="android:maxLength">30</item>
+    </style>
+
+    <style name="AddListCharCount">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="AddListSectionTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/task_text_primary</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="AddFormCard">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/add_form_surface_card</item>
+    </style>
+
+    <style name="AddFormRow" parent="AddFormCard">
+        <item name="android:layout_height">56dp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingHorizontal">16dp</item>
+    </style>
+
+    <style name="TrackingTypeSelectorButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:background">@drawable/circular_corners</item>
+        <item name="android:backgroundTint">@color/add_form_muted_surface</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/add_form_text_secondary</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="AddFormCircularIconButton">
+        <item name="android:layout_width">36dp</item>
+        <item name="android:layout_height">36dp</item>
+        <item name="android:background">@drawable/add_form_surface_card</item>
+        <item name="tint">@color/add_form_icon</item>
+    </style>
+
+    <style name="AddTaskEditText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/add_form_text_primary</item>
+        <item name="android:textColorHint">@color/add_form_hint</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="AddTaskInfoCard">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/add_task_info_card</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+
+    <style name="DialogOptionCard" parent="AddTaskInfoCard">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:foreground">?attr/selectableItemBackground</item>
+        <item name="android:padding">16dp</item>
+    </style>
+
+    <style name="DialogOptionIconContainer">
+        <item name="android:layout_width">40dp</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:background">@drawable/circular_corners_less</item>
+        <item name="android:backgroundTint">@color/task_filter_selected_bg</item>
+    </style>
+
+    <style name="DialogOptionIcon">
+        <item name="android:layout_width">20dp</item>
+        <item name="android:layout_height">20dp</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="tint">@color/brand_blue</item>
+    </style>
+
+    <style name="DialogOptionTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/dialog_text_primary</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="DialogOptionDescription">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:textColor">@color/dialog_text_secondary</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <style name="ColorCircleFrame">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_margin">2dp</item>
+    </style>
+
 </resources>

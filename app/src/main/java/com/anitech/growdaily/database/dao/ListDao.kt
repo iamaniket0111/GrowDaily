@@ -44,6 +44,9 @@ interface ListDao {
     @Query("SELECT listId FROM list_task_cross_ref WHERE taskId = :taskId")
     suspend fun getListIdsForTask(taskId: String): List<String>
 
+    @Query("SELECT * FROM list_task_cross_ref")
+    fun getAllListTaskCrossRefsFlow(): Flow<List<ListTaskCrossRef>>
+
     @Update
     suspend fun updateLists(lists: List<ListEntity>)
 
@@ -56,5 +59,40 @@ interface ListDao {
 
     @Query("DELETE FROM list_task_cross_ref WHERE taskId = :taskId")
     suspend fun removeTaskFromAllLists(taskId: String)
+
+    @Transaction
+    suspend fun updateListOrderBatch(reorderedLists: List<ListEntity>) {
+        updateLists(reorderedLists)
+        @Transaction
+    suspend fun syncTasksForListBatch(listId: String, newTaskIds: List<String>) {
+        val oldTaskIds = getTaskIdsForList(listId)
+        val toAdd = newTaskIds.minus(oldTaskIds.toSet())
+        val toRemove = oldTaskIds.minus(newTaskIds.toSet())
+
+        toAdd.forEach { taskId ->
+            insertListTask(ListTaskCrossRef(listId, taskId))
+        }
+
+        toRemove.forEach { taskId ->
+            deleteListTask(ListTaskCrossRef(listId, taskId))
+        }
+    }
+
+}
+
+    @Transaction
+    suspend fun syncTasksForListBatch(listId: String, newTaskIds: List<String>) {
+        val oldTaskIds = getTaskIdsForList(listId)
+        val toAdd = newTaskIds.minus(oldTaskIds.toSet())
+        val toRemove = oldTaskIds.minus(newTaskIds.toSet())
+
+        toAdd.forEach { taskId ->
+            insertListTask(ListTaskCrossRef(listId, taskId))
+        }
+
+        toRemove.forEach { taskId ->
+            deleteListTask(ListTaskCrossRef(listId, taskId))
+        }
+    }
 
 }

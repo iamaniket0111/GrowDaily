@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.anitech.growdaily.data_class.ListEntity
+import com.anitech.growdaily.data_class.ListTaskCrossRef
 import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.database.repository.AppRepository
 import kotlinx.coroutines.launch
@@ -23,9 +24,7 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
 
     fun updateManualOrder(orderedIds: List<String>) {
         viewModelScope.launch {
-            orderedIds.forEachIndexed { index, taskId ->
-                repository.updateTaskOrder(taskId, index)
-            }
+            repository.updateManualOrderBatch(orderedIds)
         }
     }
 
@@ -38,6 +37,9 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
 
     val allLists: LiveData<List<ListEntity>> =
         repository.getAllLists()
+
+    val allListTaskCrossRefs: LiveData<List<ListTaskCrossRef>> =
+        repository.getAllListTaskCrossRefsFlow().asLiveData()
 
     fun updateList(list: ListEntity) {
         viewModelScope.launch {

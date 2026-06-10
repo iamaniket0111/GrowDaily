@@ -17,24 +17,28 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.transition.TransitionManager
+import androidx.transition.AutoTransition
 import com.anitech.growdaily.MainActivity
 import com.anitech.growdaily.R
 import com.anitech.growdaily.adjustAlpha
 import com.anitech.growdaily.adapter.TaskForListAdapter
 import com.anitech.growdaily.data_class.ListEntity
 import com.anitech.growdaily.database.viewmodel.AppViewModel
-import com.anitech.growdaily.databinding.FragmentEditListBinding
+import com.anitech.growdaily.databinding.FragmentAddListBinding
 import com.anitech.growdaily.dialog.DeleteListDialog
 import com.anitech.growdaily.dialog.TaskActionDialog
+import com.anitech.growdaily.util.ListNameValidator
+import androidx.core.widget.doAfterTextChanged
 import java.util.UUID
 
-class EditListFragment : Fragment() {
+class AddListFragment : Fragment() {
 
-    private var _binding: FragmentEditListBinding? = null
+    private var _binding: FragmentAddListBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel: AppViewModel by activityViewModels()
-    private val args: EditListFragmentArgs by navArgs()
+    private val args: AddListFragmentArgs by navArgs()
 
     private lateinit var adapter: TaskForListAdapter
 
@@ -54,9 +58,9 @@ class EditListFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
-        _binding = FragmentEditListBinding.inflate(inflater, container, false)
+        _binding = FragmentAddListBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -91,6 +95,8 @@ class EditListFragment : Fragment() {
                 tempSelectedTaskIds.addAll(ids)
                 initialSelectedTaskIdsSnapshot = ids.toSet()
                 updateSelectedCount()
+                // Initial load, so notifyDataSetChanged is acceptable here to refresh all selection states
+                @Suppress("NotifyDataSetChanged")
                 adapter.notifyDataSetChanged()
             }
         }
@@ -98,6 +104,7 @@ class EditListFragment : Fragment() {
         setupRecycler()
         observeAllTasks()
         setupSaveButton()
+        setupTextWatcher()
         setupMenu()
         setupDiscardHandling()
         observeAccentColor()
@@ -107,39 +114,72 @@ class EditListFragment : Fragment() {
     private fun observeAccentColor() {
         (requireActivity() as? MainActivity)?.accentColor?.observe(viewLifecycleOwner) { color ->
             currentAccentColor = color
+            
+            binding.iconBg.backgroundTintList = android.content.res.ColorStateList.valueOf(color.adjustAlpha(0.12f))
+            binding.ivTitleIcon.imageTintList = android.content.res.ColorStateList.valueOf(color)
+
             binding.defName.setTextColor(color)
             binding.txtTaskCount.setTextColor(color)
             binding.txtTaskCount.backgroundTintList = android.content.res.ColorStateList.valueOf(color.adjustAlpha(0.12f))
             binding.buttonSave.backgroundTintList = android.content.res.ColorStateList.valueOf(color)
+
+            // Update counter color if not at limit
+            val charCount = binding.edListName.text?.length ?: 0
+            if (charCount < ListNameValidator.MAX_LENGTH) {
+                binding.txtCharCount.setTextColor(color)
+            }
         }
     }
 
-    private fun setupMenu() {
-        requireActivity().addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                // Only show delete in edit mode
-                if (isEditMode) {
-                    menu.add(Menu.NONE, MENU_DELETE_ID, Menu.NONE, "Delete List").apply {
-                        setIcon(R.drawable.ic_delete) // use any delete icon you have
-                        setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
-                    }
-                }
-            }
+    private fun setupTextWatcher() {
+        val updateCount = { text: CharSequence? ->
+            val count = text?.length ?: 0
+            binding.txtCharCount.text = getString(R.string.char_count_limit, count)
 
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return when (menuItem.itemId) {
-                    MENU_DELETE_ID -> {
-                        showDeleteListDialog()
-                        true
-                    }
-                    android.R.id.home -> {
-                        attemptClose()
-                        true
-                    }
-                    else -> false
-                }
+            val color = if (count >= ListNameValidator.MAX_LENGTH) {
+                android.graphics.Color.RED
+            } else {
+                currentAccentColor ?: ContextCompat.getColor(requireContext(), R.color.task_text_secondary)
             }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+            binding.txtCharCount.setTextColor(color)
+        }
+
+        binding.edListName.doAfterTextChanged { text -> updateCount(text) }
+
+        // Initialize immediately
+        updateCount(binding.edListName.text)
+    }
+
+    private fun setupMenu() {
+        requireActivity().addMenuProvider(
+            object : MenuProvider {
+                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                    // Only show delete in edit mode
+                    if (isEditMode) {
+                        menu.add(Menu.NONE, MENU_DELETE_ID, Menu.NONE, "Delete List").apply {
+                            setIcon(R.drawable.ic_delete) // use any delete icon you have
+                            setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+                        }
+                    }
+                }
+
+                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                    return when (menuItem.itemId) {
+                        MENU_DELETE_ID -> {
+                            showDeleteListDialog()
+                            true
+                        }
+                        android.R.id.home -> {
+                            attemptClose()
+                            true
+                        }
+                        else -> false
+                    }
+                }
+            },
+            viewLifecycleOwner,
+            Lifecycle.State.RESUMED,
+        )
     }
 
     private fun showDeleteListDialog() {
@@ -147,12 +187,11 @@ class EditListFragment : Fragment() {
         DeleteListDialog(
             context = requireContext(),
             list = listToDelete,
-            onDeleteList = { list ->
-                viewModel.deleteList(list)
-                Toast.makeText(requireContext(), getString(R.string.list_deleted_toast), Toast.LENGTH_SHORT).show()
-                findNavController().popBackStack()
-            }
-        ).show()
+        ) { list ->
+            viewModel.deleteList(list)
+            Toast.makeText(requireContext(), getString(R.string.list_deleted_toast), Toast.LENGTH_SHORT).show()
+            findNavController().popBackStack()
+        }.show()
     }
 
     private fun setupRecycler() {
@@ -172,6 +211,7 @@ class EditListFragment : Fragment() {
                 }
             }
         )
+        adapter.stateRestorationPolicy = androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = adapter
@@ -179,6 +219,7 @@ class EditListFragment : Fragment() {
 
     private fun observeAllTasks() {
         viewModel.allTasks.observe(viewLifecycleOwner) { tasks ->
+            TransitionManager.beginDelayedTransition(binding.root, AutoTransition())
             binding.emptyTasksContainer.visibility = if (tasks.isEmpty()) View.VISIBLE else View.GONE
             binding.recyclerView.visibility = if (tasks.isEmpty()) View.GONE else View.VISIBLE
             adapter.submitList(tasks)
@@ -187,27 +228,28 @@ class EditListFragment : Fragment() {
 
     private fun setupSaveButton() {
         binding.buttonSave.setOnClickListener {
-            val finalName = binding.edListName.text.toString().trim()
-
-            if (finalName.isBlank()) {
-                binding.edListName.error = getString(R.string.error_enter_list_name)
-                binding.edListName.requestFocus()
-                return@setOnClickListener
-            }
-
-            val hasDuplicateName = viewModel.allLists.value
-                .orEmpty()
-                .any { existing ->
-                    existing.id != listId &&
-                        existing.listTitle.equals(finalName, ignoreCase = true)
+            val rawName = binding.edListName.text.toString()
+            when (
+                ListNameValidator.validate(
+                    rawName = rawName,
+                    existingLists = viewModel.allLists.value.orEmpty(),
+                    excludeListId = listId,
+                )
+            ) {
+                ListNameValidator.Error.BLANK -> {
+                    binding.edListName.error = getString(R.string.error_enter_list_name)
+                    binding.edListName.requestFocus()
+                    return@setOnClickListener
                 }
-
-            if (hasDuplicateName) {
-                binding.edListName.error = getString(R.string.error_list_name_exists)
-                binding.edListName.requestFocus()
-                return@setOnClickListener
+                ListNameValidator.Error.DUPLICATE -> {
+                    binding.edListName.error = getString(R.string.error_list_name_exists)
+                    binding.edListName.requestFocus()
+                    return@setOnClickListener
+                }
+                null -> Unit
             }
 
+            val finalName = rawName.trim()
             val listEntity = ListEntity(
                 id = listId,
                 listTitle = finalName,
@@ -247,7 +289,7 @@ class EditListFragment : Fragment() {
                 override fun handleOnBackPressed() {
                     attemptClose()
                 }
-            }
+            },
         )
     }
 
@@ -278,10 +320,12 @@ class EditListFragment : Fragment() {
 
     private fun hasUnsavedChanges(): Boolean {
         val initialName = initialNameSnapshot ?: return false
-        val initialTaskIds = initialSelectedTaskIdsSnapshot ?: return false
         val currentName = binding.edListName.text?.toString()?.trim().orEmpty()
+        if (currentName != initialName) return true
+
+        val initialTaskIds = initialSelectedTaskIdsSnapshot ?: return false
         val currentTaskIds = tempSelectedTaskIds.toSet()
-        return currentName != initialName || currentTaskIds != initialTaskIds
+        return currentTaskIds != initialTaskIds
     }
 
     private fun captureInitialSnapshotsIfNeeded() {
@@ -294,6 +338,9 @@ class EditListFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        if (_binding != null) {
+            binding.recyclerView.adapter = null
+        }
         super.onDestroyView()
         _binding = null
     }

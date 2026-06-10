@@ -35,7 +35,7 @@
         <item name="android:textColorSecondary">@color/dialog_text_secondary</item>
     </style>
 
-    <style name="Theme.GrowDaily.NoActionBar">
+    <style name="Theme.GrowDaily.NoActionBar" parent="Theme.GrowDaily">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>

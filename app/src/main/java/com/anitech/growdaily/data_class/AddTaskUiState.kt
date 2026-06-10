@@ -18,7 +18,6 @@ data class AddTaskUiState(
     val icon: String = "TROPHY",
     val color: String = "DARK_BLUE",
     val showUntilCompleted: Boolean = false,
-    val showMissedOnGapDays: Boolean = false,
 
     // ── Tracking ──────────────────────────────────────────────────────────────
     val trackingType: TrackingType = TrackingType.BINARY,
@@ -33,7 +32,5 @@ data class AddTaskUiState(
     val repeatDays: List<Int> = emptyList(),
 
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-    val isSaved: Boolean = false,
     val manualOrder: Int = 0
 )

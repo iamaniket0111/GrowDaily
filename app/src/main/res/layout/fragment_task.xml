@@ -21,7 +21,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:paddingBottom="100dp" />
+            android:paddingBottom="100dp"
+            tools:listitem="@layout/rv_task_item" />
 
     </LinearLayout>
 
@@ -47,7 +48,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="Opening analysis..."
+            android:text="@string/opening_analysis"
             android:textColor="@color/task_text_secondary"
             android:textSize="14sp" />
     </LinearLayout>

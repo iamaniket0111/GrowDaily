@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:clipChildren="false"
     android:clipToPadding="false">
 
     <!-- Main Dialog Card shifted down by half icon height (42dp) -->
     <LinearLayout
-        android:layout_width="332dp"
-        android:layout_height="wrap_content"
+        style="@style/GrowDailyDialogContainer"
         android:layout_marginTop="42dp"
-        android:background="@drawable/dialog_surface_card"
         android:orientation="vertical"
         android:padding="18dp">
 
@@ -111,15 +109,12 @@
 
         <!-- ── Close button -->
         <Button
-            android:id="@+id/btnClose"
-            android:layout_width="match_parent"
+            android:id="@+id/buttonSave"
+            style="@style/DialogPrimaryButton"
             android:layout_height="48dp"
             android:layout_marginTop="16dp"
             android:backgroundTint="@color/brand_blue"
-            android:text="Done"
-            android:textAllCaps="false"
-            android:textColor="@color/white"
-            android:textStyle="bold" />
+            android:text="Done" />
 
     </LinearLayout>
 

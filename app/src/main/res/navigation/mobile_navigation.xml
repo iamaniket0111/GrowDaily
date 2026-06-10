@@ -42,10 +42,10 @@
     </fragment>
 
     <fragment
-        android:id="@+id/editList"
-        android:name="com.anitech.growdaily.fragment.EditListFragment"
+        android:id="@+id/addList"
+        android:name="com.anitech.growdaily.fragment.AddListFragment"
         android:label="Manage List"
-        tools:layout="@layout/fragment_edit_list" >
+        tools:layout="@layout/fragment_add_list" >
         <argument
             android:name="ConditionEntity"
             app:argType="com.anitech.growdaily.data_class.ListEntity"
@@ -57,7 +57,7 @@
     <fragment
         android:id="@+id/reorderDailyTaskFragment"
         android:name="com.anitech.growdaily.fragment.ReorderTaskFragment"
-        android:label="Reorder Task"
+        android:label="@string/reorder_tasks_title"
         tools:layout="@layout/fragment_reorder_task" />
 
 
@@ -87,6 +87,24 @@
     </fragment>
 
     <fragment
+        android:id="@+id/taskDetailFragment"
+        android:name="com.anitech.growdaily.fragment.TaskDetailFragment"
+        android:label="Task Details"
+        tools:layout="@layout/fragment_task_detail" >
+
+        <argument
+            android:name="taskId"
+            app:argType="string"/>
+
+        <argument
+            android:name="task"
+            app:argType="com.anitech.growdaily.data_class.TaskEntity"
+            app:nullable="true"
+            android:defaultValue="@null"/>
+
+    </fragment>
+
+    <fragment
         android:id="@+id/manageListFragment"
         android:name="com.anitech.growdaily.fragment.ManageListFragment"
         android:label="Manage Lists"
@@ -102,6 +120,6 @@
         android:id="@+id/manageRepeatTasksFragment"
         android:name="com.anitech.growdaily.fragment.ManageRepeatTasksFragment"
         android:label="@string/manage_repeat_tasks_title"
-        tools:layout="@layout/fragment_manage_repeat_tasks" />
+        tools:layout="@layout/fragment_manage_tasks" />
 
 </navigation>

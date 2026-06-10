@@ -8,7 +8,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.GridLayout
-import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -28,17 +27,15 @@ class RepeatConfigFragment : Fragment() {
     private val selectedMonthDays = linkedSetOf<Int>()
     private var accentColor: Int = 0
 
-    private val weekChecks by lazy {
-        listOf(
-            1 to binding.checkMon,
-            2 to binding.checkTue,
-            3 to binding.checkWed,
-            4 to binding.checkThu,
-            5 to binding.checkFri,
-            6 to binding.checkSat,
-            7 to binding.checkSun
-        )
-    }
+    private val weekChecks get() = listOf(
+        1 to binding.checkMon,
+        2 to binding.checkTue,
+        3 to binding.checkWed,
+        4 to binding.checkThu,
+        5 to binding.checkFri,
+        6 to binding.checkSat,
+        7 to binding.checkSun
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -77,18 +74,11 @@ class RepeatConfigFragment : Fragment() {
                     }
                 }
             }
-            val showMissedOnGapDays = when (repeatType) {
-                RepeatType.DAILY -> false
-                RepeatType.DAYS_OF_WEEK -> binding.switchGapCarryWeekly.isChecked
-                RepeatType.DAYS_OF_MONTH -> binding.switchGapCarryMonthly.isChecked
-            }
-
             parentFragmentManager.setFragmentResult(
                 "repeatResult",
                 bundleOf(
                     "repeatType" to repeatType.name,
-                    "repeatDays" to ArrayList(repeatDays),
-                    "showMissedOnGapDays" to showMissedOnGapDays
+                    "repeatDays" to ArrayList(repeatDays)
                 )
             )
 
@@ -114,35 +104,12 @@ class RepeatConfigFragment : Fragment() {
                 ContextCompat.getColor(requireContext(), R.color.task_text_secondary)
             )
         )
-        val switchThumbTint = ColorStateList(
-            arrayOf(
-                intArrayOf(android.R.attr.state_checked),
-                intArrayOf(-android.R.attr.state_checked)
-            ),
-            intArrayOf(
-                color,
-                ContextCompat.getColor(requireContext(), R.color.white)
-            )
-        )
-        val switchTrackTint = ColorStateList(
-            arrayOf(
-                intArrayOf(android.R.attr.state_checked),
-                intArrayOf(-android.R.attr.state_checked)
-            ),
-            intArrayOf(
-                ColorUtils.setAlphaComponent(color, 110),
-                ContextCompat.getColor(requireContext(), R.color.task_done_track)
-            )
-        )
-
         listOf(binding.radioEveryDay, binding.radioWeekly, binding.radioMonthly).forEach { radio ->
             radio.buttonTintList = buttonTint
         }
         weekChecks.forEach { (_, checkbox) ->
             checkbox.buttonTintList = buttonTint
         }
-        tintSwitch(binding.switchGapCarryWeekly, switchThumbTint, switchTrackTint)
-        tintSwitch(binding.switchGapCarryMonthly, switchThumbTint, switchTrackTint)
         binding.btnDone.backgroundTintList = ColorStateList.valueOf(color)
         binding.btnDone.setTextColor(onAccentTextColor(color))
         binding.txtMonthDaySummary.setTextColor(color)
@@ -151,19 +118,12 @@ class RepeatConfigFragment : Fragment() {
         refreshMonthDayGrid()
     }
 
-    private fun tintSwitch(switch: Switch, thumbTint: ColorStateList, trackTint: ColorStateList) {
-        switch.thumbTintList = thumbTint
-        switch.trackTintList = trackTint
-    }
-
     private fun bindInitialState() {
         val isEditing = arguments?.getBoolean("isEditing") ?: false
         val repeatType = arguments?.getString("repeatType")
             ?.let { runCatching { RepeatType.valueOf(it) }.getOrNull() }
             ?: RepeatType.DAILY
         val repeatDays = arguments?.getIntegerArrayList("repeatDays")?.toList().orEmpty()
-        val showMissedOnGapDays = arguments?.getBoolean("showMissedOnGapDays") ?: false
-
         binding.tvRepeatEditHint.visibility = if (isEditing) View.VISIBLE else View.GONE
 
         when (repeatType) {
@@ -181,12 +141,6 @@ class RepeatConfigFragment : Fragment() {
             selectedMonthDays.addAll(repeatDays.filter { it in 1..31 })
             refreshMonthDayGrid()
         }
-
-        binding.switchGapCarryWeekly.isChecked =
-            repeatType == RepeatType.DAYS_OF_WEEK && showMissedOnGapDays
-        binding.switchGapCarryMonthly.isChecked =
-            repeatType == RepeatType.DAYS_OF_MONTH && showMissedOnGapDays
-
         updateVisibleSections()
     }
 
@@ -204,10 +158,6 @@ class RepeatConfigFragment : Fragment() {
             if (repeatType == RepeatType.DAYS_OF_WEEK) View.VISIBLE else View.GONE
         binding.monthDaysContainer.visibility =
             if (repeatType == RepeatType.DAYS_OF_MONTH) View.VISIBLE else View.GONE
-        if (repeatType == RepeatType.DAILY) {
-            binding.switchGapCarryWeekly.isChecked = false
-            binding.switchGapCarryMonthly.isChecked = false
-        }
     }
 
     private fun selectedWeekDays(): List<Int> {

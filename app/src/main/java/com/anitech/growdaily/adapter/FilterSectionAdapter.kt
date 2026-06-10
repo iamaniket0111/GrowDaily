@@ -27,6 +27,8 @@ class FilterSectionAdapter(
             binding.recyclerView.apply {
                 layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
                 adapter = listAdapter
+                setHasFixedSize(true)
+                itemAnimator = null
                 addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
                     override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
                         rv.parent.requestDisallowInterceptTouchEvent(true)

@@ -5,6 +5,8 @@ import com.anitech.growdaily.enum_class.DateMode
 import com.anitech.growdaily.enum_class.TimeState
 
 data class TaskUiItem(
+    /** Stable RecyclerView id when the same task appears for multiple pending sessions. */
+    val listItemKey: String,
     val task: TaskEntity,
     val isActive: Boolean,
     val timeState: TimeState,

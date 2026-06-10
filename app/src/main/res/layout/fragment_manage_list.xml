@@ -8,75 +8,78 @@
     android:paddingTop="16dp"
     android:paddingBottom="12dp">
 
-    <LinearLayout
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/headerCard"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@drawable/task_fragment_card"
-        android:orientation="vertical"
-        android:padding="18dp"
+        style="@style/GrowDailyHeaderCard"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:padding="20dp">
+
+            <View
+                android:id="@+id/iconBg"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/task_filter_chip"
+                android:backgroundTint="@color/task_filter_selected_bg"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/ivTitleIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@string/none"
+                android:src="@drawable/ic_list"
+                app:layout_constraintBottom_toBottomOf="@id/iconBg"
+                app:layout_constraintEnd_toEndOf="@id/iconBg"
+                app:layout_constraintStart_toStartOf="@id/iconBg"
+                app:layout_constraintTop_toTopOf="@id/iconBg"
+                app:tint="@color/brand_blue" />
 
             <TextView
                 android:id="@+id/txtTitle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
+                style="@style/ManageListTitle"
+                android:layout_marginStart="12dp"
                 android:text="Lists"
-                android:textColor="@color/task_text_primary"
-                android:textSize="24sp"
-                android:textStyle="bold" />
+                app:layout_constraintBottom_toBottomOf="@id/iconBg"
+                app:layout_constraintStart_toEndOf="@id/iconBg"
+                app:layout_constraintTop_toTopOf="@id/iconBg" />
 
             <TextView
                 android:id="@+id/txtCount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:backgroundTint="@color/task_filter_selected_bg"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="6dp"
+                style="@style/ManageListCountChip"
                 android:text="0"
-                android:textColor="@color/brand_blue"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/btnAddList"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/bg_manage_list_action"
-            android:clickable="true"
-            android:drawablePadding="8dp"
-            android:focusable="true"
-            android:gravity="center_vertical"
-            android:minHeight="40dp"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="9dp"
-            android:text="Create new list"
-            android:textColor="@android:color/white"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            app:drawableStartCompat="@drawable/ic_add"
-            app:drawableTint="@android:color/white" />
+            <TextView
+                android:id="@+id/txtDescription"
+                style="@style/SectionHeaderSubtitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Keep your lists organized here. Drag to reorder, or tap a list to edit its name and tasks."
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/iconBg" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:lineSpacingExtra="2dp"
-            android:text="Keep your lists organized here. Drag to reorder, or tap a list to edit its name and tasks."
-            android:textColor="@color/task_text_secondary"
-            android:textSize="14sp" />
-    </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddList"
+                style="@style/ManageListAddButton"
+                android:backgroundTint="@color/brand_blue"
+                android:text="Create new list"
+                app:icon="@drawable/ic_add"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/txtDescription" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <LinearLayout
         android:id="@+id/emptyStateContainer"
@@ -86,26 +89,17 @@
         android:orientation="vertical"
         android:paddingHorizontal="32dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/btnClose"
+        app:layout_constraintBottom_toTopOf="@id/buttonSave"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/headerCard">
 
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="150dp"
-            android:layout_marginBottom="10dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/thinking_mode" />
+        <ImageView style="@style/ManageListEmptyIllustration" />
 
         <TextView
             android:id="@+id/txtEmptyState"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="No lists yet.\nCreate your first list here, then come back to reorder everything."
-            android:textColor="@color/task_text_secondary"
-            android:textSize="15sp" />
+            style="@style/ManageListEmptySubtitle"
+            android:text="No lists yet.\nCreate your first list here, then come back to reorder everything." />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -115,19 +109,15 @@
         android:clipToPadding="false"
         android:paddingTop="14dp"
         android:paddingBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@id/btnClose"
+        app:layout_constraintBottom_toTopOf="@id/buttonSave"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/headerCard" />
 
     <Button
-        android:id="@+id/btnClose"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:backgroundTint="@color/category_dark_blue"
+        android:id="@+id/buttonSave"
+        style="@style/PrimaryActionButton"
         android:text="Done"
-        android:textColor="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

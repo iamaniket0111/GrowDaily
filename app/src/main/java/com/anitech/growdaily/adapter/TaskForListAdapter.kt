@@ -21,7 +21,7 @@ import com.anitech.growdaily.enum_class.TaskIcon
 class TaskForListAdapter(
     allTasks: List<TaskEntity>,
     private val selectedTaskIds: MutableSet<String>,
-    private val listener: OnItemClickListener
+    private val listener: OnItemClickListener,
 ) : ListAdapter<TaskEntity, TaskForListAdapter.ViewHolder>(TaskForListDiffCallback()) {
 
     interface OnItemClickListener {
@@ -56,21 +56,21 @@ class TaskForListAdapter(
             val color = runCatching { TaskColor.valueOf(task.colorCode) }
                 .getOrDefault(TaskColor.BLUE)
                 .toColorInt(itemView.context)
-            val white = Color.WHITE
 
             val icon = runCatching { TaskIcon.valueOf(task.iconResId) }
                 .getOrDefault(TaskIcon.entries.first())
             imageProfile.setImageResource(icon.resId)
             imageProfile.setSolidBackgroundColorCompat(color)
-            imageProfile.setColorFilter(white)
+            imageProfile.setColorFilter(Color.WHITE)
 
             taskType.text = itemView.context.getString(task.taskType.labelRes)
             taskType.setTextColor(color)
             taskTitle.text = task.title
 
-            applySelectionState(task.id, color, white)
+            applySelectionState(task.id, color)
 
             val toggleSelection = {
+                itemView.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
                 if (selectedTaskIds.contains(task.id)) {
                     selectedTaskIds.remove(task.id)
                     listener.onTaskUnSelected(task.id)
@@ -78,14 +78,14 @@ class TaskForListAdapter(
                     selectedTaskIds.add(task.id)
                     listener.onTaskSelected(task.id)
                 }
-                applySelectionState(task.id, color, white)
+                applySelectionState(task.id, color)
             }
 
             body.setOnClickListener { toggleSelection() }
             doneContainer.setOnClickListener { toggleSelection() }
         }
 
-        private fun applySelectionState(taskId: String, color: Int, white: Int) {
+        private fun applySelectionState(taskId: String, color: Int) {
             val isSelected = selectedTaskIds.contains(taskId)
             val cardSurface = ContextCompat.getColor(itemView.context, R.color.task_card_surface)
             val mutedSurface = ContextCompat.getColor(itemView.context, R.color.task_done_track)
@@ -98,7 +98,7 @@ class TaskForListAdapter(
                 doneImg.setImageResource(R.drawable.ic_check)
                 // ✅ Set inner circle background tint to task color
                 doneImg.backgroundTintList = ColorStateList.valueOf(color)
-                doneImg.setColorFilter(white)
+                doneImg.setColorFilter(Color.WHITE)
                // body.alpha = 1f
             } else {
                 doneImg.visibility = View.VISIBLE
@@ -108,7 +108,8 @@ class TaskForListAdapter(
                 doneImg.clearColorFilter()
                // body.alpha = 0.96f
             }
-        }    }
+        }
+   }
 }
 
 class TaskForListDiffCallback : DiffUtil.ItemCallback<TaskEntity>() {

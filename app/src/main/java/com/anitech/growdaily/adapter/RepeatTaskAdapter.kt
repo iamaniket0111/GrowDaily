@@ -126,7 +126,28 @@ class RepeatTaskAdapter(
             val heatmapSignature = buildHeatmapSignature(item)
 
             taskTitle.text = task.title
-            taskType.text = binding.root.context.getString(task.taskType.labelRes)
+            val label = when (task.taskType) {
+                TaskType.DAILY -> {
+                    when (task.repeatType) {
+                        com.anitech.growdaily.enum_class.RepeatType.DAYS_OF_WEEK -> {
+                            com.anitech.growdaily.CommonMethods.formatRepeatSummary(task.repeatType, task.repeatDays)
+                        }
+                        com.anitech.growdaily.enum_class.RepeatType.DAYS_OF_MONTH -> {
+                            "Days of month"
+                        }
+                        else -> {
+                            "Every day"
+                        }
+                    }
+                }
+                TaskType.DAY -> {
+                    "Day task"
+                }
+                TaskType.UNTIL_COMPLETE -> {
+                    root.context.getString(task.taskType.labelRes)
+                }
+            }
+            taskType.text = label
             imageProfile.setImageResource(TaskIcon.fromName(task.iconResId).resId)
             taskWeight.text = root.context.getString(
                 R.string.task_weight_prefix,

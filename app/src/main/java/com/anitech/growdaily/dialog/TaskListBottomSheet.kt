@@ -2,6 +2,7 @@ package com.anitech.growdaily.dialog
 
 import android.app.Dialog
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,12 +12,14 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
+import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.anitech.growdaily.R
 import com.anitech.growdaily.adapter.ListCheckAdapter
 import com.anitech.growdaily.data_class.ListEntity
 import com.anitech.growdaily.databinding.BottomSheetTaskListBinding
+import com.anitech.growdaily.util.ListNameValidator
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -81,20 +84,18 @@ class TaskListBottomSheet(
         binding.rvLists.layoutManager = LinearLayoutManager(requireContext())
         binding.rvLists.adapter = adapter
         applyAccentColor()
+        setupListNameInput()
 
-        // Apply selections before the first emission so there is no flash of unchecked state
         adapter.setPreselectedIds(preselectedIds)
         updateSheetState()
 
         allListsLiveData.observe(viewLifecycleOwner) { lists ->
-            // Preserve whatever the user has already checked before replacing the data set
             val currentSelections = adapter.getSelectedIds()
             adapter.updateData(lists)
             adapter.setPreselectedIds(currentSelections)
             updateSheetState()
         }
 
-        // Show create-list input
         binding.txtCreateChip.setOnClickListener {
             binding.createListContainer.visibility = View.VISIBLE
             binding.etListName.requestFocus()
@@ -102,13 +103,9 @@ class TaskListBottomSheet(
             updateSheetState()
         }
         binding.btnCloseCreate.setOnClickListener {
-            binding.createListContainer.visibility = View.GONE
-            binding.etListName.setText("")
-            hideKeyboard(binding.etListName)
-            updateSheetState()
+            closeCreateListPanel()
         }
 
-        // Create, persist, and auto-select a new list
         binding.btnCreate.setOnClickListener {
             createListIfValid()
         }
@@ -127,6 +124,27 @@ class TaskListBottomSheet(
         }
     }
 
+    private fun setupListNameInput() {
+        val updateCharCount = { text: CharSequence? ->
+            val count = text?.length ?: 0
+            binding.txtCharCount.text = getString(R.string.char_count_limit, count)
+            binding.txtCharCount.setTextColor(
+                if (count >= ListNameValidator.MAX_LENGTH) {
+                    Color.RED
+                } else {
+                    accentColor
+                }
+            )
+            binding.btnCreate.alpha = if (text?.trim().isNullOrEmpty()) 0.5f else 1f
+        }
+
+        binding.etListName.doAfterTextChanged { text ->
+            binding.etListName.error = null
+            updateCharCount(text)
+        }
+        updateCharCount(binding.etListName.text)
+    }
+
     private fun showKeyboard(view: View) {
         val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
@@ -137,29 +155,43 @@ class TaskListBottomSheet(
         imm.hideSoftInputFromWindow(view.windowToken, 0)
     }
 
+    private fun closeCreateListPanel() {
+        binding.createListContainer.visibility = View.GONE
+        binding.etListName.setText("")
+        binding.etListName.error = null
+        hideKeyboard(binding.etListName)
+        updateSheetState()
+    }
+
     private fun createListIfValid() {
-            val name = binding.etListName.text.toString().trim()
-            if (name.isEmpty()) return
+        val name = binding.etListName.text.toString()
+        val existingLists = allListsLiveData.value.orEmpty()
+        when (ListNameValidator.validate(name, existingLists)) {
+            ListNameValidator.Error.BLANK -> {
+                binding.etListName.error = getString(R.string.error_enter_list_name)
+                binding.etListName.requestFocus()
+                return
+            }
+            ListNameValidator.Error.DUPLICATE -> {
+                binding.etListName.error = getString(R.string.error_list_name_exists)
+                binding.etListName.requestFocus()
+                return
+            }
+            null -> Unit
+        }
 
-            val newList = ListEntity(
-                id = UUID.randomUUID().toString(),
-                listTitle = name,
-                sortOrder = 0
-            )
+        val trimmedName = name.trim()
+        val sortOrder = (existingLists.maxOfOrNull { it.sortOrder } ?: -1) + 1
+        val newList = ListEntity(
+            id = UUID.randomUUID().toString(),
+            listTitle = trimmedName,
+            sortOrder = sortOrder
+        )
 
-            // Persist through the ViewModel — the LiveData observer will update the adapter
-            // with the real DB row once the insert completes
-            onInsertList(newList)
+        onInsertList(newList)
 
-            // Speculatively mark the new id as selected; the observer re-applies
-            // selections on the next emission (which will include the new list row)
-            adapter.setPreselectedIds(adapter.getSelectedIds() + newList.id)
-            updateSheetState()
-
-            binding.etListName.setText("")
-            binding.createListContainer.visibility = View.GONE
-            hideKeyboard(binding.etListName)
-            updateSheetState()
+        adapter.setPreselectedIds(adapter.getSelectedIds() + newList.id)
+        closeCreateListPanel()
     }
 
     private fun applyAccentColor() {
@@ -172,6 +204,10 @@ class TaskListBottomSheet(
         binding.btnCloseCreate.setTextColor(
             ContextCompat.getColor(requireContext(), R.color.task_text_secondary)
         )
+        val count = binding.etListName.text?.length ?: 0
+        if (count < ListNameValidator.MAX_LENGTH) {
+            binding.txtCharCount.setTextColor(accentColor)
+        }
     }
 
     private fun updateSheetState() {

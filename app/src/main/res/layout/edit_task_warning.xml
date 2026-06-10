@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout android:id="@+id/tvVersioningHint"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/AddTaskInfoCard"
     android:layout_marginBottom="12dp"
-    android:background="@drawable/add_task_info_card"
     android:gravity="center_vertical"
-    android:orientation="horizontal"
     android:paddingStart="12dp"
     android:paddingTop="10dp"
     android:paddingEnd="12dp"
-    android:paddingBottom="10dp"
-    android:visibility="visible"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:paddingBottom="10dp">
 
     <ImageView
         android:id="@+id/ivWarningIcon"
@@ -22,7 +18,7 @@
         android:background="@drawable/circle_background"
         android:backgroundTint="@color/task_filter_selected_bg"
         android:padding="6dp"
-        android:src="@drawable/ic_warning"
+        android:src="@drawable/ic_info"
         app:tint="@color/brand_blue" />
 
     <LinearLayout
@@ -32,22 +28,23 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/tvWarningTitle"
+            android:id="@+id/tvInfoTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Changes apply going forward"
+            android:text="Changes apply from today"
             android:textColor="@color/add_form_text_primary"
-            android:textSize="13sp"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/tvWarningDesc"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:lineSpacingExtra="1dp"
-            android:text="Priority, tracking, and repeat changes apply from today onward only. Past progress stays unchanged."
+            android:text="Today's progress may update. Past progress won't be affected."
             android:textColor="@color/add_form_text_secondary"
             android:textSize="12sp" />
+
     </LinearLayout>
+
 </LinearLayout>

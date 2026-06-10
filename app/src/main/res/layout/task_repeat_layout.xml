@@ -2,14 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/repeatRow"
-    android:layout_width="match_parent"
-    android:layout_height="56dp"
-    android:background="@drawable/add_form_surface_card"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:paddingHorizontal="16dp"
-    android:clickable="true"
-    android:focusable="true">
+    style="@style/AddFormRow">
 
     <TextView
         android:layout_width="0dp"

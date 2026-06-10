@@ -23,6 +23,14 @@ abstract class TaskDaySnapshotDao {
     @Query("SELECT * FROM task_day_snapshots")
     abstract fun getAllFlow(): Flow<List<TaskDaySnapshotEntity>>
 
+    @Query(
+        """
+        SELECT * FROM task_day_snapshots
+        WHERE date BETWEEN :startDate AND :endDate
+        """
+    )
+    abstract fun getBetweenFlow(startDate: String, endDate: String): Flow<List<TaskDaySnapshotEntity>>
+
     @Transaction
     open suspend fun replaceForTasks(
         taskIds: List<String>,
@@ -34,4 +42,7 @@ abstract class TaskDaySnapshotDao {
             upsertAll(items)
         }
     }
+
+    @Query("DELETE FROM task_day_snapshots WHERE taskId = :taskId AND date < :date")
+    abstract suspend fun deleteSnapshotsBeforeDate(taskId: String, date: String)
 }

@@ -1,253 +1,295 @@
-<resources>
+﻿<resources>
+    <string name="active_repeat_tasks_empty_subtitle">Create or resume repeat tasks to start tracking them.</string>
+    <string name="active_repeat_tasks_empty_title">No active repeat tasks</string>
+    <string name="add_for_today_action">Add for today</string>
+    <string name="add_new_list">+ New list</string>
+    <string name="add_remove_action">Add/Remove dates</string>
+    <string name="add_task_title">Add Task</string>
+    <string name="added_on_format">Added %1$s</string>
+    <string name="analysis_period_month_format">%1$s %2$d</string>
+    <string name="analysis_period_week_format">%1$d %2$s - %3$d %4$s</string>
+    <string name="analysis_period_year_format">%1$d</string>
+    <string name="analysis_progress_title">PROGRESS</string>
     <string name="app_name">Grow Daily</string>
-
-    <string name="menu_home">Home</string>
-    <string name="menu_add_task">Add Task</string>
-    <string name="none">none</string>
-    <string name="task_weight_prefix">%1$d/4</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="today">Today</string>
-    <string name="tomorrow">Tomorrow</string>
-    <string name="yesterday">Yesterday</string>
+    <string name="apply_lists">Apply Lists</string>
+    <string name="apply_multiple_lists">Apply %1$d Lists</string>
+    <string name="apply_one_list">Apply 1 List</string>
+    <string name="battery_optimization_content_description">Battery Optimization Warning</string>
+    <string name="battery_optimization_message">Your device\'s battery optimization settings may prevent reminders from showing on time. Consider disabling optimization for Grow Daily for better reliability.</string>
+    <string name="battery_optimization_title">Reminders might be delayed</string>
+    <string name="calendar_active_date_label">Active Date</string>
+    <string name="calendar_start_date_label">Start Date</string>
+    <string name="calendar_toggle_hint">Tap a date to add or remove it from your schedule. The original start date cannot be removed.</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="change_task_appearance">Change task appearance</string>
+    <string name="char_count_limit">%1$d/30</string>
+    <string name="checklist_status_format">%1$d / %2$d done</string>
+    <string name="choose_behavior_subtitle">Choose how this task should behave</string>
+    <string name="clear_button">Clear</string>
+    <string name="completed_on_format">Completed on %1$s</string>
+    <string name="completed_tasks_empty_subtitle">All your repeat tasks are already active today.</string>
+    <string name="completed_tasks_empty_title">Nothing to add for today</string>
+    <string name="completed_tasks_tab">Completed</string>
+    <string name="condition_message">Select the tasks you want to exclude as they are irrelevant under %1$s.\nIf you update the data later, please reapply this condition to reflect the changes.</string>
+    <string name="condition1">Work Day</string>
+    <string name="count_hint">Drag the ring or use the controls</string>
+    <string name="count_progress_subtitle">Count progress</string>
+    <string name="count_value_format">%1$d / %2$d</string>
+    <string name="create_button">Create</string>
+    <string name="create_task_title">Create Task</string>
+    <string name="creating_status">Creating...</string>
+    <string name="daily_target_count_label">Daily target count</string>
+    <string name="daily_task_type">daily</string>
+    <string name="date_format_d_mmm">d MMM</string>
+    <string name="date_format_mmm_d">MMM d</string>
+    <string name="day_all_tasks_empty_subtitle">Tasks scheduled for a specific day will appear here.</string>
+    <string name="day_all_tasks_empty_title">No day tasks yet</string>
+    <string name="day_progress_description">Daily completion progress</string>
+    <string name="day_tasks_filter">Day Tasks</string>
+    <string name="decrease_count">Decrease</string>
+    <string name="decrease_duration">Decrease minutes</string>
+    <string name="delete">Delete</string>
+    <string name="delete_action">Delete</string>
+    <string name="delete_button">Delete</string>
+    <string name="delete_list_menu">Delete List</string>
+    <string name="delete_list_message">This will remove the list. Tasks stay available, but the list itself cannot be recovered.</string>
+    <string name="delete_list_title">Delete list?</string>
+    <string name="delete_task_message">This will remove the task and its related progress data. This action cannot be undone.</string>
+    <string name="delete_task_title">Delete task?</string>
+    <string name="discard_button">Discard</string>
+    <string name="discard_changes_message_add">You have started creating a task. If you leave now, those changes will be lost.</string>
+    <string name="discard_changes_message_edit">You have unsaved edits to this task. If you leave now, those changes will be lost.</string>
+    <string name="discard_changes_title">Discard changes?</string>
+    <string name="discard_list_message_add">You have started creating a list. If you leave now, those changes will be lost.</string>
+    <string name="discard_list_message_edit">You have unsaved edits to this list. If you leave now, those changes will be lost.</string>
+    <string name="edit_item_title">Edit Item</string>
+    <string name="edit_task_title">Edit Task</string>
+    <string name="empty_day_tasks_subtitle">Focus on your goals for 
+today.</string>
+    <string name="empty_day_tasks_subtitle_default">Tap + to add a task for today.</string>
+    <string name="empty_day_tasks_title">Keep growing!</string>
+    <string name="empty_day_tasks_title_default">Nothing scheduled for this day</string>
+    <string name="empty_list_tasks_subtitle">Add tasks to this list to start tracking them.</string>
+    <string name="empty_list_tasks_title">No tasks in this list</string>
+    <string name="empty_reorder_tasks_subtitle">Add a few tasks first, then you can organize their order here.</string>
+    <string name="empty_reorder_tasks_title">No tasks to reorder</string>
+    <string name="empty_repeat_tasks_subtitle">Create a repeating task to track it over time.</string>
+    <string name="empty_repeat_tasks_title">No repeat tasks yet</string>
+    <string name="empty_tasks_for_list_subtitle">Create some tasks first, then 
+you\'ll be able to group them into lists.</string>
+    <string name="enable_reminder_label">Enable Reminder</string>
+    <string name="enable_schedule_label">Enable Schedule</string>
+    <string name="end_date_label">End Date</string>
+    <string name="ended_on_format">Ended on %1$s</string>
+    <string name="ended_repeat_tasks_empty_subtitle">Tasks that have reached their end date will appear here.</string>
+    <string name="ended_repeat_tasks_empty_title">No ended tasks</string>
+    <string name="ended_repeat_tasks_tab">Ended</string>
+    <string name="ends_on_format">Ends on %1$s</string>
+    <string name="error_add_checklist_item">Add at least one checklist item</string>
+    <string name="error_checklist_item_duplicate">Checklist item already exists</string>
+    <string name="error_checklist_item_empty">Item cannot be empty</string>
+    <string name="error_end_date_before_start">End date must be after start date</string>
+    <string name="error_enter_list_name">Enter a list name</string>
+    <string name="error_enter_task_title">Please enter a task title</string>
+    <string name="error_list_name_exists">List name already exists</string>
+    <string name="error_select_month_day">Select at least one day of month</string>
+    <string name="error_select_reminder_time">Please select reminder time</string>
+    <string name="error_select_schedule_time">Please select schedule time</string>
+    <string name="error_select_weekday">Select at least one weekday</string>
+    <string name="exact_alarm_permission_button">Open Settings</string>
+    <string name="exact_alarm_permission_message">To send reminders at the precise time, Grow Daily needs permission to schedule exact alarms. Without this, reminders might be delayed.</string>
+    <string name="exact_alarm_permission_title">Exact reminders</string>
+    <string name="first_list_hint">Create your first list to start organizing tasks.</string>
+    <string name="gap_days_suffix"> · gap days</string>
+    <string name="history_date_format">%1$d/%2$d</string>
     <string name="holiday">Holiday</string>
-    <!-- TODO: Remove or change this placeholder text -->
+    <string name="increase_count">Increase</string>
+    <string name="increase_duration">Increase minutes</string>
+    <string name="keep_editing_button">Keep editing</string>
+    <string name="keep_new_date_button">Keep %1$s</string>
+    <string name="keep_original_date_button">Keep %1$s</string>
+    <string name="list_deleted_toast">List deleted</string>
     <string name="list_message">
     Select the tasks you want to add into %1$s.
 </string>
-
-    <string name="save_changes">Save Changes</string>
-    <string name="condition1">Work Day</string>
-    <string name="new_list">New list</string>
-    <!-- TODO: Remove or change this placeholder text -->
-
-    <!-- Task Types -->
-    <string name="task_type_daily">Daily</string>
-    <string name="task_type_today">Today</string>
-    <string name="task_type_until_done">Until Done</string>
-
-    <!-- AddTaskFragment strings -->
-    <string name="date_format_d_mmm">d MMM</string>
-    <string name="date_format_mmm_d">MMM d</string>
-    <string name="week_range_format">%1$s–%2$s</string>
-    <string name="empty_list_tasks_title">No tasks in this list</string>
-    <string name="empty_list_tasks_subtitle">Add tasks to this list to start tracking them.</string>
-    <string name="empty_day_tasks_title">Keep growing!</string>
-    <string name="empty_day_tasks_subtitle">Focus on your goals for today.</string>
-    <string name="reset_progress_title">Reset progress?</string>
-    <string name="reset_progress_message">This will clear the completion progress for %1$s.</string>
-    <string name="reset_button">Reset</string>
-
-    <string name="notification_permission_needed">Notification permission is needed for reminders</string>
-    <string name="edit_task_title">Edit Task</string>
-    <string name="add_task_title">Add Task</string>
-    <string name="gap_days_suffix"> · gap days</string>
-    <string name="task_updated_toast">Task updated</string>
-    <string name="task_saved_toast">Task saved</string>
-    <string name="resume_action">Resume</string>
-    <string name="pause_action">Pause</string>
-    <string name="resume_daily_task_title">Resume daily task?</string>
-    <string name="resume_daily_task_message">This will make the task active again starting today.</string>
-    <string name="schedule_time_dialog_title">Schedule time</string>
-    <string name="use_same_time_reminder_message">Use the same time as your reminder (%1$s)?</string>
-    <string name="use_same_time_button">Use same (%1$s)</string>
-    <string name="pick_different_time_button">Pick different time</string>
-    <string name="reminder_time_dialog_title">Reminder time</string>
-    <string name="use_same_time_schedule_message">Use the same time as your schedule (%1$s)?</string>
-    <string name="list_summary_none">None</string>
-    <string name="list_summary_multiple">%1$s +%2$d</string>
+    <string name="list_name_hint">List name</string>
+    <string name="list_name_label">List name</string>
+    <string name="list_none">None</string>
     <string name="list_placeholder">List</string>
-    <string name="error_enter_task_title">Please enter a task title</string>
-    <string name="error_select_schedule_time">Please select schedule time</string>
-    <string name="error_select_reminder_time">Please select reminder time</string>
-    <string name="exact_alarm_permission_title">Exact reminders</string>
-    <string name="exact_alarm_permission_message">To send reminders at the precise time, Grow Daily needs permission to schedule exact alarms. Without this, reminders might be delayed.</string>
-    <string name="exact_alarm_permission_button">Open Settings</string>
-    <string name="sync_reminder_time_message">Do you also want to update your reminder to %1$s?</string>
-    <string name="sync_schedule_time_message">Do you also want to update your schedule to %1$s?</string>
-    <string name="update_both_button">Update both</string>
-    <string name="update_only_this_button">Update only this</string>
-    <string name="battery_optimization_title">Reminders might be delayed</string>
-    <string name="battery_optimization_message">Your device\'s battery optimization settings may prevent reminders from showing on time. Consider disabling optimization for Grow Daily for better reliability.</string>
-    <string name="battery_optimization_content_description">Battery Optimization Warning</string>
-    <string name="select_start_date">Select Start Date</string>
-    <string name="select_time">Select Time</string>
+    <string name="list_selected_meta">This task will appear in this list</string>
+    <string name="list_summary_extra_count">+ %1</string>
+    <string name="list_summary_multiple">%1$s +%2$d</string>
+    <string name="list_summary_none">None</string>
+    <string name="list_unselected_meta">Tap to add this task here</string>
+    <string name="lists_header">Lists</string>
+    <string name="manage_repeat_task_overview">%1$s/10 • Best %2$d • %3$d/%4$d days</string>
+    <string name="manage_repeat_tasks_subtitle">Paused, ended, and completed day tasks can live here without cluttering your active list.</string>
+    <string name="manage_repeat_tasks_title">Manage tasks</string>
+    <string name="manage_tab_active">Active</string>
+    <string name="manage_tab_add_for_today">Add for today</string>
+    <string name="manage_tab_all">All</string>
+    <string name="manage_task_menu">Task options</string>
+    <string name="manage_tasks_subtitle">Paused, ended, and completed day tasks can live here without cluttering your active list.</string>
+    <string name="manage_tasks_title">Manage tasks</string>
+    <string name="menu_add_task">Add Task</string>
+    <string name="menu_home">Home</string>
+    <string name="minutes_short">min</string>
+    <string name="month_day_summary_extra">%1$s +%2$d</string>
+    <string name="month_progress_description">Monthly completion progress</string>
+    <string name="multiple_lists_added_hint">This task will be added to %1$d lists.</string>
+    <string name="new_list">New list</string>
+    <string name="new_list_default_title">New List</string>
+    <string name="next_month">Next month</string>
+    <string name="no_dates_selected">No dates selected</string>
+    <string name="no_end_date">No end date</string>
+    <string name="no_lists_empty_state">No lists yet. Create one and it will 
+appear here.</string>
+    <string name="none">none</string>
+    <string name="none_capitalized">None</string>
+    <string name="not_implemented">Not implemented</string>
+    <string name="not_scheduled">Not scheduled</string>
+    <string name="notification_permission_denied_message">Notifications are disabled. Please enable notification permissions in your system settings to receive reminders.</string>
+    <string name="notification_permission_needed">Notification permission is needed for reminders</string>
+    <string name="one_day_task_desc">Shown only on selected date.</string>
+    <string name="one_day_task_label">Task for one day</string>
+    <string name="one_list_added_hint">This task will be added to 1 list.</string>
+    <string name="open_notification_settings_button">Settings</string>
+    <string name="opening_analysis">Opening analysis...</string>
+    <string name="ordinal_suffix_nd">nd</string>
+    <string name="ordinal_suffix_rd">rd</string>
+    <string name="ordinal_suffix_st">st</string>
+    <string name="ordinal_suffix_th">th</string>
+    <string name="organize_task_hint">Choose one or more lists to group it better.</string>
+    <string name="organize_task_title">Organize this task</string>
+    <string name="pause_action">Pause</string>
+    <string name="pause_daily_task_message">Choose when this task should stop showing up. Past progress will stay intact.</string>
+    <string name="pause_daily_task_title">Pause daily task?</string>
+    <string name="paused_on_format">Paused on %1$s</string>
+    <string name="paused_repeat_tasks_empty_subtitle">Tasks you pause will show up here so they stay out of your active list.</string>
+    <string name="paused_repeat_tasks_empty_title">No paused tasks</string>
+    <string name="paused_repeat_tasks_tab">Paused</string>
+    <string name="pending_from_format">Pending from %1$s</string>
+    <string name="pick_different_time_button">Pick different time</string>
     <string name="picker_set_date">Set date</string>
     <string name="picker_set_time">Set time</string>
-    <string name="discard_changes_title">Discard changes?</string>
-    <string name="discard_changes_message_edit">You have unsaved edits to this task. If you leave now, those changes will be lost.</string>
-    <string name="discard_changes_message_add">You have started creating a task. If you leave now, those changes will be lost.</string>
-    <string name="discard_button">Discard</string>
-    <string name="keep_editing_button">Keep editing</string>
-    <string name="save_failed_toast">Save failed</string>
-    <string name="use_new_start_date_title">Use new start date?</string>
-    <string name="use_new_start_date_message">Changing the start date from %1$s to %2$s will make tracking start from %2$s. Earlier progress will stay saved and can appear again if you move the start date back.</string>
-    <string name="end_date_label">End Date</string>
-    <string name="no_end_date">No end date</string>
-    <string name="select_end_date">Select end date</string>
-    <string name="keep_new_date_button">Keep %1$s</string>
-    <string name="keep_original_date_button">Keep %1$s</string>
-    <string name="pause_daily_task_title">Pause daily task?</string>
-    <string name="pause_daily_task_message">Choose when this task should stop showing up. Past progress will stay intact.</string>
-
-    <!-- AnalysisRepeatTaskFragment strings -->
-    <string name="none_capitalized">None</string>
-    <string name="reminder_on_format">Reminder at %1$s</string>
-    <string name="reminder_off">Reminder off</string>
-    <string name="scheduled_on_format">Scheduled at %1$s</string>
-    <string name="not_scheduled">Not scheduled</string>
+    <plurals name="list_count_plural">
+        <item quantity="one">1 list</item>
+        <item quantity="other">%d lists</item>
+    </plurals>
+    <plurals name="selected_count_plural">
+        <item quantity="one">1 selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+    <string name="prev_month">Previous month</string>
     <string name="priority_format">Priority: %1$s</string>
-    <string name="started_since_format">Started since %1$d %2$s %3$d</string>
+    <string name="reminder_off">Reminder off</string>
+    <string name="reminder_on_format">Reminder at %1$s</string>
+    <string name="reminder_time_dialog_title">Reminder time</string>
+    <string name="reminder_time_label">Reminder Time:</string>
+    <string name="remove_from_today_action">Remove from today</string>
+    <string name="reorder_empty_subtitle">Add some tasks first, then you can craft your ideal daily sequence here.</string>
+    <string name="reorder_empty_title">Quiet Flow</string>
+    <string name="reorder_tasks_title">Reorder Task</string>
+    <string name="repeat_all_tasks_empty_subtitle">Create a repeating task to start tracking it over time.</string>
+    <string name="repeat_all_tasks_empty_title">No repeat tasks yet</string>
+    <string name="repeat_every_day">Every day</string>
+    <string name="repeat_specific_month_days">Specific month days</string>
+    <string name="repeat_specific_weekdays">Specific weekdays</string>
+    <string name="repeat_task_desc">Repeats every day. Best for habits.</string>
+    <string name="repeat_task_label">Repeat Task</string>
+    <string name="repeat_task_title_bar">Repeat Task</string>
+    <string name="reset_button">Reset</string>
+    <string name="reset_confirm_button">Reset</string>
+    <string name="reset_order_message">Are you sure you want to reset tasks to their default order?</string>
+    <string name="reset_order_title">Reset order?</string>
+    <string name="reset_progress_message">This will clear the completion progress for %1$s.</string>
+    <string name="reset_progress_title">Reset progress?</string>
+    <string name="restart_action_label">Restart</string>
+    <string name="restart_daily_task_message">This will create a new segment of this task active 
+starting today.</string>
+    <string name="restart_daily_task_title">Restart daily 
+task?</string>
+    <string name="restart_from_today_action">Restart from today</string>
+    <string name="resume_action">Resume</string>
+    <string name="resume_daily_task_message">This will make the task active again starting today.</string>
+    <string name="resume_daily_task_title">Resume daily task?</string>
+    <string name="retry_button">Retry</string>
     <string name="running_for_days_format">· %1$d days</string>
-    <string name="ends_on_format">Ends on %1$s</string>
-    <string name="ended_on_format">Ended on %1$s</string>
-
-    <!-- SettingsFragment strings -->
-    <string name="settings_notifications_title">Notifications</string>
-    <string name="settings_notifications_summary">Manage notification settings for this app</string>
-    <string name="settings_notifications_open_failed">Could not open notification settings</string>
-    <string name="theme_summary_system">Using your device setting</string>
-    <string name="theme_summary_light">Always use light theme</string>
-    <string name="theme_summary_dark">Always use dark theme</string>
-
-    <!-- EditListFragment strings -->
-    <string name="new_list_default_title">New List</string>
-    <string name="delete_list_menu">Delete List</string>
-    <string name="list_deleted_toast">List deleted</string>
-    <string name="error_enter_list_name">Enter a list name</string>
-    <string name="error_list_name_exists">List name already exists</string>
+    <string name="save_button">Save</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="save_failed_toast">Save failed</string>
+    <string name="save_task_button">Save Task</string>
     <string name="saved_successfully_toast">Saved successfully</string>
+    <string name="schedule_time_dialog_title">Schedule time</string>
+    <string name="schedule_time_label">Schedule Time:</string>
+    <string name="scheduled_on_format">Scheduled at %1$s</string>
+    <string name="scheduled_tasks_filter">Scheduled</string>
+    <string name="score_format_decimal">%.1f</string>
+    <string name="select_end_date">Select end date</string>
+    <string name="select_start_date">Select Start Date</string>
+    <string name="select_task_date">Select date</string>
+    <string name="select_time">Select Time</string>
+    <string name="select_tracking_binary">Select binary tracking</string>
+    <string name="select_tracking_checklist">Select checklist tracking</string>
+    <string name="select_tracking_count">Select count tracking</string>
+    <string name="select_tracking_timer">Select timer tracking</string>
     <string name="selected_count_format">
         {count, plural,
         =1 {1 selected}
         other {# selected}
         }
     </string>
-    <string name="discard_list_message_edit">You have unsaved edits to this list. If you leave now, those changes will be lost.</string>
-    <string name="discard_list_message_add">You have started creating a list. If you leave now, those changes will be lost.</string>
-
-    <plurals name="selected_count_plural">
-        <item quantity="one">1 selected</item>
-        <item quantity="other">%d selected</item>
-    </plurals>
-
-    <!-- ManageListFragment strings -->
-    <plurals name="list_count_plural">
-        <item quantity="one">1 list</item>
-        <item quantity="other">%d lists</item>
-    </plurals>
-
-    <!-- RepeatTaskFragment strings -->
-    <string name="empty_repeat_tasks_title">No repeat tasks yet</string>
-    <string name="empty_repeat_tasks_subtitle">Create a repeating task to track it over time.</string>
-    <string name="manage_tasks_title">Manage tasks</string>
-    <string name="manage_tasks_subtitle">Paused, ended, and completed day tasks can live here without cluttering your active list.</string>
-    <string name="manage_repeat_tasks_title">Manage tasks</string>
-    <string name="manage_repeat_tasks_subtitle">Paused, ended, and completed day tasks can live here without cluttering your active list.</string>
-    <string name="paused_repeat_tasks_tab">Paused</string>
-    <string name="ended_repeat_tasks_tab">Ended</string>
-    <string name="completed_tasks_tab">Completed</string>
-    <string name="paused_repeat_tasks_empty_title">No paused repeat tasks</string>
-    <string name="paused_repeat_tasks_empty_subtitle">When you pause a repeat task, it can show up here for quick management.</string>
-    <string name="ended_repeat_tasks_empty_title">No ended repeat tasks</string>
-    <string name="ended_repeat_tasks_empty_subtitle">When a repeat task reaches its end date, it can show up here for later review.</string>
-    <string name="completed_tasks_empty_title">No completed tasks here</string>
-    <string name="completed_tasks_empty_subtitle">Completed day and until-complete tasks can show up here so you can bring them back for today when needed.</string>
-    <string name="paused_on_format">Paused on %1$s</string>
-    <string name="completed_on_format">Completed on %1$s</string>
-    <string name="manage_repeat_task_overview">%1$s/10 • Best %2$d • %3$d/%4$d days</string>
-    <string name="restart_from_today_action">Restart from today</string>
-    <string name="add_for_today_action">Add for today</string>
-    <string name="remove_from_today_action">Remove from today</string>
-
-    <!-- RepeatConfigFragment strings -->
-    <string name="error_select_weekday">Select at least one weekday</string>
-    <string name="error_select_month_day">Select at least one day of month</string>
-    <string name="no_dates_selected">No dates selected</string>
-    <string name="month_day_summary_extra">%1$s +%2$d</string>
-
-    <!-- ReorderTaskFragment strings -->
-    <string name="empty_reorder_tasks_title">No tasks to reorder</string>
-    <string name="empty_reorder_tasks_subtitle">Add a few tasks first, then you can organize their order here.</string>
-
-    <!-- TaskListBottomSheet strings -->
-    <string name="organize_task_title">Organize this task</string>
-    <string name="organize_task_hint">Choose one or more lists to group it better.</string>
-    <string name="lists_header">Lists</string>
-    <string name="add_new_list">+ New list</string>
-    <string name="no_lists_empty_state">No lists yet. Create one and it will appear here.</string>
-    <string name="list_name_hint">List name</string>
-    <string name="create_button">Create</string>
-    <string name="cancel_button">Cancel</string>
-    <string name="apply_lists">Apply Lists</string>
-    <string name="apply_one_list">Apply 1 List</string>
-    <string name="apply_multiple_lists">Apply %1$d Lists</string>
-    <string name="creating_status">Creating...</string>
-    <string name="first_list_hint">Create your first list to start organizing tasks.</string>
-    <string name="one_list_added_hint">This task will be added to 1 list.</string>
-    <string name="multiple_lists_added_hint">This task will be added to %1$d lists.</string>
-
-    <!-- ListCheckAdapter strings -->
-    <string name="list_selected_meta">This task will appear in this list</string>
-    <string name="list_unselected_meta">Tap to add this task here</string>
-    <string name="state_selected">Selected</string>
+    <string name="set_my_flow">Set My Flow</string>
+    <string name="settings_notifications_open_failed">Could not open notification settings</string>
+    <string name="settings_notifications_summary">Manage notification settings for this app</string>
+    <string name="settings_notifications_title">Notifications</string>
+    <string name="started_since_format">Started since %1$d %2$s %3$d</string>
     <string name="state_add">Add</string>
-
-    <!-- DeleteTaskDialog strings -->
-    <string name="delete_task_title">Delete task?</string>
-    <string name="delete_task_message">This will remove the task and its related progress data. This action cannot be undone.</string>
-    <string name="delete_button">Delete</string>
-
-    <!-- DeleteListDialog strings -->
-    <string name="delete_list_title">Delete list?</string>
-    <string name="delete_list_message">This will remove the list. Tasks stay available, but the list itself cannot be recovered.</string>
-
-    <!-- CompletionInputDialog strings -->
-    <string name="count_progress_subtitle">Count progress</string>
-    <string name="time_progress_subtitle">Time progress</string>
-    <string name="count_hint">Drag the ring or use the controls</string>
-    <string name="timer_hint">Drag the ring or adjust by 1 minute</string>
-    <string name="count_value_format">%1$d / %2$d</string>
-    <string name="timer_value_format">%1$d:%2$02d / %3$d:00</string>
-    <string name="checklist_status_format">%1$d / %2$d done</string>
-
-    <!-- Adapter strings -->
-    <string name="task_content_description">Task: %1$s, Type: %2$s</string>
-    <string name="not_implemented">Not implemented</string>
-    <string name="list_none">None</string>
-    <string name="empty_day_tasks_title_default">Nothing scheduled for this day</string>
-    <string name="empty_day_tasks_subtitle_default">Tap + to add a task for today.</string>
-    <string name="history_date_format">%1$d/%2$d</string>
-    <string name="score_format_decimal">%.1f</string>
-    <string name="pending_from_format">Pending from %1$s</string>
-    <string name="analysis_period_week_format">%1$d %2$s - %3$d %4$s</string>
-    <string name="analysis_period_month_format">%1$s %2$d</string>
-    <string name="analysis_period_year_format">%1$d</string>
-    <string name="repeat_every_day">Every day</string>
-    <string name="repeat_specific_weekdays">Specific weekdays</string>
-    <string name="repeat_specific_month_days">Specific month days</string>
-    <string name="ordinal_suffix_st">st</string>
-    <string name="ordinal_suffix_nd">nd</string>
-    <string name="ordinal_suffix_rd">rd</string>
-    <string name="ordinal_suffix_th">th</string>
-    <string name="clear_button">Clear</string>
-
-    <!-- Accessibility descriptions -->
-    <string name="day_progress_description">Daily completion progress</string>
-    <string name="week_progress_description">Weekly completion progress</string>
-    <string name="month_progress_description">Monthly completion progress</string>
-    <string name="daily_task_type">daily</string>
-
-    <!-- TaskTypeDialog strings -->
-    <string name="create_task_title">Create Task</string>
-    <string name="choose_behavior_subtitle">Choose how this task should behave</string>
-    <string name="repeat_task_label">Repeat Task</string>
-    <string name="repeat_task_desc">Repeats every day. Best for habits.</string>
-    <string name="one_day_task_label">Task for one day</string>
-    <string name="one_day_task_desc">Shown only on selected date.</string>
-
-    <string name="tab_week">Week</string>
+    <string name="state_selected">Selected</string>
+    <string name="sync_reminder_time_message">Do you also want to update your reminder to %1$s?</string>
+    <string name="sync_schedule_time_message">Do you also want to update your schedule to %1$s?</string>
     <string name="tab_month">Month</string>
+    <string name="tab_week">Week</string>
     <string name="tab_year">Year</string>
-    <string name="analysis_progress_title">PROGRESS</string>
-
+    <string name="target_duration_label">Target duration</string>
+    <string name="task_content_description">Task: %1$s, Type: %2$s</string>
+    <string name="task_delete_failed_toast">Failed to delete task</string>
+    <string name="task_note_hint">Note (Optional)</string>
+    <string name="task_pause_failed_toast">Failed to pause task</string>
+    <string name="task_restart_failed_toast">Failed to restart task</string>
+    <string name="task_resume_failed_toast">Failed to resume task</string>
+    <string name="task_saved_toast">Task saved</string>
+    <string name="task_timeline_marker">Task timeline marker</string>
+    <string name="task_title_hint">Title</string>
+    <string name="task_type_daily">Daily</string>
+    <string name="task_type_today">Today</string>
+    <string name="task_type_until_done">Until Done</string>
+    <string name="task_updated_toast">Task updated</string>
+    <string name="task_weight_prefix">%1$d/4</string>
+    <string name="tasks_in_list_header">Tasks in this list</string>
+    <string name="theme_summary_dark">Always use dark theme</string>
+    <string name="theme_summary_light">Always use light theme</string>
+    <string name="theme_summary_system">Using your device setting</string>
+    <string name="time">10:26 AM</string>
+    <string name="time_placeholder">--:--</string>
+    <string name="time_progress_subtitle">Time progress</string>
+    <string name="timer_hint">Drag the ring or adjust by 1 minute</string>
+    <string name="timer_value_format">%1$d:%2$02d / %3$d:00</string>
+    <string name="today">Today</string>
+    <string name="tomorrow">Tomorrow</string>
+    <string name="tracking_binary">Binary</string>
+    <string name="tracking_checklist">Checklist</string>
+    <string name="tracking_count">Count</string>
+    <string name="tracking_timer">Timer</string>
+    <string name="update_both_button">Update both</string>
+    <string name="update_only_this_button">Update only this</string>
+    <string name="use_new_start_date_message">Changing the start date from %1$s to %2$s will make tracking start from %2$s. Earlier progress will stay saved and can appear again if you move the start date back.</string>
+    <string name="use_new_start_date_title">Use new start date?</string>
+    <string name="use_same_time_button">Use same (%1$s)</string>
+    <string name="use_same_time_reminder_message">Use the same time as your reminder (%1$s)?</string>
+    <string name="use_same_time_schedule_message">Use the same time as your schedule (%1$s)?</string>
+    <string name="week_progress_description">Weekly completion progress</string>
+    <string name="week_range_format">%1$s – %2$s</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="zero_selected">0 selected</string>
 </resources>

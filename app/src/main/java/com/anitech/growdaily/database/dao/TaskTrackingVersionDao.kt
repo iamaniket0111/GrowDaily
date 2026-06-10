@@ -15,4 +15,7 @@ interface TaskTrackingVersionDao {
 
     @Query("SELECT * FROM task_tracking_versions")
     fun getAllFlow(): Flow<List<TaskTrackingVersionEntity>>
+
+    @Query("DELETE FROM task_tracking_versions WHERE taskId = :taskId AND effectiveFromDate < :date")
+    suspend fun deleteVersionsBeforeDate(taskId: String, date: String)
 }

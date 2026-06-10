@@ -34,7 +34,6 @@ data class TaskEntity(
     val colorCode: String,
     val taskType: TaskType,
     val showUntilCompleted: Boolean = false,
-    val showMissedOnGapDays: Boolean = false,
 
     val repeatType: RepeatType?,
     val repeatDays: String?,

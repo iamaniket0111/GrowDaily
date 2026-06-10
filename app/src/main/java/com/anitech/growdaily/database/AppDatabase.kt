@@ -26,25 +26,6 @@ import com.anitech.growdaily.database.dao.TaskDaySnapshotDao
 import com.anitech.growdaily.database.dao.TaskExtraDateDao
 import com.anitech.growdaily.database.dao.TaskTrackingVersionDao
 import com.anitech.growdaily.database.dao.UntilCompleteChildDao
-import com.anitech.growdaily.database.migrations.MIGRATION_10_11
-import com.anitech.growdaily.database.migrations.MIGRATION_11_12
-import com.anitech.growdaily.database.migrations.MIGRATION_12_13
-import com.anitech.growdaily.database.migrations.MIGRATION_13_14
-import com.anitech.growdaily.database.migrations.MIGRATION_14_15
-import com.anitech.growdaily.database.migrations.MIGRATION_15_16
-import com.anitech.growdaily.database.migrations.MIGRATION_16_17
-import com.anitech.growdaily.database.migrations.MIGRATION_17_18
-import com.anitech.growdaily.database.migrations.MIGRATION_18_19
-import com.anitech.growdaily.database.migrations.MIGRATION_19_20
-import com.anitech.growdaily.database.migrations.MIGRATION_1_2
-import com.anitech.growdaily.database.migrations.MIGRATION_2_3
-import com.anitech.growdaily.database.migrations.MIGRATION_3_4
-import com.anitech.growdaily.database.migrations.MIGRATION_4_5
-import com.anitech.growdaily.database.migrations.MIGRATION_5_6
-import com.anitech.growdaily.database.migrations.MIGRATION_6_7
-import com.anitech.growdaily.database.migrations.MIGRATION_7_8
-import com.anitech.growdaily.database.migrations.MIGRATION_8_9
-import com.anitech.growdaily.database.migrations.MIGRATION_9_10
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import net.zetetic.database.sqlcipher.SQLiteDatabase
 import java.io.File
@@ -94,34 +75,27 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         private fun buildDatabase(context: Context): AppDatabase {
-            System.loadLibrary("sqlcipher")
-            val passphrase = SecurityUtils.getDatabasePassphrase(context)
-            val hexKey = bytesToHex(passphrase)
-            val databaseFile = context.getDatabasePath(DATABASE_NAME)
+            // System.loadLibrary("sqlcipher")
+            // val passphrase = SecurityUtils.getDatabasePassphrase(context)
+            // val hexKey = bytesToHex(passphrase)
+            // val databaseFile = context.getDatabasePath(DATABASE_NAME)
 
-            if (databaseFile.exists()) {
-                if (isPlaintextSqliteDatabase(databaseFile)) {
-                    migratePlaintextDatabaseIfNeeded(context, passphrase)
-                } else if (!isValidDatabase(databaseFile, hexKey)) {
-                    // Key mismatch or corruption - clear DB to recover
-                    deleteDatabaseWithSidecars(databaseFile)
-                }
-            }
+            // if (databaseFile.exists()) {
+            //     if (isPlaintextSqliteDatabase(databaseFile)) {
+            //         migratePlaintextDatabaseIfNeeded(context, passphrase)
+            //     } else if (!isValidDatabase(databaseFile, hexKey)) {
+            //         // Key mismatch or corruption - clear DB to recover
+            //         deleteDatabaseWithSidecars(databaseFile)
+            //     }
+            // }
 
-            val factory = SupportOpenHelperFactory("x'$hexKey'".toByteArray(), null, false)
+            // val factory = SupportOpenHelperFactory("x'$hexKey'".toByteArray(), null, false)
             return Room.databaseBuilder(
                 context.applicationContext,
                 AppDatabase::class.java,
                 DATABASE_NAME
             )
-                .openHelperFactory(factory)
-                .addMigrations(
-                    MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6,
-                    MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10,
-                    MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
-                    MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18,
-                    MIGRATION_18_19, MIGRATION_19_20
-                )
+                // .openHelperFactory(factory)
                 .build()
         }
 

@@ -1,9 +1,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@drawable/dialog_surface_card"
+    style="@style/GrowDailyDialogContainer"
     android:paddingHorizontal="22dp"
     android:paddingTop="22dp"
     android:paddingBottom="18dp"
@@ -29,43 +27,28 @@
         android:layout_marginTop="6dp"
         android:gravity="center"
         android:text="@string/choose_behavior_subtitle"
-        android:textColor="@color/dialog_text_secondary"
-        android:textSize="14sp"
-        android:lineSpacingExtra="2dp"
+        style="@style/DialogOptionDescription"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/txtTitle" />
 
     <LinearLayout
         android:id="@+id/optionDaily"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        style="@style/DialogOptionCard"
         android:layout_marginTop="20dp"
-        android:background="@drawable/add_task_info_card"
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="?attr/selectableItemBackground"
-        android:orientation="horizontal"
-        android:padding="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/txtSub">
 
         <FrameLayout
             android:id="@+id/dailyIconContainer"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@drawable/circular_corners_less"
-            android:backgroundTint="@color/task_filter_selected_bg">
+            style="@style/DialogOptionIconContainer">
 
             <ImageView
                 android:id="@+id/dailyIcon"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_gravity="center"
+                style="@style/DialogOptionIcon"
                 android:src="@drawable/ic_sun"
-                android:contentDescription="@string/repeat_task_label"
-                app:tint="@color/brand_blue" />
+                android:contentDescription="@string/repeat_task_label" />
         </FrameLayout>
 
         <Space
@@ -79,20 +62,12 @@
 
             <TextView
                 android:id="@+id/optionDailyTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/repeat_task_label"
-                android:textColor="@color/dialog_text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                style="@style/DialogOptionTitle"
+                android:text="@string/repeat_task_label" />
 
             <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/repeat_task_desc"
-                android:layout_marginTop="2dp"
-                android:textColor="@color/dialog_text_secondary"
-                android:textSize="13sp" />
+                style="@style/DialogOptionDescription"
+                android:text="@string/repeat_task_desc" />
         </LinearLayout>
 
 
@@ -100,36 +75,21 @@
 
     <LinearLayout
         android:id="@+id/optionDay"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        style="@style/DialogOptionCard"
         android:layout_marginTop="12dp"
-        android:background="@drawable/add_task_info_card"
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="?attr/selectableItemBackground"
-        android:orientation="horizontal"
-        android:padding="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/optionDaily"
-
-        >
+        app:layout_constraintTop_toBottomOf="@id/optionDaily">
 
         <FrameLayout
             android:id="@+id/dayIconContainer"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@drawable/circular_corners_less"
-            android:backgroundTint="@color/task_filter_selected_bg">
+            style="@style/DialogOptionIconContainer">
 
             <ImageView
                 android:id="@+id/dayIcon"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_gravity="center"
+                style="@style/DialogOptionIcon"
                 android:src="@drawable/ic_calendar"
-                android:contentDescription="@string/one_day_task_label"
-                app:tint="@color/brand_blue" />
+                android:contentDescription="@string/one_day_task_label" />
         </FrameLayout>
 
         <Space
@@ -143,20 +103,12 @@
 
             <TextView
                 android:id="@+id/optionDayTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/one_day_task_label"
-                android:textColor="@color/dialog_text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                style="@style/DialogOptionTitle"
+                android:text="@string/one_day_task_label" />
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="@string/one_day_task_desc"
-                android:textColor="@color/dialog_text_secondary"
-                android:textSize="13sp" />
+                style="@style/DialogOptionDescription"
+                android:text="@string/one_day_task_desc" />
         </LinearLayout>
     </LinearLayout>
 

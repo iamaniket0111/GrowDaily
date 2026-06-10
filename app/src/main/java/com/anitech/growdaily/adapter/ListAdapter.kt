@@ -35,6 +35,10 @@ class ListAdapter(
         private const val VIEW_MANAGE_LIST = 3
     }
 
+    init {
+        setHasStableIds(true)
+    }
+
     // ---------------- ViewHolders ----------------
 
     class ConditionItemVH(view: View) : RecyclerView.ViewHolder(view) {
@@ -71,6 +75,15 @@ class ListAdapter(
                 ManageListVH(inflater.inflate(R.layout.rv_manage_list, parent, false))
 
             else -> throw IllegalArgumentException("Invalid view type")
+        }
+    }
+
+    override fun getItemId(position: Int): Long {
+        return when (getItemViewType(position)) {
+            VIEW_NONE -> Long.MIN_VALUE + 1
+            VIEW_NEW_LIST -> Long.MIN_VALUE + 2
+            VIEW_MANAGE_LIST -> Long.MIN_VALUE + 3
+            else -> conditionList[position - 1].id.hashCode().toLong()
         }
     }
 
@@ -140,18 +153,28 @@ class ListAdapter(
     // ---------------- Public API ----------------
 
     fun setAccentColor(color: Int) {
+        if (this.accentColor == color) return
         this.accentColor = color
-        notifyDataSetChanged()
+        notifyItemRangeChanged(0, itemCount)
     }
 
     fun setSelectedListById(id: String?) {
+        if (selectedListId == id) return
+        val previousSelectedListId = selectedListId
         selectedListId = id
-        notifyDataSetChanged()
+        notifyItemChanged(0)
+        previousSelectedListId?.let(::findAdapterPositionForListId)?.let(::notifyItemChanged)
+        id?.let(::findAdapterPositionForListId)?.let(::notifyItemChanged)
     }
 
 
     fun setData(newList: List<ListEntity>) {
         conditionList = newList
         notifyDataSetChanged()
+    }
+
+    private fun findAdapterPositionForListId(listId: String): Int? {
+        val index = conditionList.indexOfFirst { it.id == listId }
+        return if (index >= 0) index + 1 else null
     }
 }

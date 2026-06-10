@@ -70,10 +70,7 @@ class RepeatTaskViewModel(
     ): List<RepeatTaskUi> {
         if (tasks.isEmpty()) return emptyList()
         val today = LocalDate.now()
-        val activeTasks = tasks.filter {
-            CommonMethods.isWithinTaskLifetime(it, today.format(DATE_FORMATTER))
-        }
-        if (activeTasks.isEmpty()) return emptyList()
+        val todayStr = today.format(DATE_FORMATTER)
 
         val completionMap = groupCompletions(completions)
         val trackingVersionMap = trackingVersions
@@ -84,12 +81,15 @@ class RepeatTaskViewModel(
             .mapValues { entry -> entry.value.associateBy { it.date } }
         val activeSeriesKeys = linkedSetOf<String>()
 
-        val result = activeTasks
+        val result = tasks
             .groupBy { it.seriesId.ifBlank { it.id } }
             .values
-            .map { segments ->
+            .mapNotNull { segments ->
                 val orderedSegments = segments.sortedBy { it.taskAddedDate }
                 val displayTask = orderedSegments.last()
+                if (!CommonMethods.isWithinTaskLifetime(displayTask, todayStr)) {
+                    return@mapNotNull null
+                }
                 val seriesKey = displayTask.seriesId.ifBlank { displayTask.id }
                 activeSeriesKeys.add(seriesKey)
 
@@ -101,7 +101,7 @@ class RepeatTaskViewModel(
                 )
 
                 seriesUiCache[seriesKey]?.takeIf { it.first == seriesSignature }?.second?.let { cached ->
-                    return@map cached
+                    return@mapNotNull cached
                 }
 
                 val taskIdByDate = linkedMapOf<LocalDate, String>()

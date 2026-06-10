@@ -1,15 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/addToListRow"
-    android:layout_width="match_parent"
-    android:layout_height="56dp"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:paddingHorizontal="16dp"
-    android:background="@drawable/add_form_surface_card"
-    android:clickable="true"
-    android:focusable="true">
+    style="@style/AddFormRow">
 
     <!-- Left title -->
     <TextView
@@ -20,15 +14,37 @@
         style="@style/TitleLabel"
         />
 
-    <!-- Selected list summary -->
-    <TextView
-        android:id="@+id/txtListSummary"
-        android:layout_width="wrap_content"
+    <!-- Selected list summary: name ellipsizes; +N count stays visible -->
+    <LinearLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="None"
-        style="@style/ValueText"
-        android:textColor="@color/add_form_text_secondary"
-         />
+        android:layout_weight="0.9"
+        android:gravity="end|center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/txtListSummary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:gravity="end"
+            android:maxLines="1"
+            android:text="@string/list_summary_none"
+            style="@style/ValueText"
+            android:textColor="@color/add_form_text_secondary" />
+
+        <TextView
+            android:id="@+id/txtListSummaryExtra"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:visibility="gone"
+            style="@style/ValueText"
+            android:textColor="@color/add_form_text_secondary"
+            tools:text=" +2"
+            tools:visibility="visible" />
+    </LinearLayout>
 
     <!-- Arrow -->
     <ImageView

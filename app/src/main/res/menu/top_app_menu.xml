@@ -2,11 +2,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/action_calendar"
-        android:icon="@drawable/ic_calendar"
-        android:title="Select Date"
-        app:showAsAction="ifRoom"
-        app:tint="@color/task_text_primary" />
+        android:id="@+id/action_today"
+        android:title="Today"
+        app:showAsAction="always|withText"
+        android:visible="false" />
+
 
     <item
         android:id="@+id/menu_settings"

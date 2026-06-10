@@ -10,22 +10,17 @@
     <!-- Delete block -->
     <LinearLayout
         android:id="@+id/deleteRow"
+        style="@style/AddFormRow"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="horizontal"
-
-        android:gravity="center_vertical"
-        android:paddingHorizontal="16dp"
-        android:background="@drawable/add_form_surface_card"
-        android:clickable="true"
-        android:focusable="true">
+        android:layout_weight="1">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Delete"
+            android:text="@string/delete_action"
+            android:contentDescription="@string/delete_action"
             style="@style/TitleLabel" />
 
         <ImageView
@@ -45,22 +40,18 @@
     <!-- Pause block -->
     <LinearLayout
         android:id="@+id/pauseRow"
+        style="@style/AddFormRow"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="16dp"
-        android:background="@drawable/add_form_surface_card"
-        android:clickable="true"
-        android:focusable="true">
+        android:layout_weight="1">
 
         <TextView
             android:id="@+id/tvPauseAction"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Pause"
+            android:text="@string/pause_action"
+            android:contentDescription="@string/pause_action"
             style="@style/TitleLabel" />
 
         <ImageView

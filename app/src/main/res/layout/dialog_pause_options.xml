@@ -41,25 +41,22 @@
 
     <Button
         android:id="@+id/primaryButton"
-        android:layout_width="match_parent"
+        style="@style/DialogPrimaryButton"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
-        android:text="Pause from tomorrow"
-        android:textColor="@android:color/white" />
+        android:text="Pause from tomorrow" />
 
     <Button
         android:id="@+id/secondaryActionButton"
-        android:layout_width="match_parent"
+        style="@style/DialogSecondaryButton"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
-        android:text="Pause from today"
-        android:textColor="@color/dialog_secondary_action" />
+        android:text="Pause from today" />
 
     <Button
         android:id="@+id/cancelButton"
-        android:layout_width="match_parent"
+        style="@style/DialogSecondaryButton"
         android:layout_height="wrap_content"
-        android:text="Cancel"
-        android:textColor="@color/dialog_secondary_action" />
+        android:text="Cancel" />
 
 </LinearLayout>

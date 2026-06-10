@@ -3,17 +3,10 @@
     <!-- Neutral Colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFF</color>
-    <color name="gray">#808080</color>
-    <color name="light_gray_25">#40808080</color>
     <color name="default_text_color">#747474</color>
-    <color name="main_text_color">#782115</color>
     <color name="off_text_color">#A6A6A7</color>
 
     <!-- Backgrounds -->
-    <color name="background_color">#F0F0F0</color>
-    <color name="high_light_dark">#6C6A6D</color>
-    <color name="light_surface">#F1F1F3</color>
-    <color name="lightBackground">#F4F6F8</color>
 
     <!-- Brand / Accent Colors -->
     <color name="brand_blue">#708CFF</color>
@@ -30,11 +23,8 @@
 
     <!-- Opacity Variants -->
     <color name="category_dark_blue_25">#40708CFF</color>
-    <color name="category_dark_blue_10">#E5E5E6</color>
-    <color name="category_red_25">#40FF6B6B</color>
-    <color name="category_green_25">#404ADE80</color>
 
-<!--    light icon task-->
+    <!--    light icon task-->
 
     <color name="iconTint">#C2C8E2</color>
 
@@ -57,10 +47,7 @@
     <color name="task_bar_today_text">@color/category_dark_blue</color>
     <color name="task_bar_grid_line">#808080</color>
     <color name="task_bar_average_line">#ADD8E6</color>
-    <color name="task_bar_button_bg">#FFFFFF</color>
-    <color name="task_bar_button_icon">#111111</color>
     <color name="task_bar_fill">#5F7FFF</color>
-    <color name="task_bar_fill_complete">#40C972</color>
     <color name="task_bar_selected_surface">#FFFFFF</color>
     <color name="task_bar_selected_stroke">#E4E4E4</color>
 
@@ -106,6 +93,5 @@
     <color name="main_bottom_bar_icon">#7B8392</color>
     <color name="main_bottom_bar_icon_active">@color/category_dark_blue</color>
     <color name="main_bottom_nav_selected_bg">#E9F0FF</color>
-    <color name="main_mini_fab_bg">#FFFFFF</color>
 
 </resources>

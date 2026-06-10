@@ -15,7 +15,10 @@ import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.os.BundleCompat
+import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.setFragmentResult
 import com.anitech.growdaily.R
 import com.anitech.growdaily.setSolidBackgroundColorCompat
 import com.anitech.growdaily.data_class.TaskCompletionEntity
@@ -34,17 +37,75 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-class CompletionInputDialog(
-    private val task: TaskEntity,
-    private val date: String,
-    private val currentCompletion: TaskCompletionEntity?,
-    private val trackingSettingsOverride: EffectiveTrackingSettings? = null,
-    private val checklistItemsOverride: String? = null,
-    private val onAction: (CompletionAction) -> Unit
-) : DialogFragment() {
+class CompletionInputDialog : DialogFragment() {
+
+    private lateinit var task: TaskEntity
+    private lateinit var date: String
+    private var currentCompletion: TaskCompletionEntity? = null
+    private var trackingSettingsOverride: EffectiveTrackingSettings? = null
+    private var checklistItemsOverride: String? = null
 
     private var workingChecklistJson: String = ""
     private val badgeFormatter = DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())
+    private val gson = Gson()
+
+    companion object {
+        const val REQUEST_KEY = "completionInputResult"
+
+        private const val ARG_TASK = "task"
+        private const val ARG_DATE = "date"
+        private const val ARG_COMPLETION_JSON = "completion_json"
+        private const val ARG_HAS_TRACKING_OVERRIDE = "has_tracking_override"
+        private const val ARG_DAILY_TARGET_COUNT = "daily_target_count"
+        private const val ARG_TARGET_DURATION_SECONDS = "target_duration_seconds"
+        private const val ARG_CHECKLIST_ITEMS_JSON = "checklist_items_json"
+        private const val ARG_CHECKLIST_OVERRIDE = "checklist_override"
+
+        fun newInstance(
+            task: TaskEntity,
+            date: String,
+            currentCompletion: TaskCompletionEntity?,
+            trackingSettingsOverride: EffectiveTrackingSettings? = null,
+            checklistItemsOverride: String? = null
+        ): CompletionInputDialog {
+            val args = bundleOf(
+                ARG_TASK to task,
+                ARG_DATE to date,
+                ARG_HAS_TRACKING_OVERRIDE to (trackingSettingsOverride != null),
+                ARG_CHECKLIST_OVERRIDE to checklistItemsOverride
+            )
+            currentCompletion?.let {
+                args.putString(ARG_COMPLETION_JSON, Gson().toJson(it))
+            }
+            trackingSettingsOverride?.let {
+                args.putInt(ARG_DAILY_TARGET_COUNT, it.dailyTargetCount)
+                args.putLong(ARG_TARGET_DURATION_SECONDS, it.targetDurationSeconds)
+                args.putString(ARG_CHECKLIST_ITEMS_JSON, it.checklistItemsJson)
+            }
+            return CompletionInputDialog().apply { arguments = args }
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val args = requireArguments()
+        task = BundleCompat.getParcelable(args, ARG_TASK, TaskEntity::class.java)
+            ?: throw IllegalStateException("Task argument is required")
+        date = args.getString(ARG_DATE)
+            ?: throw IllegalStateException("Date argument is required")
+        args.getString(ARG_COMPLETION_JSON)?.let { json ->
+            currentCompletion = gson.fromJson(json, TaskCompletionEntity::class.java)
+        }
+        if (args.getBoolean(ARG_HAS_TRACKING_OVERRIDE, false)) {
+            trackingSettingsOverride = EffectiveTrackingSettings(
+                weightValue = 0,
+                dailyTargetCount = args.getInt(ARG_DAILY_TARGET_COUNT),
+                targetDurationSeconds = args.getLong(ARG_TARGET_DURATION_SECONDS),
+                checklistItemsJson = args.getString(ARG_CHECKLIST_ITEMS_JSON)
+            )
+        }
+        checklistItemsOverride = args.getString(ARG_CHECKLIST_OVERRIDE)
+    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val view = LayoutInflater.from(requireContext())
@@ -54,11 +115,10 @@ class CompletionInputDialog(
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         dialog.setContentView(view)
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        
-        // Set fixed width to prevent "grabbing" and ensure consistent look across devices
+
         val width = (resources.displayMetrics.widthPixels * 0.88).toInt().coerceAtMost(1000)
         dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
-        
+
         dialog.setCancelable(true)
         dialog.setCanceledOnTouchOutside(true)
 
@@ -73,8 +133,15 @@ class CompletionInputDialog(
             TrackingType.BINARY -> dismiss()
         }
 
-        view.findViewById<View>(R.id.btnClose).setOnClickListener { dismiss() }
+        view.findViewById<View>(R.id.buttonSave).setOnClickListener { dismiss() }
         return dialog
+    }
+
+    private fun emitAction(action: CompletionAction) {
+        setFragmentResult(
+            REQUEST_KEY,
+            CompletionAction.toResultBundle(task.id, date, action)
+        )
     }
 
     private fun bindHeader(view: View, color: Int) {
@@ -93,7 +160,6 @@ class CompletionInputDialog(
             txtNote.text = task.note
         }
 
-        // Bind Icon
         val iconRes = TaskIcon.fromName(task.iconResId).resId
         imgIcon.setImageResource(iconRes)
         viewIconBg.setSolidBackgroundColorCompat(color)
@@ -139,7 +205,7 @@ class CompletionInputDialog(
                 if (fromUser) {
                     val delta = progress - current
                     current = progress
-                    onAction(CompletionAction.CountDelta(delta))
+                    emitAction(CompletionAction.CountDelta(delta))
                     refresh()
                 }
             }
@@ -151,7 +217,7 @@ class CompletionInputDialog(
             if (current > 0) {
                 current--
                 circularSeek.progress = current
-                onAction(CompletionAction.CountDelta(-1))
+                emitAction(CompletionAction.CountDelta(-1))
                 refresh()
             }
         }
@@ -160,7 +226,7 @@ class CompletionInputDialog(
             if (current < target) {
                 current++
                 circularSeek.progress = current
-                onAction(CompletionAction.CountDelta(1))
+                emitAction(CompletionAction.CountDelta(1))
                 refresh()
             }
         }
@@ -210,7 +276,7 @@ class CompletionInputDialog(
                     val newSec = progress * 60L
                     val delta = newSec - currentSec
                     currentSec = newSec
-                    onAction(CompletionAction.TimerAdd(delta))
+                    emitAction(CompletionAction.TimerAdd(delta))
                     refresh()
                 }
             }
@@ -222,7 +288,7 @@ class CompletionInputDialog(
             if (currentSec >= 60L) {
                 currentSec -= 60L
                 circularSeek.progress = (currentSec / 60L).toInt()
-                onAction(CompletionAction.TimerAdd(-60L))
+                emitAction(CompletionAction.TimerAdd(-60L))
                 refresh()
             }
         }
@@ -232,7 +298,7 @@ class CompletionInputDialog(
             if (currentSec < maxAllowed) {
                 currentSec += 60L
                 circularSeek.progress = (currentSec / 60L).toInt()
-                onAction(CompletionAction.TimerAdd(60L))
+                emitAction(CompletionAction.TimerAdd(60L))
                 refresh()
             }
         }
@@ -281,13 +347,12 @@ class CompletionInputDialog(
                 tvLabel.text = label
                 cb.buttonTintList = android.content.res.ColorStateList.valueOf(taskColor)
                 cb.isClickable = false
-                
-                // Slightly reduced alpha for done items background
+
                 row.backgroundTintList = android.content.res.ColorStateList.valueOf(
                     if (done) withAlpha(taskColor, 0.08f)
                     else ContextCompat.getColor(requireContext(), R.color.completion_dialog_row_surface)
                 )
-                
+
                 tvLabel.paintFlags = if (done) {
                     tvLabel.paintFlags or android.graphics.Paint.STRIKE_THRU_TEXT_FLAG
                 } else {
@@ -302,7 +367,7 @@ class CompletionInputDialog(
                     val updatedArray = JSONArray(workingChecklistJson)
                     updatedArray.getJSONObject(i).put("done", isChecked)
                     workingChecklistJson = updatedArray.toString()
-                    onAction(CompletionAction.ChecklistUpdate(workingChecklistJson))
+                    emitAction(CompletionAction.ChecklistUpdate(workingChecklistJson))
                     rebuildRows()
                 }
 
@@ -323,7 +388,7 @@ class CompletionInputDialog(
 
     private fun applyDialogAccent(view: View, taskColor: Int) {
         view.findViewById<View>(R.id.viewAccent)?.setSolidBackgroundColorCompat(taskColor)
-        view.findViewById<Button>(R.id.btnClose)?.backgroundTintList = ColorStateList.valueOf(taskColor)
+        view.findViewById<Button>(R.id.buttonSave)?.backgroundTintList = ColorStateList.valueOf(taskColor)
         view.findViewById<Button>(R.id.btnStepUp)?.backgroundTintList = ColorStateList.valueOf(taskColor)
         view.findViewById<TextView>(R.id.tvChecklistDoneCount)?.setTextColor(taskColor)
         view.findViewById<TextView>(R.id.tvDateBadge)?.setTextColor(taskColor)
@@ -368,7 +433,7 @@ class CompletionInputDialog(
         if (json.isNullOrBlank()) return emptyList()
         return try {
             val listType = object : TypeToken<List<String>>() {}.type
-            Gson().fromJson(json, listType)
+            gson.fromJson(json, listType)
         } catch (e: Exception) {
             emptyList()
         }

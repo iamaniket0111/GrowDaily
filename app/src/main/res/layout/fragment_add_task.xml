@@ -2,12 +2,16 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/task_screen_bg"
+    android:paddingHorizontal="16dp"
+    android:paddingTop="16dp"
+    android:paddingBottom="12dp">
 
     <ScrollView
+        android:id="@+id/formScrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:paddingHorizontal="16dp"
         android:scrollbars="none"
         app:layout_constraintBottom_toTopOf="@id/buttonSave"
         app:layout_constraintEnd_toEndOf="parent"
@@ -34,10 +38,11 @@
                     android:layout_height="match_parent"
                     android:layout_margin="6dp"
                     android:background="@drawable/circle_background"
-                    android:contentDescription="@string/none"
+                    android:contentDescription="@string/change_task_appearance"
                     android:padding="16dp"
                     android:scaleType="centerCrop"
                     android:src="@drawable/ic_trophy"
+                    android:importantForAccessibility="yes"
                     app:tint="@color/white" />
 
                 <ImageView
@@ -69,14 +74,6 @@
                 layout="@layout/edit_task_warning"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"/>
-
-            <!-- Priority (Fixed 56dp) -->
-            <include
-                android:id="@+id/taskWeightPriorityLayout"
-                layout="@layout/task_weight_priority_layout"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
                 android:layout_marginBottom="16dp" />
 
             <!-- Tracking Type (Variable Height) -->
@@ -85,6 +82,14 @@
                 layout="@layout/layout_tracking_type"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Priority (Fixed 56dp) -->
+            <include
+                android:id="@+id/taskWeightPriorityLayout"
+                layout="@layout/task_weight_priority_layout"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
                 android:layout_marginBottom="16dp" />
 
             <!-- Add to List (Fixed 56dp) -->
@@ -126,6 +131,14 @@
                 android:layout_height="56dp"
                 android:layout_marginBottom="16dp" />
 
+            <!-- Restart Progress (Fixed 56dp) -->
+            <include
+                android:id="@+id/restartProgressLayout"
+                layout="@layout/layout_restart_progress"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="16dp" />
+
             <!-- Schedule (Variable Height) -->
             <include
                 android:id="@+id/scheduleLayout"
@@ -153,6 +166,20 @@
         </LinearLayout>
     </ScrollView>
 
+    <View
+        android:id="@+id/loadingBlocker"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#66000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        android:contentDescription="@string/save_task_button"
+        app:layout_constraintBottom_toTopOf="@id/buttonSave"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <ProgressBar
         android:id="@+id/progressBarSave"
         android:layout_width="wrap_content"
@@ -165,14 +192,10 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/buttonSave"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:backgroundTint="@color/brand_blue"
-        android:text="Save Task"
-        android:textColor="@color/white"
+        style="@style/PrimaryActionButton"
+        android:text="@string/save_task_button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

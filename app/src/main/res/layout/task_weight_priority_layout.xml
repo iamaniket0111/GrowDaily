@@ -2,9 +2,8 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/priorityContainer"
-    android:layout_width="match_parent"
+    style="@style/AddFormCard"
     android:layout_height="56dp"
-    android:background="@drawable/add_form_surface_card"
     android:padding="12dp">
 
     <!-- Label -->

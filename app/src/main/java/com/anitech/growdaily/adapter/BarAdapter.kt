@@ -23,6 +23,8 @@ class BarAdapter(
         const val TYPE_WEEK = 0
         const val TYPE_LOADING_START = 1
         const val TYPE_LOADING_END = 2
+        const val PAYLOAD_SELECTION_CHANGED = "SELECTION_CHANGED"
+        const val PAYLOAD_ACCENT_CHANGED = "ACCENT_CHANGED"
     }
 
     private sealed class BarItem {
@@ -42,7 +44,7 @@ class BarAdapter(
 
     interface OnBarInteractionListener {
         fun onBarSelected(dailyScore: DailyScore)
-        fun onTodayBarOutOfView()
+        fun onTodayBarOutOfView(isFuture: Boolean)
         fun onTodayBarInView()
     }
 
@@ -154,12 +156,7 @@ class BarAdapter(
 
         holder.view.setOnClickListener {
             if (!isSelectingMode) {
-                selectedDate = currentDate
-                
-                // Since we are now using weeks, notifyDataSetChanged is safer here
-                // to ensure highlights are cleared across week boundaries.
-                notifyDataSetChanged() 
-                
+                refreshSelection(currentDate)
                 listener.onBarSelected(score)
             }
         }
@@ -173,9 +170,10 @@ class BarAdapter(
     ) {
         val oldItems = items
         val newItems = buildItems(newScores, isLoadingPast, isLoadingFuture)
+        val previousSelectedDate = this.selectedDate
 
         this.scoreList = newScores
-        val selectionChanged = this.selectedDate != selectedDate
+        val selectionChanged = previousSelectedDate != selectedDate
         this.selectedDate = selectedDate
         this.isLoadingPast = isLoadingPast
         this.isLoadingFuture = isLoadingFuture
@@ -204,15 +202,14 @@ class BarAdapter(
         }, false)
         diff.dispatchUpdatesTo(this)
         
-        // Force refresh if selection changed but DiffUtil didn't catch it 
-        // (since it's internal to the week items)
         if (selectionChanged) {
-            notifyDataSetChanged()
+            notifyWeekChangedForDate(previousSelectedDate, selectionPayload = true)
+            notifyWeekChangedForDate(selectedDate, selectionPayload = true)
         }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int, payloads: List<Any>) {
-        if (payloads.contains("SELECTION_CHANGED")) {
+        if (payloads.contains(PAYLOAD_SELECTION_CHANGED) || payloads.contains(PAYLOAD_ACCENT_CHANGED)) {
             if (holder is WeekViewHolder) {
                 bindWeek(holder, position)
             }
@@ -239,8 +236,18 @@ class BarAdapter(
             val firstVisible = layoutManager.findFirstVisibleItemPosition()
             val lastVisible = layoutManager.findLastVisibleItemPosition()
             val todayWeekIndex = getAdapterPositionForDate(LocalDate.now())
+            
             if (todayWeekIndex == RecyclerView.NO_POSITION || todayWeekIndex < firstVisible || todayWeekIndex > lastVisible) {
-                listener.onTodayBarOutOfView()
+                val isFuture = if (todayWeekIndex == RecyclerView.NO_POSITION) {
+                    // If not in window, compare first visible week date with today
+                    val firstDateStr = getDateAtAdapterPosition(firstVisible)
+                    if (firstDateStr != null) {
+                        LocalDate.now().isBefore(LocalDate.parse(firstDateStr))
+                    } else false
+                } else {
+                    todayWeekIndex < firstVisible
+                }
+                listener.onTodayBarOutOfView(isFuture)
             } else {
                 listener.onTodayBarInView()
             }
@@ -248,19 +255,22 @@ class BarAdapter(
     }
 
     fun refreshTodayHighlight() {
-        notifyDataSetChanged()
+        notifyWeekChangedForDate(LocalDate.now().minusDays(1))
+        notifyWeekChangedForDate(LocalDate.now())
     }
 
     fun refreshSelection(newSelectedDate: LocalDate) {
-        if (this.selectedDate != newSelectedDate) {
-            this.selectedDate = newSelectedDate
-            notifyDataSetChanged()
-        }
+        if (this.selectedDate == newSelectedDate) return
+        val previousSelectedDate = this.selectedDate
+        this.selectedDate = newSelectedDate
+        notifyWeekChangedForDate(previousSelectedDate, selectionPayload = true)
+        notifyWeekChangedForDate(newSelectedDate, selectionPayload = true)
     }
 
     fun setAccentColor(color: Int) {
+        if (this.accentColor == color) return
         this.accentColor = color
-        notifyDataSetChanged()
+        notifyItemRangeChanged(0, itemCount, PAYLOAD_ACCENT_CHANGED)
     }
 
     fun getAdapterPositionForDate(date: LocalDate): Int {
@@ -296,6 +306,19 @@ class BarAdapter(
             if (isLoadingPast) add(BarItem.LoadingStart)
             weeks.forEach { add(BarItem.Week(it)) }
             if (isLoadingFuture) add(BarItem.LoadingEnd)
+        }
+    }
+
+    private fun notifyWeekChangedForDate(
+        date: LocalDate,
+        selectionPayload: Boolean = false
+    ) {
+        val position = getAdapterPositionForDate(date)
+        if (position == RecyclerView.NO_POSITION) return
+        if (selectionPayload) {
+            notifyItemChanged(position, PAYLOAD_SELECTION_CHANGED)
+        } else {
+            notifyItemChanged(position)
         }
     }
 }

@@ -9,7 +9,6 @@
 
     <!-- Section Title -->
     <TextView
-        android:id="@+id/txtTotalTitle"
         style="@style/AnalysisTitle"
         android:text="COMPLETION RATE"
         app:layout_constraintStart_toStartOf="parent"
@@ -17,7 +16,6 @@
 
     <!-- Left Side: Detailed Counts -->
     <LinearLayout
-        android:id="@+id/layoutLeftStats"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
@@ -49,7 +47,6 @@
 
     <!-- Right Side: Progress Semi-Circle Hub -->
     <FrameLayout
-        android:id="@+id/layoutSemiCircle"
         android:layout_width="160dp"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"

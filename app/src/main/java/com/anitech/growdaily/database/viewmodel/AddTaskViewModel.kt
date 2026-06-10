@@ -1,7 +1,6 @@
 package com.anitech.growdaily.database.viewmodel
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anitech.growdaily.CommonMethods
@@ -10,14 +9,25 @@ import com.anitech.growdaily.data_class.ListEntity
 import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.data_class.TaskTrackingVersionEntity
 import com.anitech.growdaily.database.repository.AppRepository
-import com.anitech.growdaily.database.util.resolveTrackingSettings
+import com.anitech.growdaily.enum_class.AddTaskUiEvent
+import com.anitech.growdaily.enum_class.AddTaskValidationError
 import com.anitech.growdaily.enum_class.RepeatType
 import com.anitech.growdaily.enum_class.TaskInactiveReason
 import com.anitech.growdaily.enum_class.TaskType
 import com.anitech.growdaily.enum_class.TaskWeight
 import com.anitech.growdaily.enum_class.TrackingType
+import com.anitech.growdaily.util.AddTaskDirtyStateTracker
+import com.anitech.growdaily.util.AddTaskSaveValidator
+import com.anitech.growdaily.util.AddTaskStateNormalizer
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.UUID
@@ -26,106 +36,157 @@ class AddTaskViewModel(
     private val repository: AppRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableLiveData(AddTaskUiState())
-    val uiState: LiveData<AddTaskUiState> = _uiState
+    private data class SaveTaskContext(
+        val taskId: String,
+        val seriesId: String,
+        val taskAddedDate: String,
+        val requestedEndDate: String?,
+        val taskRemovedDate: String?,
+        val inactiveReason: TaskInactiveReason?,
+        val manualOrder: Int,
+        val scheduledMinutes: Int?,
+        val checklistJson: String?,
+        val shouldSplitRepeatSegment: Boolean
+    )
 
-    private val _selectedListIds = MutableLiveData<List<String>>(emptyList())
-    val selectedListIds: LiveData<List<String>> = _selectedListIds
+    /** Survives rotation; used for discard-changes detection. */
+    val dirtyStateTracker = AddTaskDirtyStateTracker()
+
+    /** True after the user picked a custom icon/color (survives rotation). */
+    var hasUserSelectedTaskAppearance: Boolean = false
+
+    private var isFormInitialized = false
+    private var areListIdsInitialized = false
+
+    private val _uiState = MutableStateFlow(AddTaskUiState())
+    val uiState: StateFlow<AddTaskUiState> = _uiState.asStateFlow()
+
+    private val _events = MutableSharedFlow<AddTaskUiEvent>(extraBufferCapacity = 8)
+    val events: SharedFlow<AddTaskUiEvent> = _events.asSharedFlow()
+
+    private val _selectedListIds = MutableStateFlow<List<String>>(emptyList())
+    val selectedListIds: StateFlow<List<String>> = _selectedListIds.asStateFlow()
 
     val allLists: LiveData<List<ListEntity>> = repository.getAllLists()
+
+    private fun emitEvent(event: AddTaskUiEvent) {
+        viewModelScope.launch {
+            _events.emit(event)
+        }
+    }
 
     // ── Basic field updaters ──────────────────────────────────────────────────
 
     fun updateTitle(title: String) {
-        _uiState.value = _uiState.value?.copy(title = title)
+        _uiState.update { it.copy(title = title) }
     }
 
     fun updateNote(note: String) {
-        _uiState.value = _uiState.value?.copy(note = note)
+        _uiState.update { it.copy(note = note) }
     }
 
     fun updateStartDate(date: String) {
-        val current = _uiState.value ?: return
-        val sanitizedEndDate = current.endDate?.let { endDate ->
-            val start = runCatching { LocalDate.parse(date) }.getOrNull()
-            val end = runCatching { LocalDate.parse(endDate) }.getOrNull()
-            if (start != null && end != null && end.isBefore(start)) null else endDate
+        _uiState.update { current ->
+            val sanitizedEndDate = current.endDate?.let { endDate ->
+                val start = runCatching { LocalDate.parse(date) }.getOrNull()
+                val end = runCatching { LocalDate.parse(endDate) }.getOrNull()
+                if (start != null && end != null && end.isBefore(start)) null else endDate
+            }
+            current.copy(startDate = date, endDate = sanitizedEndDate)
         }
-        _uiState.value = current.copy(startDate = date, endDate = sanitizedEndDate)
     }
 
     fun updateEndDate(date: String?) {
-        _uiState.value = _uiState.value?.copy(endDate = date)
+        _uiState.update { it.copy(endDate = date) }
     }
 
     fun updateSchedule(time: String?, isScheduled: Boolean) {
-        _uiState.value = _uiState.value?.copy(scheduleTime = time, isScheduled = isScheduled)
+        _uiState.update { it.copy(scheduleTime = time, isScheduled = isScheduled) }
     }
 
     fun updateReminder(time: String?, isReminderEnabled: Boolean) {
-        _uiState.value = _uiState.value?.copy(reminderTime = time, isReminderEnabled = isReminderEnabled)
+        _uiState.update { it.copy(reminderTime = time, isReminderEnabled = isReminderEnabled) }
     }
 
     fun updateWeight(weight: TaskWeight) {
-        _uiState.value = _uiState.value?.copy(weight = weight)
+        _uiState.update { it.copy(weight = weight) }
     }
 
     fun updateIconAndColor(icon: String, color: String) {
-        _uiState.value = _uiState.value?.copy(icon = icon, color = color)
+        _uiState.update { it.copy(icon = icon, color = color) }
     }
 
     fun updateShowUntilCompleted(enabled: Boolean) {
-        _uiState.value = _uiState.value?.copy(showUntilCompleted = enabled)
+        _uiState.update { it.copy(showUntilCompleted = enabled) }
     }
 
-    fun updateShowMissedOnGapDays(enabled: Boolean) {
-        _uiState.value = _uiState.value?.copy(showMissedOnGapDays = enabled)
-    }
+
 
     fun updateSelectedLists(ids: List<String>) {
         _selectedListIds.value = ids
     }
 
     fun updateRepeatConfig(type: RepeatType, days: List<Int>) {
-        _uiState.value = _uiState.value?.copy(
-            repeatType = type,
-            repeatDays = days.distinct().sorted()
-        )
+        _uiState.update {
+            it.copy(repeatType = type, repeatDays = days.distinct().sorted())
+        }
     }
 
     // ── Tracking type updaters ────────────────────────────────────────────────
 
     fun updateTrackingType(type: TrackingType) {
-        _uiState.value = _uiState.value?.copy(trackingType = type)
+        _uiState.update { it.copy(trackingType = type) }
     }
 
     fun updateDailyTargetCount(count: Int) {
-        _uiState.value = _uiState.value?.copy(dailyTargetCount = count.coerceAtLeast(1))
+        _uiState.update { it.copy(dailyTargetCount = count.coerceAtLeast(1)) }
     }
 
     fun updateTargetDurationSeconds(seconds: Long) {
-        _uiState.value = _uiState.value?.copy(targetDurationSeconds = seconds.coerceAtLeast(60L))
+        _uiState.update { it.copy(targetDurationSeconds = seconds.coerceAtLeast(60L)) }
     }
 
     fun addChecklistItem(label: String) {
         val trimmed = label.trim()
         if (trimmed.isEmpty()) return
-        val current = _uiState.value?.checklistItems ?: emptyList()
-        _uiState.value = _uiState.value?.copy(checklistItems = current + trimmed)
+        val current = _uiState.value.checklistItems
+        if (current.contains(trimmed)) {
+            emitEvent(AddTaskUiEvent.ShowValidationError(AddTaskValidationError.CHECKLIST_DUPLICATE))
+            return
+        }
+        _uiState.update { it.copy(checklistItems = current + trimmed) }
+    }
+
+    fun updateChecklistItem(index: Int, newLabel: String) {
+        val trimmed = newLabel.trim()
+        if (trimmed.isEmpty()) return
+        val current = _uiState.value.checklistItems.toMutableList()
+        if (index in current.indices) {
+            current[index] = trimmed
+            _uiState.update { it.copy(checklistItems = current) }
+        }
+    }
+
+    fun moveChecklistItem(from: Int, to: Int) {
+        val current = _uiState.value.checklistItems.toMutableList()
+        if (from in current.indices && to in current.indices) {
+            val item = current.removeAt(from)
+            current.add(to, item)
+            _uiState.update { it.copy(checklistItems = current) }
+        }
     }
 
     fun removeChecklistItem(index: Int) {
-        val current = _uiState.value?.checklistItems?.toMutableList() ?: return
+        val current = _uiState.value.checklistItems.toMutableList()
         if (index in current.indices) {
             current.removeAt(index)
-            _uiState.value = _uiState.value?.copy(checklistItems = current)
+            _uiState.update { it.copy(checklistItems = current) }
         }
     }
 
     // ── Load for edit ─────────────────────────────────────────────────────────
 
     fun loadTaskForEdit(task: TaskEntity) {
-        // Parse stored checklistItems JSON back to List<String>
         val parsedChecklist: List<String> = if (
             task.trackingType == TrackingType.CHECKLIST &&
             !task.checklistItems.isNullOrBlank()
@@ -133,10 +194,12 @@ class AddTaskViewModel(
             try {
                 val type = object : TypeToken<List<String>>() {}.type
                 Gson().fromJson(task.checklistItems, type) ?: emptyList()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 emptyList()
             }
-        } else emptyList()
+        } else {
+            emptyList()
+        }
 
         _uiState.value = AddTaskUiState(
             title = task.title,
@@ -144,7 +207,9 @@ class AddTaskViewModel(
             startDate = task.taskAddedDate,
             endDate = if (task.taskType == TaskType.DAILY && task.inactiveReason == TaskInactiveReason.ENDED) {
                 task.taskRemovedDate
-            } else null,
+            } else {
+                null
+            },
             scheduleTime = task.scheduledTime,
             reminderTime = task.reminderTime,
             isScheduled = task.isScheduled,
@@ -153,8 +218,6 @@ class AddTaskViewModel(
             icon = task.iconResId,
             color = task.colorCode,
             showUntilCompleted = task.showUntilCompleted,
-            showMissedOnGapDays = task.showMissedOnGapDays,
-            // ── tracking ──
             trackingType = task.trackingType,
             dailyTargetCount = task.dailyTargetCount.coerceAtLeast(1),
             targetDurationSeconds = task.targetDurationSeconds.coerceAtLeast(60L),
@@ -162,17 +225,43 @@ class AddTaskViewModel(
             repeatType = task.repeatType ?: RepeatType.DAILY,
             repeatDays = CommonMethods.parseRepeatDays(task.repeatDays),
             isLoading = false,
-            errorMessage = null,
-            isSaved = false
+            manualOrder = task.manualOrder
         )
     }
 
-    fun loadTaskListIds(taskId: String, onComplete: (List<String>) -> Unit) {
+    fun ensureEditTaskLoaded(task: TaskEntity) {
+        if (isFormInitialized) return
+        loadTaskForEdit(task)
+        isFormInitialized = true
+    }
+
+    fun ensureAddFormInitialized() {
+        if (isFormInitialized) return
+        isFormInitialized = true
+    }
+
+    /** Call once after the form has applied accent defaults and other initial UI sync. */
+    fun captureAddModeDirtyBaseline() {
+        if (dirtyStateTracker.hasStateBaseline()) return
+        dirtyStateTracker.markAddModeReady(_uiState.value)
+    }
+
+    fun ensureListIdsLoaded(taskId: String, onComplete: (List<String>) -> Unit) {
+        if (areListIdsInitialized) {
+            onComplete(_selectedListIds.value)
+            return
+        }
         viewModelScope.launch {
             val ids = repository.getListIdsForTask(taskId)
             _selectedListIds.value = ids
+            dirtyStateTracker.onListIdsLoaded(ids)
+            areListIdsInitialized = true
             onComplete(ids)
         }
+    }
+
+    fun loadTaskListIds(taskId: String, onComplete: (List<String>) -> Unit) {
+        ensureListIdsLoaded(taskId, onComplete)
     }
 
     // ── Save ──────────────────────────────────────────────────────────────────
@@ -181,141 +270,282 @@ class AddTaskViewModel(
         isEdit: Boolean,
         existingId: String?,
         taskType: TaskType,
-        originalTask: TaskEntity?,
-        onComplete: (Boolean, String?) -> Unit
+        originalTask: TaskEntity?
     ) {
-        val currentState = _uiState.value ?: return
+        val normalized = AddTaskStateNormalizer.forPersistence(_uiState.value)
 
-        if (currentState.title.isBlank()) {
-            _uiState.value = currentState.copy(errorMessage = "Title is required")
-            onComplete(false, "Title is required")
-            return
-        }
-
-        // CHECKLIST validation — must have at least one item
-        if (currentState.trackingType == TrackingType.CHECKLIST &&
-            currentState.checklistItems.isEmpty()
-        ) {
-            _uiState.value = currentState.copy(errorMessage = "Add at least one checklist item")
-            onComplete(false, "Add at least one checklist item")
+        AddTaskSaveValidator.validate(normalized, taskType)?.let { error ->
+            emitEvent(AddTaskUiEvent.ShowValidationError(error))
             return
         }
 
         viewModelScope.launch {
-            _uiState.value = currentState.copy(isLoading = true, errorMessage = null)
+            _uiState.update { it.copy(isLoading = true) }
 
             try {
-                val scheduledMinutes = CommonMethods.timeToMinutes(currentState.scheduleTime)
                 val today = CommonMethods.getTodayDate()
-                val shouldSplitRepeatSegment = shouldSplitRepeatSegmentFromToday(
+                val saveContext = buildSaveTaskContext(
                     isEdit = isEdit,
+                    existingId = existingId,
                     taskType = taskType,
                     originalTask = originalTask,
-                    currentState = currentState,
+                    currentState = normalized,
                     today = today
                 )
-
-                val manualOrder = if (isEdit) currentState.manualOrder
-                else (repository.getMaxManualOrder() ?: 0) + 1
-
-                // Serialize checklist labels to JSON for storage
-                val checklistJson = if (currentState.trackingType == TrackingType.CHECKLIST) {
-                    Gson().toJson(currentState.checklistItems)
-                } else null
-
-                val taskId = if (shouldSplitRepeatSegment) UUID.randomUUID().toString()
-                else existingId ?: UUID.randomUUID().toString()
-                val seriesId = originalTask?.seriesId?.ifBlank { null } ?: taskId
-                val taskAddedDate = if (shouldSplitRepeatSegment) today else currentState.startDate
-                val requestedEndDate = if (taskType == TaskType.DAILY) currentState.endDate else null
-                if (requestedEndDate != null && requestedEndDate < taskAddedDate) {
-                    _uiState.value = currentState.copy(
-                        isLoading = false,
-                        errorMessage = "End date must be on or after the start date"
-                    )
-                    onComplete(false, "End date must be on or after the start date")
+                if (saveContext.requestedEndDate != null && saveContext.requestedEndDate < saveContext.taskAddedDate) {
+                    _uiState.update { it.copy(isLoading = false) }
+                    emitEvent(AddTaskUiEvent.ShowValidationError(AddTaskValidationError.END_DATE_BEFORE_START))
                     return@launch
-                }
-                val taskRemovedDate = when {
-                    taskType == TaskType.DAILY -> requestedEndDate
-                    isEdit -> originalTask?.taskRemovedDate
-                    else -> null
-                }
-                val inactiveReason = when {
-                    taskType == TaskType.DAILY && requestedEndDate != null -> TaskInactiveReason.ENDED
-                    taskType == TaskType.DAILY -> null
-                    isEdit -> originalTask?.inactiveReason
-                    else -> null
                 }
 
                 val task = TaskEntity(
-                    id = taskId,
-                    seriesId = seriesId,
-                    title = currentState.title,
-                    note = currentState.note.ifBlank { null },
-                    weight = currentState.weight,
-                    scheduledTime = currentState.scheduleTime,
-                    reminderTime = currentState.reminderTime,
-                    reminderEnabled = currentState.isReminderEnabled,
-                    isScheduled = currentState.isScheduled,
-                    taskAddedDate = taskAddedDate,
-                    taskRemovedDate = taskRemovedDate,
-                    inactiveReason = inactiveReason,
-                    iconResId = currentState.icon,
-                    colorCode = currentState.color,
+                    id = saveContext.taskId,
+                    seriesId = saveContext.seriesId,
+                    title = normalized.title,
+                    note = normalized.note.ifBlank { null },
+                    weight = normalized.weight,
+                    scheduledTime = normalized.scheduleTime,
+                    reminderTime = normalized.reminderTime,
+                    reminderEnabled = normalized.isReminderEnabled,
+                    isScheduled = normalized.isScheduled,
+                    taskAddedDate = saveContext.taskAddedDate,
+                    taskRemovedDate = saveContext.taskRemovedDate,
+                    inactiveReason = saveContext.inactiveReason,
+                    iconResId = normalized.icon,
+                    colorCode = normalized.color,
                     taskType = taskType,
-                    showUntilCompleted = taskType == TaskType.DAY && currentState.showUntilCompleted,
-                    showMissedOnGapDays = taskType == TaskType.DAILY && currentState.showMissedOnGapDays,
-                    repeatType = if (taskType == TaskType.DAILY) currentState.repeatType else null,
+                    showUntilCompleted = taskType == TaskType.DAY && normalized.showUntilCompleted,
+                    repeatType = if (taskType == TaskType.DAILY) normalized.repeatType else null,
                     repeatDays = if (taskType == TaskType.DAILY) {
-                        CommonMethods.serializeRepeatDays(currentState.repeatDays)
-                    } else null,
-                    dailyTargetCount = if (currentState.trackingType == TrackingType.COUNT)
-                        currentState.dailyTargetCount else 0,
-                    manualOrder = manualOrder,
-                    scheduledMinutes = scheduledMinutes,
-                    trackingType = currentState.trackingType,
-                    checklistItems = checklistJson,
-                    targetDurationSeconds = if (currentState.trackingType == TrackingType.TIMER)
-                        currentState.targetDurationSeconds else 0L
+                        CommonMethods.serializeRepeatDays(normalized.repeatDays)
+                    } else {
+                        null
+                    },
+                    dailyTargetCount = if (normalized.trackingType == TrackingType.COUNT) {
+                        normalized.dailyTargetCount
+                    } else {
+                        0
+                    },
+                    manualOrder = saveContext.manualOrder,
+                    scheduledMinutes = saveContext.scheduledMinutes,
+                    trackingType = normalized.trackingType,
+                    checklistItems = saveContext.checklistJson,
+                    targetDurationSeconds = if (normalized.trackingType == TrackingType.TIMER) {
+                        normalized.targetDurationSeconds
+                    } else {
+                        0L
+                    }
                 )
 
-                if (shouldSplitRepeatSegment && originalTask != null) {
-                    repository.updateTask(
-                        originalTask.copy(
-                            taskRemovedDate = CommonMethods.getYesterdayDate(),
-                            inactiveReason = null
-                        )
-                    )
-                    repository.insertTask(task)
-                } else if (isEdit) {
-                    repository.updateTask(task)
-                } else {
-                    repository.insertTask(task)
-                }
+                persistTask(task, isEdit, originalTask, saveContext.shouldSplitRepeatSegment)
 
                 maybeSaveTrackingVersion(
                     task = task,
                     isEdit = isEdit,
                     originalTask = originalTask,
-                    checklistJson = checklistJson
+                    checklistJson = saveContext.checklistJson
                 )
 
-                if (shouldSplitRepeatSegment) {
-                    (_selectedListIds.value ?: emptyList()).forEach { listId ->
-                        repository.addTaskToList(listId, task.id)
-                    }
-                } else {
-                    updateTaskLists(task.id, _selectedListIds.value ?: emptyList())
-                }
+                syncTaskLists(task.id, _selectedListIds.value, saveContext.shouldSplitRepeatSegment)
 
-                _uiState.value = currentState.copy(isLoading = false, isSaved = true)
-                onComplete(true, null)
+                _uiState.update { it.copy(isLoading = false) }
+                emitEvent(AddTaskUiEvent.Saved(isEdit))
+                emitEvent(AddTaskUiEvent.NavigateBack)
 
-            } catch (e: Exception) {
-                _uiState.value = currentState.copy(isLoading = false, errorMessage = e.message)
-                onComplete(false, e.message)
+            } catch (_: Exception) {
+                _uiState.update { it.copy(isLoading = false) }
+                emitEvent(
+                    AddTaskUiEvent.ShowMessage(
+                        message = "",
+                        retrySave = true
+                    )
+                )
             }
+        }
+    }
+
+    fun restartProgressDirectly(
+        existingId: String,
+        taskType: TaskType,
+        originalTask: TaskEntity
+    ) {
+        val normalized = AddTaskStateNormalizer.forPersistence(_uiState.value)
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                val today = CommonMethods.getTodayDate()
+
+                val task = TaskEntity(
+                    id = existingId,
+                    seriesId = originalTask.seriesId.ifBlank { existingId },
+                    title = normalized.title,
+                    note = normalized.note.ifBlank { null },
+                    weight = normalized.weight,
+                    scheduledTime = normalized.scheduleTime,
+                    reminderTime = normalized.reminderTime,
+                    reminderEnabled = normalized.isReminderEnabled,
+                    isScheduled = normalized.isScheduled,
+                    taskAddedDate = today,
+                    taskRemovedDate = originalTask.taskRemovedDate,
+                    inactiveReason = originalTask.inactiveReason,
+                    iconResId = normalized.icon,
+                    colorCode = normalized.color,
+                    taskType = taskType,
+                    showUntilCompleted = false,
+                    repeatType = normalized.repeatType,
+                    repeatDays = CommonMethods.serializeRepeatDays(normalized.repeatDays),
+                    dailyTargetCount = if (normalized.trackingType == TrackingType.COUNT) {
+                        normalized.dailyTargetCount
+                    } else {
+                        0
+                    },
+                    manualOrder = originalTask.manualOrder,
+                    scheduledMinutes = CommonMethods.timeToMinutes(normalized.scheduleTime),
+                    trackingType = normalized.trackingType,
+                    checklistItems = if (normalized.trackingType == TrackingType.CHECKLIST) {
+                        Gson().toJson(normalized.checklistItems)
+                    } else {
+                        null
+                    },
+                    targetDurationSeconds = if (normalized.trackingType == TrackingType.TIMER) {
+                        normalized.targetDurationSeconds
+                    } else {
+                        0L
+                    }
+                )
+
+                repository.updateTask(task)
+                repository.clearTaskHistoryBeforeDate(task.id, today)
+
+                maybeSaveTrackingVersion(
+                    task = task,
+                    isEdit = true,
+                    originalTask = originalTask,
+                    checklistJson = task.checklistItems,
+                    restartProgress = true
+                )
+
+                updateTaskLists(task.id, _selectedListIds.value)
+
+                _uiState.update { it.copy(isLoading = false, startDate = today) }
+                emitEvent(
+                    AddTaskUiEvent.ShowMessage(
+                        message = "Progress restarted from today",
+                        retrySave = false
+                    )
+                )
+            } catch (_: Exception) {
+                _uiState.update { it.copy(isLoading = false) }
+                emitEvent(
+                    AddTaskUiEvent.ShowMessage(
+                        message = "Failed to restart progress",
+                        retrySave = false
+                    )
+                )
+            }
+        }
+    }
+
+    private suspend fun buildSaveTaskContext(
+        isEdit: Boolean,
+        existingId: String?,
+        taskType: TaskType,
+        originalTask: TaskEntity?,
+        currentState: AddTaskUiState,
+        today: String
+    ): SaveTaskContext {
+        val shouldSplitRepeatSegment = shouldSplitRepeatSegmentFromToday(
+            isEdit = isEdit,
+            taskType = taskType,
+            originalTask = originalTask,
+            currentState = currentState,
+            today = today
+        )
+        val taskId = if (shouldSplitRepeatSegment) {
+            UUID.randomUUID().toString()
+        } else {
+            existingId ?: UUID.randomUUID().toString()
+        }
+        val taskAddedDate = if (shouldSplitRepeatSegment) today else currentState.startDate
+        val requestedEndDate = if (taskType == TaskType.DAILY) currentState.endDate else null
+
+        return SaveTaskContext(
+            taskId = taskId,
+            seriesId = originalTask?.seriesId?.ifBlank { null } ?: taskId,
+            taskAddedDate = taskAddedDate,
+            requestedEndDate = requestedEndDate,
+            taskRemovedDate = when {
+                taskType == TaskType.DAILY -> {
+                    if (originalTask?.inactiveReason == TaskInactiveReason.PAUSED && !shouldSplitRepeatSegment) {
+                        originalTask.taskRemovedDate
+                    } else {
+                        requestedEndDate
+                    }
+                }
+                isEdit -> originalTask?.taskRemovedDate
+                else -> null
+            },
+            inactiveReason = when {
+                taskType == TaskType.DAILY -> {
+                    if (originalTask?.inactiveReason == TaskInactiveReason.PAUSED && !shouldSplitRepeatSegment) {
+                        TaskInactiveReason.PAUSED
+                    } else if (requestedEndDate != null) {
+                        TaskInactiveReason.ENDED
+                    } else {
+                        null
+                    }
+                }
+                isEdit -> originalTask?.inactiveReason
+                else -> null
+            },
+            manualOrder = if (isEdit) {
+                currentState.manualOrder
+            } else {
+                (repository.getMaxManualOrder() ?: 0) + 1
+            },
+            scheduledMinutes = CommonMethods.timeToMinutes(currentState.scheduleTime),
+            checklistJson = if (currentState.trackingType == TrackingType.CHECKLIST) {
+                Gson().toJson(currentState.checklistItems)
+            } else {
+                null
+            },
+            shouldSplitRepeatSegment = shouldSplitRepeatSegment
+        )
+    }
+
+    private suspend fun persistTask(
+        task: TaskEntity,
+        isEdit: Boolean,
+        originalTask: TaskEntity?,
+        shouldSplitRepeatSegment: Boolean
+    ) {
+        if (shouldSplitRepeatSegment && originalTask != null) {
+            repository.updateTask(
+                originalTask.copy(
+                    taskRemovedDate = CommonMethods.getYesterdayDate(),
+                    inactiveReason = null
+                )
+            )
+            repository.insertTask(task)
+        } else if (isEdit) {
+            repository.updateTask(task)
+        } else {
+            repository.insertTask(task)
+        }
+    }
+
+    private suspend fun syncTaskLists(
+        taskId: String,
+        selectedListIds: List<String>,
+        shouldSplitRepeatSegment: Boolean
+    ) {
+        if (shouldSplitRepeatSegment) {
+            selectedListIds.forEach { listId ->
+                repository.addTaskToList(listId, taskId)
+            }
+        } else {
+            updateTaskLists(taskId, selectedListIds)
         }
     }
 
@@ -324,48 +554,78 @@ class AddTaskViewModel(
         listIds.forEach { listId -> repository.addTaskToList(listId, taskId) }
     }
 
-    fun resetSaveState() {
-        _uiState.value = _uiState.value?.copy(isSaved = false, errorMessage = null)
-    }
-
-    fun clearError() {
-        _uiState.value = _uiState.value?.copy(errorMessage = null)
-    }
-
     fun insertList(list: ListEntity) = viewModelScope.launch { repository.insertList(list) }
-    fun deleteTask(task: TaskEntity) = viewModelScope.launch { repository.deleteTask(task) }
-    fun updateTask(task: TaskEntity) = viewModelScope.launch { repository.updateTask(task) }
 
-    fun resumeDailyTask(task: TaskEntity) = viewModelScope.launch {
-        val today = CommonMethods.getTodayDate()
-        val resumedTask = task.copy(
-            id = UUID.randomUUID().toString(),
-            seriesId = task.seriesId.ifBlank { task.id },
-            taskAddedDate = today,
-            taskRemovedDate = null,
-            inactiveReason = null
-        )
-
-        repository.insertTask(resumedTask)
-
-        val listIds = repository.getListIdsForTask(task.id)
-        listIds.forEach { listId ->
-            repository.addTaskToList(listId, resumedTask.id)
+    fun deleteTask(task: TaskEntity, onComplete: (Boolean) -> Unit = {}) {
+        viewModelScope.launch {
+            try {
+                repository.deleteTask(task)
+                onComplete(true)
+            } catch (_: Exception) {
+                onComplete(false)
+            }
         }
+    }
 
-        maybeSaveTrackingVersion(
-            task = resumedTask,
-            isEdit = false,
-            originalTask = null,
-            checklistJson = resumedTask.checklistItems
-        )
+    fun updateTask(task: TaskEntity, onComplete: (Boolean) -> Unit = {}) {
+        viewModelScope.launch {
+            try {
+                repository.updateTask(task)
+                onComplete(true)
+            } catch (_: Exception) {
+                onComplete(false)
+            }
+        }
+    }
+
+    fun resumeDailyTask(task: TaskEntity, onComplete: (Boolean) -> Unit = {}) {
+        viewModelScope.launch {
+            try {
+                val today = CommonMethods.getTodayDate()
+                val yesterday = LocalDate.parse(today).minusDays(1).toString()
+                if ((task.inactiveReason == TaskInactiveReason.PAUSED || task.inactiveReason == TaskInactiveReason.ENDED) &&
+                    (task.taskRemovedDate == today || task.taskRemovedDate == yesterday)) {
+                    val resumedTask = task.copy(
+                        taskRemovedDate = null,
+                        inactiveReason = null
+                    )
+                    repository.updateTask(resumedTask)
+                } else {
+                    val resumedTask = task.copy(
+                        id = UUID.randomUUID().toString(),
+                        seriesId = task.seriesId.ifBlank { task.id },
+                        taskAddedDate = today,
+                        taskRemovedDate = null,
+                        inactiveReason = null
+                    )
+
+                    repository.insertTask(resumedTask)
+
+                    val listIds = repository.getListIdsForTask(task.id)
+                    listIds.forEach { listId ->
+                        repository.addTaskToList(listId, resumedTask.id)
+                    }
+
+                    maybeSaveTrackingVersion(
+                        task = resumedTask,
+                        isEdit = false,
+                        originalTask = null,
+                        checklistJson = resumedTask.checklistItems
+                    )
+                }
+                onComplete(true)
+            } catch (_: Exception) {
+                onComplete(false)
+            }
+        }
     }
 
     private suspend fun maybeSaveTrackingVersion(
         task: TaskEntity,
         isEdit: Boolean,
         originalTask: TaskEntity?,
-        checklistJson: String?
+        checklistJson: String?,
+        restartProgress: Boolean = false
     ) {
         val today = CommonMethods.getTodayDate()
         val weightChanged = !isEdit || originalTask == null || originalTask.weight != task.weight
@@ -385,7 +645,7 @@ class AddTaskViewModel(
         }
         val changed = weightChanged || trackingChanged
 
-        if (!changed) return
+        if (!changed && !restartProgress) return
 
         val effectiveDate = if (
             isEdit &&
@@ -399,6 +659,7 @@ class AddTaskViewModel(
         }
 
         if (
+            !restartProgress &&
             isEdit &&
             originalTask != null &&
             originalTask.taskAddedDate < effectiveDate &&
@@ -457,7 +718,6 @@ class AddTaskViewModel(
         currentState: AddTaskUiState
     ): Boolean {
         return originalTask.repeatType != currentState.repeatType ||
-            CommonMethods.parseRepeatDays(originalTask.repeatDays) != currentState.repeatDays.distinct().sorted() ||
-            originalTask.showMissedOnGapDays != currentState.showMissedOnGapDays
+            CommonMethods.parseRepeatDays(originalTask.repeatDays) != currentState.repeatDays.distinct().sorted()
     }
 }

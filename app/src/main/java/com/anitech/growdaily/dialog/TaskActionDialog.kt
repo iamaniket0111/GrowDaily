@@ -26,7 +26,10 @@ class TaskActionDialog(
     private val onPrimaryAction: () -> Unit,
     private val onSecondaryAction: (() -> Unit)? = null
 ) {
-    fun show() {
+    fun show(
+        cancelable: Boolean = true,
+        canceledOnTouchOutside: Boolean = cancelable,
+    ): Dialog {
         val dialog = Dialog(context)
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_delete_warning, null)
 
@@ -55,12 +58,14 @@ class TaskActionDialog(
         }
 
         dialog.setContentView(view)
-        dialog.setCanceledOnTouchOutside(true)
+        dialog.setCancelable(cancelable)
+        dialog.setCanceledOnTouchOutside(canceledOnTouchOutside)
         dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
         dialog.window?.setLayout(
             ((context.resources.displayMetrics.widthPixels) * 0.88f).toInt(),
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
         dialog.show()
+        return dialog
     }
 }

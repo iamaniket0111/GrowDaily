@@ -44,5 +44,12 @@ interface TaskDao {
     @Query("SELECT * FROM daily_tasks")
     suspend fun getAllTasksNow(): List<TaskEntity>
 
+    @androidx.room.Transaction
+    suspend fun updateManualOrderBatch(orderedIds: List<String>) {
+        orderedIds.forEachIndexed { index, taskId ->
+            updateTaskOrder(taskId, index)
+        }
+    }
+
 
 }

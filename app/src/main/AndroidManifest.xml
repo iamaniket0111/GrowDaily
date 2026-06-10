@@ -8,14 +8,6 @@
     <!-- Boot / reschedule triggers -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
-    <!--
-        SCHEDULE_EXACT_ALARM  – user-revocable on Android 12+ (API 31+).
-        USE_EXACT_ALARM       – auto-granted on Android 13+ (API 33+) for
-                                calendar/alarm-clock apps; keeps alarms alive
-                                even if the user visits Special App Access.
-        Both are declared so the system picks the right one per API level.
-    -->
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <application
         android:name=".MyApp"
@@ -69,8 +61,6 @@
             MY_PACKAGE_REPLACED    – app update re-registers alarms
             TIME_SET               – user manually changed clock
             TIMEZONE_CHANGED       – user changed timezone
-            ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED
-                                   – user toggled exact-alarm permission
         -->
         <receiver
             android:name=".reminder.ReminderRescheduleReceiver"
@@ -81,7 +71,6 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
                 <action android:name="android.intent.action.TIME_SET" />
                 <action android:name="android.intent.action.TIMEZONE_CHANGED" />
-                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>
 

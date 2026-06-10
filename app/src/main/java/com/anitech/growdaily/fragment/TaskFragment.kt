@@ -1,11 +1,14 @@
 package com.anitech.growdaily.fragment
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.StyleRes
+import androidx.core.content.ContextCompat
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -41,6 +44,8 @@ import com.anitech.growdaily.dialog.TaskActionDialog
 import com.anitech.growdaily.enum_class.CompletionAction
 import com.anitech.growdaily.enum_class.TaskType
 import com.anitech.growdaily.enum_class.TrackingType
+import com.google.android.material.datepicker.CalendarConstraints
+import com.google.android.material.datepicker.MaterialDatePicker
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
@@ -50,25 +55,27 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
+import java.util.Calendar
 import java.util.Locale
 
 class TaskFragment : Fragment() {
     private var _binding: FragmentTaskBinding? = null
     private val binding get() = _binding!!
     
-    private lateinit var taskAdapter: TaskAdapter
-    private lateinit var listAdapter: ListAdapter
-    private lateinit var barAdapter: BarAdapter
+    private var taskAdapter: TaskAdapter? = null
+    private var listAdapter: ListAdapter? = null
+    private var barAdapter: BarAdapter? = null
 
     // New section adapters
-    private lateinit var scoreSectionAdapter: ScoreSectionAdapter
-    private lateinit var filterSectionAdapter: FilterSectionAdapter
-    private lateinit var emptyStateAdapter: EmptyStateAdapter
+    private var scoreSectionAdapter: ScoreSectionAdapter? = null
+    private var filterSectionAdapter: FilterSectionAdapter? = null
+    private var emptyStateAdapter: EmptyStateAdapter? = null
     private var hasPositionedBarInitially = false
     private var pendingScrollToToday = false
     private var pendingScrollToDate: String? = null
     private var pendingPastAnchorDate: String? = null
     private var pendingPastAnchorOffset: Int = 0
+    private var accentColor: Int = Color.BLUE
     
     private val viewModel: TaskViewModel by viewModels {
         TaskViewModelFactory(
@@ -92,9 +99,28 @@ class TaskFragment : Fragment() {
         hideNavigationLoading()
         setupMenu()
         setupRecyclerViews()
+        setupCompletionDialogResult()
         observeUiState()
         observeAccentColor()
         startMidnightRefresh()
+    }
+
+    private fun setupCompletionDialogResult() {
+        childFragmentManager.setFragmentResultListener(
+            CompletionInputDialog.REQUEST_KEY,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val (taskId, date, action) = CompletionAction.fromResultBundle(bundle)
+                ?: return@setFragmentResultListener
+            when (action) {
+                is CompletionAction.CountDelta ->
+                    viewModel.changeTaskCompletionBy(taskId, date, action.delta)
+                is CompletionAction.TimerAdd ->
+                    viewModel.addTimerDuration(taskId, date, action.seconds)
+                is CompletionAction.ChecklistUpdate ->
+                    viewModel.updateChecklist(taskId, date, action.json)
+            }
+        }
     }
 
     private fun setupMenu() {
@@ -104,18 +130,37 @@ class TaskFragment : Fragment() {
 
     fun showDatePicker() {
         val current = LocalDate.parse(viewModel.selectedDate.value ?: CommonMethods.getTodayDate())
-        android.app.DatePickerDialog(
-            requireContext(),
-            { _, year, month, dayOfMonth ->
-                val selected = LocalDate.of(year, month + 1, dayOfMonth)
-                pendingScrollToDate = selected.toString()
-                viewModel.jumpToDate(selected)
-                viewModel.setDate(selected.toString())
-            },
-            current.year,
-            current.monthValue - 1,
-            current.dayOfMonth
-        ).show()
+        val calendar = Calendar.getInstance().apply {
+            set(current.year, current.monthValue - 1, current.dayOfMonth)
+        }
+        val constraints = CalendarConstraints.Builder()
+            .setOpenAt(calendar.timeInMillis)
+            .build()
+
+        val datePicker = MaterialDatePicker.Builder.datePicker()
+            .setTitleText(getString(R.string.select_task_date))
+            .setSelection(calendar.timeInMillis)
+            .setCalendarConstraints(constraints)
+            .setPositiveButtonText(getString(R.string.picker_set_date))
+            .setNegativeButtonText(getString(R.string.cancel_button))
+            .setTheme(resolveDatePickerThemeRes())
+            .build()
+
+        datePicker.addOnPositiveButtonClickListener { selection ->
+            val selectedCalendar = Calendar.getInstance().apply {
+                timeInMillis = selection
+            }
+            val selected = LocalDate.of(
+                selectedCalendar.get(Calendar.YEAR),
+                selectedCalendar.get(Calendar.MONTH) + 1,
+                selectedCalendar.get(Calendar.DAY_OF_MONTH)
+            )
+            pendingScrollToDate = selected.toString()
+            viewModel.jumpToDate(selected)
+            viewModel.setDate(selected.toString())
+        }
+
+        datePicker.show(parentFragmentManager, "TASK_DATE_PICKER")
     }
 
     override fun onResume() {
@@ -135,28 +180,38 @@ class TaskFragment : Fragment() {
         setupListRecycler()
         setupBarRecycler()
         
-        scoreSectionAdapter = ScoreSectionAdapter()
-        filterSectionAdapter = FilterSectionAdapter(listAdapter)
-        emptyStateAdapter = EmptyStateAdapter()
+        val sAdapter = ScoreSectionAdapter().also { scoreSectionAdapter = it }
+        val lAdapter = listAdapter ?: return
+        val fAdapter = FilterSectionAdapter(lAdapter).also { filterSectionAdapter = it }
+        val tAdapter = taskAdapter ?: return
+        val eAdapter = EmptyStateAdapter().also { emptyStateAdapter = it }
 
         // Combine all into TaskFragmentConcatAdapter
         val taskFragmentConcatAdapter = ConcatAdapter(
-            scoreSectionAdapter,
-            filterSectionAdapter,
-            taskAdapter,
-            emptyStateAdapter
+            sAdapter,
+            fAdapter,
+            tAdapter,
+            eAdapter
         )
 
         binding.mainRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = taskFragmentConcatAdapter
+            setHasFixedSize(true)
+            itemAnimator = null
         }
     }
 
     private fun observeUiState() {
         viewModel.selectedDate.observe(viewLifecycleOwner) { date ->
             // Update the adapter's selected date and refresh highlights
-            barAdapter.refreshSelection(LocalDate.parse(date))
+            barAdapter?.refreshSelection(LocalDate.parse(date))
+            checkCurrentWeekStatus()
+
+            // Update toolbar date
+            val localDate = LocalDate.parse(date)
+            val formatter = DateTimeFormatter.ofPattern("MMM yyyy", Locale.getDefault())
+            (requireActivity() as? MainActivity)?.updateToolbarDate(localDate.format(formatter))
         }
 
         viewModel.taskUiState.observe(viewLifecycleOwner) { state ->
@@ -168,7 +223,7 @@ class TaskFragment : Fragment() {
         }
 
         viewModel.allLists.observe(viewLifecycleOwner) {
-            listAdapter.setData(it)
+            listAdapter?.setData(it)
             val currentId = viewModel.selectedListId.value
             if (currentId != null && it.none { list -> list.id == currentId }) {
                 viewModel.setSelectedList(null)
@@ -178,13 +233,29 @@ class TaskFragment : Fragment() {
 
     private fun observeAccentColor() {
         (requireActivity() as? MainActivity)?.accentColor?.observe(viewLifecycleOwner) { color ->
-            scoreSectionAdapter.setAccentColor(color)
-            listAdapter.setAccentColor(color)
-            barAdapter.setAccentColor(color)
-            //taskAdapter.setAccentColor(color)
+            accentColor = color
+            scoreSectionAdapter?.setAccentColor(color)
+            listAdapter?.setAccentColor(color)
+            barAdapter?.setAccentColor(color)
+            //taskAdapter?.setAccentColor(color)
             binding.barGraph2.scoreBarBg.setAccentColor(color)
             binding.navigationLoadingOverlay.findViewById<android.widget.ProgressBar>(R.id.progressBarAnalysis)?.indeterminateTintList =
                 android.content.res.ColorStateList.valueOf(color)
+        }
+    }
+
+    @StyleRes
+    private fun resolveDatePickerThemeRes(): Int {
+        val context = requireContext()
+        return when (accentColor) {
+            ContextCompat.getColor(context, R.color.category_red) -> R.style.Theme_GrowDaily_MaterialDatePicker_Red
+            ContextCompat.getColor(context, R.color.category_orange) -> R.style.Theme_GrowDaily_MaterialDatePicker_Orange
+            ContextCompat.getColor(context, R.color.category_yellow) -> R.style.Theme_GrowDaily_MaterialDatePicker_Yellow
+            ContextCompat.getColor(context, R.color.category_green) -> R.style.Theme_GrowDaily_MaterialDatePicker_Green
+            ContextCompat.getColor(context, R.color.category_teal) -> R.style.Theme_GrowDaily_MaterialDatePicker_Teal
+            ContextCompat.getColor(context, R.color.category_blue) -> R.style.Theme_GrowDaily_MaterialDatePicker_Blue
+            ContextCompat.getColor(context, R.color.category_purple) -> R.style.Theme_GrowDaily_MaterialDatePicker_Purple
+            else -> R.style.Theme_GrowDaily_MaterialDatePicker_DarkBlue
         }
     }
 
@@ -192,13 +263,13 @@ class TaskFragment : Fragment() {
         updateEmptyState(state)
 
         // empty / no task UI
-        emptyStateAdapter.setVisible(state.isEmpty)
+        emptyStateAdapter?.setVisible(state.isEmpty)
 
         // task list
-        taskAdapter.updateList(state.tasks, state.date, mode = state.dateMode)
+        taskAdapter?.updateList(state.tasks, state.date, mode = state.dateMode)
 
         // score section
-        scoreSectionAdapter.updateScores(
+        scoreSectionAdapter?.updateScores(
             dayScore = state.dayScore,
             weekScore = state.weekScore,
             monthScore = state.monthScore,
@@ -209,11 +280,11 @@ class TaskFragment : Fragment() {
 
         // bar graph
         //selected list
-        listAdapter.setSelectedListById(state.selectedListId)
+        listAdapter?.setSelectedListById(state.selectedListId)
     }
 
     private fun renderBarTimeline(state: com.anitech.growdaily.data_class.BarTimelineState) {
-        barAdapter.updateData(
+        barAdapter?.updateData(
             newScores = state.scores,
             selectedDate = LocalDate.parse(state.selectedDate),
             isLoadingPast = state.isLoadingPast,
@@ -222,8 +293,6 @@ class TaskFragment : Fragment() {
 
         if (pendingPastAnchorDate != null) {
             restorePastAnchorPosition()
-            // After restoring position, also check button visibility
-            barAdapter.checkIfTodayVisible(binding.barGraph2.recyclerViewBar.layoutManager!!)
             return
         }
 
@@ -233,7 +302,6 @@ class TaskFragment : Fragment() {
             pendingScrollToDate = null
             hasPositionedBarInitially = true
             pendingScrollToToday = false
-            barAdapter.checkIfTodayVisible(binding.barGraph2.recyclerViewBar.layoutManager!!)
             return
         }
 
@@ -241,23 +309,18 @@ class TaskFragment : Fragment() {
             scrollBarWindowToTodayAnchor()
             hasPositionedBarInitially = true
             pendingScrollToToday = false
-            // Explicitly check visibility after programmatic scroll
-            barAdapter.checkIfTodayVisible(binding.barGraph2.recyclerViewBar.layoutManager!!)
-        } else {
-            // Even if not scrolling to today, check visibility as data might have changed
-            barAdapter.checkIfTodayVisible(binding.barGraph2.recyclerViewBar.layoutManager!!)
         }
     }
 
     private fun updateEmptyState(state: TaskUiState) {
         if (state.selectedListId != null) {
-            emptyStateAdapter.setContent(
+            emptyStateAdapter?.setContent(
                 imageRes = R.drawable.add_task_ic,
                 title = getString(R.string.empty_list_tasks_title),
                 subtitle = getString(R.string.empty_list_tasks_subtitle)
             )
         } else {
-            emptyStateAdapter.setContent(
+            emptyStateAdapter?.setContent(
                 imageRes = R.drawable.add_task_ic,
                 title = getString(R.string.empty_day_tasks_title),
                 subtitle = getString(R.string.empty_day_tasks_subtitle)
@@ -270,7 +333,10 @@ class TaskFragment : Fragment() {
             override fun moveToEditListener(task: TaskEntity) {
                 val navController = findNavController()
                 if (task.taskType == TaskType.DAILY) {
-                    val bundle = Bundle().apply { putString("taskId", task.id) }
+                    val bundle = Bundle().apply {
+                        putString("taskId", task.id)
+                        putParcelable("task", task)
+                    }
                     navigateToAnalysis(bundle)
                 } else {
                     val bundle = Bundle().apply { putParcelable("task", task) }
@@ -280,7 +346,8 @@ class TaskFragment : Fragment() {
 
             override fun onTaskCompleteClick(taskId: String, date: String) {
                 val state = viewModel.taskUiState.value ?: return
-                val uiItem = state.tasks.find { it.task.id == taskId } ?: return
+                val uiItem = state.tasks.find { it.task.id == taskId && it.completionDate == date }
+                    ?: return
                 val task = uiItem.task
 
                 val count  = uiItem.completionCount
@@ -310,18 +377,14 @@ class TaskFragment : Fragment() {
                             ).show()
                         } else {
                             val existing = buildCompletionEntity(taskId, date, count = count)
-                            CompletionInputDialog(
-                                task = task,
-                                date = date,
-                                currentCompletion = existing,
-                                trackingSettingsOverride = uiItem.trackingSettings
-                            ) { action ->
-                                when (action) {
-                                    is CompletionAction.CountDelta ->
-                                        viewModel.changeTaskCompletionBy(taskId, date, action.delta)
-                                    else -> Unit
-                                }
-                            }.show(parentFragmentManager, "completionDialog")
+                            if (isAdded && !isStateSaved) {
+                                CompletionInputDialog.newInstance(
+                                    task = task,
+                                    date = date,
+                                    currentCompletion = existing,
+                                    trackingSettingsOverride = uiItem.trackingSettings
+                                ).show(childFragmentManager, "completionDialog")
+                            }
                         }
                     }
                     TrackingType.TIMER -> {
@@ -331,18 +394,14 @@ class TaskFragment : Fragment() {
                                 .isTaskCompletedOnDate(taskId, date)
                                 ?: buildCompletionEntity(taskId, date)
 
-                            CompletionInputDialog(
-                                task = task,
-                                date = date,
-                                currentCompletion = existing,
-                                trackingSettingsOverride = uiItem.trackingSettings
-                            ) { action ->
-                                when (action) {
-                                    is CompletionAction.TimerAdd ->
-                                        viewModel.addTimerDuration(taskId, date, action.seconds)
-                                    else -> Unit
-                                }
-                            }.show(parentFragmentManager, "completionDialog")
+                            if (isAdded && !isStateSaved) {
+                                CompletionInputDialog.newInstance(
+                                    task = task,
+                                    date = date,
+                                    currentCompletion = existing,
+                                    trackingSettingsOverride = uiItem.trackingSettings
+                                ).show(childFragmentManager, "completionDialog")
+                            }
                         }
                     }
                     TrackingType.CHECKLIST -> {
@@ -352,19 +411,15 @@ class TaskFragment : Fragment() {
                                 .isTaskCompletedOnDate(taskId, date)
                             val checklistItemsForDate =
                                 uiItem.trackingSettings.checklistItemsJson ?: task.checklistItems
-                            CompletionInputDialog(
-                                task = task,
-                                date = date,
-                                currentCompletion = existing,
-                                trackingSettingsOverride = uiItem.trackingSettings,
-                                checklistItemsOverride = checklistItemsForDate
-                            ) { action ->
-                                when (action) {
-                                    is CompletionAction.ChecklistUpdate ->
-                                        viewModel.updateChecklist(taskId, date, action.json)
-                                    else -> Unit
-                                }
-                            }.show(parentFragmentManager, "completionDialog")
+                            if (isAdded && !isStateSaved) {
+                                CompletionInputDialog.newInstance(
+                                    task = task,
+                                    date = date,
+                                    currentCompletion = existing,
+                                    trackingSettingsOverride = uiItem.trackingSettings,
+                                    checklistItemsOverride = checklistItemsForDate
+                                ).show(childFragmentManager, "completionDialog")
+                            }
                         }
                     }
                 }
@@ -390,11 +445,11 @@ class TaskFragment : Fragment() {
 
                 override fun onLongPress(item: ListEntity) {
                     val bundle = Bundle().apply { putParcelable("ConditionEntity", item) }
-                    findNavController().navigate(R.id.editList, bundle)
+                    findNavController().navigate(R.id.addList, bundle)
                 }
 
                 override fun onNewListClick() {
-                    findNavController().navigate(R.id.editList)
+                    findNavController().navigate(R.id.addList)
                 }
 
                 override fun onMangeListClick() {
@@ -404,28 +459,27 @@ class TaskFragment : Fragment() {
     }
 
     private fun setupBarRecycler() {
-        barAdapter = BarAdapter(object : BarAdapter.OnBarInteractionListener {
+        val bAdapter = BarAdapter(object : BarAdapter.OnBarInteractionListener {
             override fun onBarSelected(dailyScore: DailyScore) {
                 viewModel.setDate(dailyScore.date)
+                checkCurrentWeekStatus()
             }
 
-            override fun onTodayBarOutOfView() {
-                showTodayButton()
+            override fun onTodayBarOutOfView(isFuture: Boolean) {
+                // We no longer trigger based on scroll visibility alone
             }
 
             override fun onTodayBarInView() {
-                hideTodayButton()
+                // We no longer trigger based on scroll visibility alone
             }
-        })
-
-        binding.barGraph2.goToTodayButton.setOnClickListener {
-            scrollToToday()
-        }
+        }).also { barAdapter = it }
 
         binding.barGraph2.recyclerViewBar.apply {
             layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-            adapter = barAdapter
+            adapter = bAdapter
+            setHasFixedSize(true)
+            itemAnimator = null
             
             // Use PagerSnapHelper for full-week paging
             val snapHelper = androidx.recyclerview.widget.PagerSnapHelper()
@@ -447,23 +501,18 @@ class TaskFragment : Fragment() {
                     val firstVisible = lm.findFirstVisibleItemPosition()
                     val lastVisible = lm.findLastVisibleItemPosition()
 
-                    if (barAdapter.shouldLoadMorePast(firstVisible)) {
+                    val currentBarAdapter = barAdapter ?: return
+                    if (currentBarAdapter.shouldLoadMorePast(firstVisible)) {
                         capturePastAnchorIfNeeded(lm)
                         viewModel.loadMoreBarPast()
                     }
-                    if (barAdapter.shouldLoadMoreFuture(lastVisible)) {
+                    if (currentBarAdapter.shouldLoadMoreFuture(lastVisible)) {
                         viewModel.loadMoreBarFuture()
                     }
-
-                    // Check visibility during scroll for more responsive UI
-                    barAdapter.checkIfTodayVisible(lm)
                 }
 
                 override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                     super.onScrollStateChanged(recyclerView, newState)
-                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                        barAdapter.checkIfTodayVisible(recyclerView.layoutManager!!)
-                    }
                 }
             })
 
@@ -471,10 +520,43 @@ class TaskFragment : Fragment() {
         }
     }
 
+    private fun updateTodayButtonAction(isVisible: Boolean, isFuture: Boolean = false) {
+        val activity = requireActivity() as? MainActivity ?: return
+        
+        // We set the base "Today" text. MainActivity will handle icon direction.
+        val label = getString(R.string.today)
+        val fullTextForDetection = if (isFuture) "< $label" else "$label >"
+        
+        if (activity.todayButtonState.value?.isVisible != isVisible || 
+            (isVisible && activity.todayButtonState.value?.text != fullTextForDetection)) {
+            activity.todayButtonState.value = MainActivity.TodayButtonState(isVisible, fullTextForDetection)
+            activity.invalidateOptionsMenu()
+        }
+    }
+
+    private fun checkCurrentWeekStatus() {
+        val today = LocalDate.now()
+        val selectedDateStr = viewModel.selectedDate.value ?: return
+        val selectedDate = LocalDate.parse(selectedDateStr)
+
+        val todayWeekStart = today.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))
+        val todayWeekEnd = todayWeekStart.plusDays(6)
+
+        val isSelectedInCurrentWeek = !selectedDate.isBefore(todayWeekStart) && !selectedDate.isAfter(todayWeekEnd)
+
+        if (isSelectedInCurrentWeek) {
+            updateTodayButtonAction(false)
+        } else {
+            // Determine direction based on selected date relative to today
+            val isFuture = selectedDate.isAfter(today)
+            updateTodayButtonAction(true, isFuture)
+        }
+    }
+
     private fun navigateToAnalysis(bundle: Bundle) {
         binding.root.post {
             if (_binding == null || !isAdded) return@post
-            findNavController().navigate(R.id.analysisRepeatTaskFragment, bundle)
+            findNavController().navigate(R.id.taskDetailFragment, bundle)
         }
     }
 
@@ -482,39 +564,20 @@ class TaskFragment : Fragment() {
         binding.navigationLoadingOverlay.visibility = View.GONE
     }
 
-    private fun showTodayButton() {
-        if (binding.barGraph2.goToTodayButton.visibility == View.VISIBLE) return
-        val fadeIn = android.view.animation.AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
-        binding.barGraph2.goToTodayButton.startAnimation(fadeIn)
-        binding.barGraph2.goToTodayButton.visibility = View.VISIBLE
-    }
-
-    private fun hideTodayButton() {
-        if (binding.barGraph2.goToTodayButton.visibility == View.GONE || binding.barGraph2.goToTodayButton.visibility == View.INVISIBLE) return
-        val fadeOut = android.view.animation.AnimationUtils.loadAnimation(requireContext(), R.anim.fade_out)
-        fadeOut.setAnimationListener(object : android.view.animation.Animation.AnimationListener {
-            override fun onAnimationStart(animation: android.view.animation.Animation?) {}
-            override fun onAnimationRepeat(animation: android.view.animation.Animation?) {}
-            override fun onAnimationEnd(animation: android.view.animation.Animation?) {
-                binding.barGraph2.goToTodayButton.visibility = View.GONE
-            }
-        })
-        binding.barGraph2.goToTodayButton.startAnimation(fadeOut)
-    }
-
     fun scrollToToday() {
         val today = LocalDate.now()
         scrollToDate(today, smooth = true)
         viewModel.setDate(CommonMethods.getTodayDate())
+        updateTodayButtonAction(false)
     }
 
     private fun scrollToDate(date: LocalDate, smooth: Boolean = false) {
         val recyclerView = binding.barGraph2.recyclerViewBar
-        val todayWeekPosition = barAdapter.getAdapterPositionForDate(date)
+        val todayWeekPosition = barAdapter?.getAdapterPositionForDate(date) ?: RecyclerView.NO_POSITION
         if (todayWeekPosition != RecyclerView.NO_POSITION) {
             if (smooth) {
                 recyclerView.smoothScrollToPosition(todayWeekPosition)
-                hideTodayButton()
+                updateTodayButtonAction(false)
             } else {
                 (recyclerView.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(todayWeekPosition, 0)
             }
@@ -532,7 +595,7 @@ class TaskFragment : Fragment() {
     private fun scrollBarWindowToTodayAnchor() {
         val layoutManager = binding.barGraph2.recyclerViewBar.layoutManager as? LinearLayoutManager
             ?: return
-        val todayWeekPosition = barAdapter.getAdapterPositionForDate(LocalDate.now())
+        val todayWeekPosition = barAdapter?.getAdapterPositionForDate(LocalDate.now()) ?: RecyclerView.NO_POSITION
         if (todayWeekPosition == RecyclerView.NO_POSITION) return
         layoutManager.scrollToPositionWithOffset(todayWeekPosition, 0)
     }
@@ -540,7 +603,7 @@ class TaskFragment : Fragment() {
     private fun capturePastAnchorIfNeeded(layoutManager: LinearLayoutManager) {
         if (pendingPastAnchorDate != null) return
         val firstVisible = layoutManager.findFirstVisibleItemPosition()
-        val anchorDate = barAdapter.getDateAtAdapterPosition(firstVisible) ?: return
+        val anchorDate = barAdapter?.getDateAtAdapterPosition(firstVisible) ?: return
         val anchorView = layoutManager.findViewByPosition(firstVisible) ?: return
         pendingPastAnchorDate = anchorDate
         pendingPastAnchorOffset = anchorView.left
@@ -550,7 +613,7 @@ class TaskFragment : Fragment() {
         val anchorDate = pendingPastAnchorDate ?: return
         val layoutManager = binding.barGraph2.recyclerViewBar.layoutManager as? LinearLayoutManager
             ?: return
-        val anchorPosition = barAdapter.getAdapterPositionForDate(LocalDate.parse(anchorDate))
+        val anchorPosition = barAdapter?.getAdapterPositionForDate(LocalDate.parse(anchorDate)) ?: RecyclerView.NO_POSITION
         if (anchorPosition == RecyclerView.NO_POSITION) return
         layoutManager.scrollToPositionWithOffset(anchorPosition, pendingPastAnchorOffset)
         pendingPastAnchorDate = null
@@ -566,9 +629,9 @@ class TaskFragment : Fragment() {
 
                 if (_binding == null) break
 
-                barAdapter.refreshTodayHighlight()
-                barAdapter.checkIfTodayVisible(binding.barGraph2.recyclerViewBar.layoutManager ?: return@launch)
-                scoreSectionAdapter.updateScores(
+                barAdapter?.refreshTodayHighlight()
+                checkCurrentWeekStatus()
+                scoreSectionAdapter?.updateScores(
                     dayScore = viewModel.taskUiState.value?.dayScore ?: 0f,
                     weekScore = viewModel.taskUiState.value?.weekScore ?: 0f,
                     monthScore = viewModel.taskUiState.value?.monthScore ?: 0f,
@@ -593,13 +656,13 @@ class TaskFragment : Fragment() {
         val selected = LocalDate.parse(date)
         val weekStart = selected.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
         val weekEnd = weekStart.plusDays(6)
-        val formatter = DateTimeFormatter.ofPattern(getString(R.string.date_format_d_mmm), Locale.ENGLISH)
+        val formatter = DateTimeFormatter.ofPattern(getString(R.string.date_format_d_mmm), Locale.getDefault())
         return getString(R.string.week_range_format, weekStart.format(formatter), weekEnd.format(formatter))
     }
 
     private fun getMonthText(date: String): String {
         val selected = LocalDate.parse(date)
-        return selected.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH)
+        return selected.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
     }
 
     private fun buildCompletionEntity(
@@ -617,7 +680,17 @@ class TaskFragment : Fragment() {
     )
     
     override fun onDestroyView() {
+        if (_binding != null) {
+            binding.mainRecyclerView.adapter = null
+            binding.barGraph2.recyclerViewBar.adapter = null
+        }
         super.onDestroyView()
+        taskAdapter = null
+        listAdapter = null
+        barAdapter = null
+        scoreSectionAdapter = null
+        filterSectionAdapter = null
+        emptyStateAdapter = null
         _binding = null
     }
 }

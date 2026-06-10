@@ -32,6 +32,10 @@ class TaskAdapter(
 
     private val colorStateListCache = mutableMapOf<Int, ColorStateList>()
 
+    init {
+        setHasStableIds(true)
+    }
+
     interface OnItemClickListener {
         fun moveToEditListener(task: TaskEntity)
         fun onTaskCompleteClick(taskId: String, date: String)
@@ -50,6 +54,8 @@ class TaskAdapter(
         val item = getItem(position)
         holder.bind(item, currentDate)
     }
+
+    override fun getItemId(position: Int): Long = getItem(position).listItemKey.hashCode().toLong()
 
     inner class ViewHolder(
         private val binding: RvTaskItemBinding,
@@ -73,11 +79,23 @@ class TaskAdapter(
 
             val isPastLike = item.isListFiltered || item.dateMode == DateMode.PAST
             val isToday = !item.isListFiltered && item.dateMode == DateMode.TODAY
+            val isFuture = item.dateMode == DateMode.FUTURE
             val showTime = isToday && task.isScheduled
 
-            doneView.visibility = if (isPastLike || isToday) View.VISIBLE else View.GONE
             shContainer.visibility = if (isToday) View.VISIBLE else View.GONE
             timeTxt.visibility = if (showTime) View.VISIBLE else View.GONE
+
+            if (isFuture) {
+                doneView.visibility = View.VISIBLE
+                notAllowedImg.visibility = View.VISIBLE
+                done.visibility = View.GONE
+                doneContainer.alpha = 0.38f
+            } else {
+                doneView.visibility = if (isPastLike || isToday) View.VISIBLE else View.GONE
+                notAllowedImg.visibility = View.GONE
+                done.visibility = View.VISIBLE
+                doneContainer.alpha = 1f
+            }
 
             val isCompleted = item.isCompleted
             updateCompletionState(task, item.completionPercent, isCompleted)
@@ -102,7 +120,28 @@ class TaskAdapter(
         }
 
         private fun setTaskType(task: TaskEntity) = with(binding) {
-            taskType.text = binding.root.context.getString(task.taskType.labelRes)
+            val label = when (task.taskType) {
+                TaskType.DAILY -> {
+                    when (task.repeatType) {
+                        com.anitech.growdaily.enum_class.RepeatType.DAYS_OF_WEEK -> {
+                            com.anitech.growdaily.CommonMethods.formatRepeatSummary(task.repeatType, task.repeatDays)
+                        }
+                        com.anitech.growdaily.enum_class.RepeatType.DAYS_OF_MONTH -> {
+                            "Days of month"
+                        }
+                        else -> {
+                            "Every day"
+                        }
+                    }
+                }
+                TaskType.DAY -> {
+                    "Day task"
+                }
+                TaskType.UNTIL_COMPLETE -> {
+                    root.context.getString(task.taskType.labelRes)
+                }
+            }
+            taskType.text = label
         }
 
         private fun setTaskData(item: TaskUiItem) = with(binding) {
@@ -124,6 +163,14 @@ class TaskAdapter(
                 taskStreak.text = "${item.currentStreak}"
             } else {
                 streakContainer.visibility = View.GONE
+            }
+
+            // Show reminder time if reminder is enabled
+            if (task.reminderEnabled && !task.reminderTime.isNullOrBlank()) {
+                reminderContainer.visibility = View.VISIBLE
+                remTime.text = task.reminderTime
+            } else {
+                reminderContainer.visibility = View.GONE
             }
         }
 
@@ -178,12 +225,15 @@ class TaskAdapter(
                 taskType.setTextColor(white)
                 taskWeight.setTextColor(white)
                 taskStreak.setTextColor(white)
+                remTime.setTextColor(white)
 
                 // ICON
                 imageProfile.setSolidBackgroundColorCompat(white)
                 imageProfile.setColorFilter(color)
                 flag.setColorFilter(white)
                 fire.setColorFilter(white)
+                bell.setColorFilter(white)
+                notAllowedImg.setColorFilter(white)
 
                 // DONE
                 styleDoneProgress(
@@ -198,25 +248,26 @@ class TaskAdapter(
                 body.backgroundTintList = getCachedColorStateList(color)
                 weightContainer.backgroundTintList = getCachedColorStateList(color)
                 streakContainer.backgroundTintList = getCachedColorStateList(color)
-
-
+                reminderContainer.backgroundTintList = getCachedColorStateList(color)
 
             } else {
 
                 // TEXT COLORS
                 taskTitle.setTextColor(primaryText)
                 taskNote.setTextColor(secondaryText)
-               // taskPendingText.setTextColor(displayAccent)
+                taskPendingText.setTextColor(color)
                 taskType.setTextColor(color)
                 taskWeight.setTextColor(secondaryText)
                 taskStreak.setTextColor(secondaryText)
-
+                remTime.setTextColor(secondaryText)
 
                 // ICON
                 imageProfile.setSolidBackgroundColorCompat(color)
                 imageProfile.setColorFilter(white)
                 flag.setColorFilter(iconTint)
                 fire.setColorFilter(iconTint)
+                bell.setColorFilter(iconTint)
+                notAllowedImg.setColorFilter(color)
 
                 // DONE
                 styleDoneProgress(
@@ -234,6 +285,7 @@ class TaskAdapter(
                 body.backgroundTintList = getCachedColorStateList(cardSurface)
                 weightContainer.backgroundTintList = getCachedColorStateList(color.adjustAlpha(alphaFactor))
                 streakContainer.backgroundTintList = getCachedColorStateList(color.adjustAlpha(alphaFactor))
+                reminderContainer.backgroundTintList = getCachedColorStateList(color.adjustAlpha(alphaFactor))
             }
 
             // shView update
@@ -288,13 +340,22 @@ class TaskAdapter(
                 true
             }
 
-            doneContainer.setOnClickListener {
-                listener.onTaskCompleteClick(task.id, item.completionDate)
-            }
+            if (item.dateMode == DateMode.FUTURE) {
+                doneContainer.setOnClickListener(null)
+                doneContainer.setOnLongClickListener(null)
+                doneContainer.isClickable = false
+                doneContainer.isFocusable = false
+            } else {
+                doneContainer.isClickable = true
+                doneContainer.isFocusable = true
+                doneContainer.setOnClickListener {
+                    listener.onTaskCompleteClick(task.id, item.completionDate)
+                }
 
-            doneContainer.setOnLongClickListener {
-                listener.onTaskCompleteLongClick(task.id, item.completionDate)
-                true
+                doneContainer.setOnLongClickListener {
+                    listener.onTaskCompleteLongClick(task.id, item.completionDate)
+                    true
+                }
             }
         }
     }
@@ -312,7 +373,7 @@ class TaskAdapter(
 class TaskDiffCallback : DiffUtil.ItemCallback<TaskUiItem>() {
 
     override fun areItemsTheSame(oldItem: TaskUiItem, newItem: TaskUiItem): Boolean {
-        return oldItem.task.id == newItem.task.id
+        return oldItem.listItemKey == newItem.listItemKey
     }
 
     override fun areContentsTheSame(oldItem: TaskUiItem, newItem: TaskUiItem): Boolean {

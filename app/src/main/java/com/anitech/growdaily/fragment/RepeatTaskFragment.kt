@@ -55,12 +55,16 @@ class RepeatTaskFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         observeAccentColor()
+        setupCompletionDialogResult()
 
         repeatTaskAdapter = RepeatTaskAdapter(
             object : RepeatTaskAdapter.OnItemClickListener {
                 override fun moveToEditListener(task: TaskEntity) {
-                    val bundle = bundleOf("taskId" to task.id)
-                    findNavController().navigate(R.id.analysisRepeatTaskFragment, bundle)
+                    val bundle = bundleOf(
+                        "taskId" to task.id,
+                        "task" to task
+                    )
+                    findNavController().navigate(R.id.taskDetailFragment, bundle)
                 }
                 override fun onTaskCompleteClick(taskId: String, date: String) {
                     val uiList = viewModel.heatmapUiList.value ?: return
@@ -86,19 +90,12 @@ class RepeatTaskFragment : Fragment() {
                                 viewModel.onHistoryCellClick(taskId, date)
                             } else {
                                 val existing = TaskCompletionEntity(taskId, date, count = count)
-                                CompletionInputDialog(
+                                CompletionInputDialog.newInstance(
                                     task = task,
                                     date = date,
                                     currentCompletion = existing,
                                     trackingSettingsOverride = settings
-                                ) { action ->
-                                    when (action) {
-                                        is CompletionAction.CountDelta ->
-                                            viewModel.changeTaskCompletionBy(taskId, date, action.delta)
-
-                                        else -> Unit
-                                    }
-                                }.show(parentFragmentManager, "completionDialog")
+                                ).show(childFragmentManager, "completionDialog")
                             }
                         }
 
@@ -109,18 +106,14 @@ class RepeatTaskFragment : Fragment() {
                                     .isTaskCompletedOnDate(taskId, date)
                                     ?: TaskCompletionEntity(taskId = taskId, date = date)
 
-                                CompletionInputDialog(
-                                    task = task,
-                                    date = date,
-                                    currentCompletion = existing,
-                                    trackingSettingsOverride = settings
-                                ) { action ->
-                                    when (action) {
-                                        is CompletionAction.TimerAdd ->
-                                            viewModel.addTimerDuration(taskId, date, action.seconds)
-                                        else -> Unit
-                                    }
-                                }.show(parentFragmentManager, "completionDialog")
+                                if (isAdded && !isStateSaved) {
+                                    CompletionInputDialog.newInstance(
+                                        task = task,
+                                        date = date,
+                                        currentCompletion = existing,
+                                        trackingSettingsOverride = settings
+                                    ).show(childFragmentManager, "completionDialog")
+                                }
                             }
                         }
 
@@ -131,19 +124,15 @@ class RepeatTaskFragment : Fragment() {
                                 val existing = repository.completionDao
                                     .isTaskCompletedOnDate(taskId, date)
                                 val checklistItemsForDate = settings.checklistItemsJson ?: task.checklistItems
-                                CompletionInputDialog(
-                                    task = task,
-                                    date = date,
-                                    currentCompletion = existing,
-                                    trackingSettingsOverride = settings,
-                                    checklistItemsOverride = checklistItemsForDate
-                                ) { action ->
-                                    when (action) {
-                                        is CompletionAction.ChecklistUpdate ->
-                                            viewModel.updateChecklist(taskId, date, action.json)
-                                        else -> Unit
-                                    }
-                                }.show(parentFragmentManager, "completionDialog")
+                                if (isAdded && !isStateSaved) {
+                                    CompletionInputDialog.newInstance(
+                                        task = task,
+                                        date = date,
+                                        currentCompletion = existing,
+                                        trackingSettingsOverride = settings,
+                                        checklistItemsOverride = checklistItemsForDate
+                                    ).show(childFragmentManager, "completionDialog")
+                                }
                             }
                         }
                     }
@@ -203,6 +192,24 @@ class RepeatTaskFragment : Fragment() {
     private fun observeAccentColor() {
         (requireActivity() as? MainActivity)?.accentColor?.observe(viewLifecycleOwner) { color ->
             repeatTaskAdapter.setAccentColor(color)
+        }
+    }
+
+    private fun setupCompletionDialogResult() {
+        childFragmentManager.setFragmentResultListener(
+            CompletionInputDialog.REQUEST_KEY,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val (taskId, date, action) = CompletionAction.fromResultBundle(bundle)
+                ?: return@setFragmentResultListener
+            when (action) {
+                is CompletionAction.CountDelta ->
+                    viewModel.changeTaskCompletionBy(taskId, date, action.delta)
+                is CompletionAction.TimerAdd ->
+                    viewModel.addTimerDuration(taskId, date, action.seconds)
+                is CompletionAction.ChecklistUpdate ->
+                    viewModel.updateChecklist(taskId, date, action.json)
+            }
         }
     }
 

@@ -27,10 +27,7 @@
     <color name="task_bar_today_text">#9CB0FF</color>
     <color name="task_bar_grid_line">#4A5160</color>
     <color name="task_bar_average_line">#5577A8</color>
-    <color name="task_bar_button_bg">#23262D</color>
-    <color name="task_bar_button_icon">#F4F6FA</color>
     <color name="task_bar_fill">#8EA4FF</color>
-    <color name="task_bar_fill_complete">#5FDE93</color>
     <color name="task_bar_selected_surface">#1D1E1C</color>
     <color name="task_bar_selected_stroke">#33363D</color>
     <color name="add_form_surface">#1B1D22</color>
@@ -70,5 +67,4 @@
     <color name="main_bottom_bar_icon">#8C95A5</color>
     <color name="main_bottom_bar_icon_active">#8FA6FF</color>
     <color name="main_bottom_nav_selected_bg">#263251</color>
-    <color name="main_mini_fab_bg">#23262D</color>
 </resources>

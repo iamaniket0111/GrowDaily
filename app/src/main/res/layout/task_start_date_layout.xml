@@ -2,14 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/startDateRow"
-    android:layout_width="match_parent"
-    android:layout_height="56dp"
-    android:background="@drawable/add_form_surface_card"
-    android:clickable="true"
-    android:focusable="true"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:paddingHorizontal="16dp">
+    style="@style/AddFormRow">
 
     <TextView
         style="@style/TitleLabel"

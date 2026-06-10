@@ -2,14 +2,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/reminderBody"
-    android:layout_width="match_parent"
+    style="@style/AddFormRow"
     android:layout_height="wrap_content"
-    android:background="@drawable/add_form_surface_card"
-    android:gravity="center_vertical"
-    android:orientation="vertical"
-    android:paddingHorizontal="16dp"
-    android:clickable="true"
-    android:focusable="true">
+    android:orientation="vertical">
     <!-- Reminder -->
     <LinearLayout
         android:layout_width="match_parent"
@@ -21,7 +16,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Enable Reminder"
+            android:text="@string/enable_reminder_label"
             style="@style/TitleLabel" />
 
         <androidx.appcompat.widget.SwitchCompat
@@ -46,7 +41,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Reminder Time:"
+                android:text="@string/reminder_time_label"
                 android:textColor="@color/add_form_text_secondary" />
 
             <TextView
@@ -55,8 +50,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:paddingStart="12dp"
-                android:text="--"
-                android:textColor="@color/brand_blue"
+                android:text="@string/time_placeholder"
+                android:textColor="@color/add_form_text_secondary"
                 android:textStyle="bold" />
 
             <ImageView

@@ -23,6 +23,7 @@ import com.anitech.growdaily.adapter.ViewPagerAdapter
 import com.anitech.growdaily.databinding.FragmentMainBinding
 import com.anitech.growdaily.dialog.TaskTypeDialog
 import com.anitech.growdaily.enum_class.TaskColor
+import com.anitech.growdaily.enum_class.TaskType
 
 class MainFragment : Fragment() {
     private var _binding: FragmentMainBinding? = null
@@ -44,19 +45,11 @@ class MainFragment : Fragment() {
         binding.viewPager.isUserInputEnabled = false
 
         observeAccentColor()
+        setupTaskTypeDialogResult()
 
         binding.fab.setImageResource(R.drawable.ic_add) // Home icon
         binding.fab.setOnClickListener {
-            TaskTypeDialog { selectedType ->
-
-                val action = MainFragmentDirections
-                    .actionMainToAddTask(
-                        task = null,
-                        taskType = selectedType.name
-                    )
-
-                findNavController().navigate(action)
-            }.show(parentFragmentManager, "TaskTypeDialog")
+            TaskTypeDialog().show(parentFragmentManager, "TaskTypeDialog")
         }
 
         binding.bottomNav.setOnItemSelectedListener { item ->
@@ -150,8 +143,25 @@ class MainFragment : Fragment() {
         }
     }
 
+    private fun setupTaskTypeDialogResult() {
+        parentFragmentManager.setFragmentResultListener(
+            TaskTypeDialog.REQUEST_KEY,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val selectedType = bundle.getString(TaskTypeDialog.TASK_TYPE)
+                ?.let { runCatching { TaskType.valueOf(it) }.getOrNull() }
+                ?: return@setFragmentResultListener
+
+            val action = MainFragmentDirections
+                .actionMainToAddTask(task = null, taskType = selectedType.name)
+            findNavController().navigate(action)
+        }
+    }
 
     override fun onDestroyView() {
+        if (_binding != null) {
+            binding.viewPager.adapter = null
+        }
         super.onDestroyView()
         _binding = null
     }

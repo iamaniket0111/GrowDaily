@@ -189,41 +189,9 @@ class SettingsFragment : Fragment() {
     }
 
     private fun openNotificationSettings() {
-        val context = requireContext()
-        val packageName = context.packageName
-        val packageManager = context.packageManager
-
-        val notificationIntent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-            putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-            putExtra("app_package", packageName)
-            putExtra("app_uid", context.applicationInfo.uid)
-        }
-
-        val fallbackIntent = Intent(
-            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-            Uri.fromParts("package", packageName, null)
-        )
-
-        val targetIntent = when {
-            notificationIntent.resolveActivity(packageManager) != null -> notificationIntent
-            fallbackIntent.resolveActivity(packageManager) != null -> fallbackIntent
-            else -> null
-        }
-
-        if (targetIntent == null) {
+        if (!com.anitech.growdaily.reminder.ReminderPermissionHelper.openNotificationSettings(requireContext())) {
             Toast.makeText(
-                context,
-                getString(R.string.settings_notifications_open_failed),
-                Toast.LENGTH_SHORT
-            ).show()
-            return
-        }
-
-        runCatching {
-            startActivity(targetIntent)
-        }.onFailure {
-            Toast.makeText(
-                context,
+                requireContext(),
                 getString(R.string.settings_notifications_open_failed),
                 Toast.LENGTH_SHORT
             ).show()
@@ -231,6 +199,9 @@ class SettingsFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        if (_binding != null) {
+            binding.themeToggleGroup.clearOnButtonCheckedListeners()
+        }
         super.onDestroyView()
         _binding = null
     }

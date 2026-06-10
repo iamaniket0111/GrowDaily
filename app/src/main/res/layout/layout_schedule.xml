@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/scheduleRow"
-    android:layout_width="match_parent"
+    style="@style/AddFormRow"
     android:layout_height="wrap_content"
-    android:background="@drawable/add_form_surface_card"
-    android:clickable="true"
-    android:focusable="true"
-    android:gravity="center_vertical"
-    android:orientation="vertical"
-    android:paddingHorizontal="16dp">
+    android:orientation="vertical">
     <!-- Schedule -->
     <LinearLayout
 
@@ -21,7 +16,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Enable Schedule"
+            android:text="@string/enable_schedule_label"
 
             style="@style/TitleLabel"/>
 
@@ -47,7 +42,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Schedule Time:"
+                android:text="@string/schedule_time_label"
                 android:textColor="@color/add_form_text_secondary" />
 
             <TextView
@@ -55,8 +50,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingStart="12dp"
-                android:text="--"
-                android:textColor="@color/brand_blue"
+                android:text="@string/time_placeholder"
+                android:textColor="@color/add_form_text_secondary"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>

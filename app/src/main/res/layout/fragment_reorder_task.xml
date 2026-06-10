@@ -1,26 +1,109 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/task_screen_bg"
     tools:context=".fragment.ReorderTaskFragment">
+
+    <HorizontalScrollView
+        android:id="@+id/filterScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:paddingHorizontal="16dp"
+        android:scrollbars="none"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingVertical="4dp">
+
+            <TextView
+                android:id="@+id/chipScheduled"
+                style="@style/ReorderFilterChip"
+                android:backgroundTint="@color/task_done_track"
+                android:text="@string/scheduled_tasks_filter"
+                android:alpha="0.6"
+                android:clickable="false"
+                android:focusable="false" />
+
+            <TextView
+                android:id="@+id/chipDaily"
+                style="@style/ReorderFilterChip"
+                android:layout_marginStart="10dp"
+                android:text="@string/task_type_daily" />
+
+            <TextView
+                android:id="@+id/chipDay"
+                style="@style/ReorderFilterChip"
+                android:layout_marginStart="10dp"
+                android:text="@string/day_tasks_filter" />
+
+            <TextView
+                android:id="@+id/chipPaused"
+                style="@style/ReorderFilterChip"
+                android:layout_marginStart="10dp"
+                android:text="@string/paused_repeat_tasks_tab" />
+
+            <TextView
+                android:id="@+id/chipEnded"
+                style="@style/ReorderFilterChip"
+                android:layout_marginStart="10dp"
+                android:text="@string/ended_repeat_tasks_tab" />
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/taskReorderRv"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-       />
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:clipToPadding="false"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="100dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/filterScroll" />
 
-    <FrameLayout
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnDone"
+        style="@style/ReorderDoneButton"
+        android:text="@string/set_my_flow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Empty State -->
+    <LinearLayout
         android:id="@+id/emptyState"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone">
+        android:layout_height="0dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="40dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/btnDone"
+        app:layout_constraintTop_toBottomOf="@id/filterScroll">
 
-        <include
-            layout="@layout/no_day_task_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center" />
-    </FrameLayout>
-</FrameLayout>
+        <ImageView
+            android:id="@+id/ivEmptyStateImage"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:contentDescription="@string/none"
+            android:src="@drawable/thinking_mode" />
+
+        <TextView
+            android:id="@+id/tvEmptyStateTitle"
+            style="@style/EmptyStateTitle"
+            android:text="@string/reorder_empty_title" />
+
+        <TextView
+            android:id="@+id/tvEmptyStateSubtitle"
+            style="@style/EmptyStateSubtitle"
+            android:text="@string/reorder_empty_subtitle" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
