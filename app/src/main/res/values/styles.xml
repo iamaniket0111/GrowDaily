@@ -7,6 +7,18 @@
         <item name="android:background">@drawable/task_fragment_card</item>
     </style>
 
+    <style name="AnalysisCardInclude">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">8dp</item>
+    </style>
+
+    <style name="AddCardInclude">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">12dp</item>
+    </style>
+
     <style name="WeekdayCheckBox" parent="Widget.AppCompat.CompoundButton.CheckBox">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
@@ -629,6 +641,7 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:background">@drawable/add_form_surface_card</item>
+
     </style>
 
     <style name="AddFormRow" parent="AddFormCard">

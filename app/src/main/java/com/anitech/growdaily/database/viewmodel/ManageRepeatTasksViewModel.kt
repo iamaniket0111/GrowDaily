@@ -442,7 +442,7 @@ class ManageRepeatTasksViewModel(
                         ManageTaskSection.ENDED
                     },
                     actionKey = seriesId,
-                    metaDate = inactiveDate,
+                    metaDate = inactiveDate.plusDays(1),
                     completionOutOf10 = completionOutOf10,
                     bestStreak = bestStreak,
                     completedCount = completedCount,

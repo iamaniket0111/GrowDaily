@@ -25,7 +25,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/task_filter_chip"
-            android:backgroundTint="@color/task_done_track"
+            android:backgroundTint="@color/analysis_button_bg"
             android:orientation="horizontal"
             android:paddingHorizontal="6dp"
             android:paddingVertical="2dp">
@@ -59,7 +59,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/task_filter_chip"
-            android:backgroundTint="@color/task_done_track"
+            android:backgroundTint="@color/analysis_button_bg"
             android:orientation="horizontal"
             android:paddingHorizontal="6dp"
             android:paddingVertical="2dp">

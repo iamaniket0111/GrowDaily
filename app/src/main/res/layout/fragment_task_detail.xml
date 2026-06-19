@@ -9,11 +9,18 @@
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayoutTaskDetail"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:background="@color/task_screen_bg"
-        app:tabTextColor="@color/task_text_secondary"
+        app:tabGravity="fill"
+        app:tabMode="fixed"
+        app:tabIndicatorFullWidth="false"
+        app:tabIndicatorHeight="3dp"
+        app:tabIndicator="@drawable/tab_indicator_line"
+        app:tabRippleColor="@android:color/transparent"
         app:tabSelectedTextColor="@color/brand_blue"
-        app:tabIndicatorColor="@color/brand_blue" />
+        app:tabTextColor="@color/task_text_secondary" />
+
+
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPagerTaskDetail"

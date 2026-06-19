@@ -203,14 +203,24 @@ class RepeatTaskAdapter(
                 hasAutoScrolledHeatmap = true
             }
 
-            val weekList = if (lastBoundSignature != bindSignature) item.historyItems else emptyList()
+            val effectiveItems = if (lastBoundSignature != bindSignature) {
+                item.historyItems.ifEmpty {
+                    // Future start date: show one placeholder cell
+                    listOf(com.anitech.growdaily.data_class.WeekHabit(
+                        date = item.seriesStartDate,
+                        dayLetter = item.seriesStartDate.dayOfWeek.getDisplayName(
+                            java.time.format.TextStyle.NARROW, java.util.Locale.getDefault()
+                        )
+                    ))
+                }
+            } else emptyList()
 
             if (historyAdapter == null || lastBoundSignature != bindSignature) {
                 historyAdapter = HistoryAdapter(
                     taskAddedDate = item.seriesStartDate,
                     progressByDate = item.progressByDate,
                     taskColor = colorInt,
-                    weekList = weekList,
+                    weekList = effectiveItems,
                     listener = object : HistoryAdapter.OnItemClickListener {
                         override fun onTaskCompleteClick(date: String) {
                             listener.onTaskCompleteClick(resolveTaskIdForDate(item, date), date)

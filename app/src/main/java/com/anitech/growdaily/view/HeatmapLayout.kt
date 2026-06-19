@@ -80,7 +80,7 @@ class HeatmapLayout @JvmOverloads constructor(
                 date.isBefore(taskAddedDate) -> beforeStartColor
                 unavailableDates.contains(date) -> {
                     unavailableCellIndexes.add(i)
-                    emptyColor
+                    beforeStartColor
                 }
                 else -> resolveHeatmapProgressColor(
                     activeColor = activeColor,

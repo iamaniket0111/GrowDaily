@@ -53,24 +53,49 @@ class HistoryAdapter(
             holder.itemView.visibility = View.VISIBLE
         }
 
+        val context = holder.itemView.context
+        val isFutureStart = date.isAfter(LocalDate.now())
+
+        holder.tvDay?.text = item.dayLetter
+        val monthStr = date.month.getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault())
+        holder.tvDate?.text = context.getString(R.string.history_date_format, monthStr, date.dayOfMonth)
+
+        val primaryText = ContextCompat.getColor(context, R.color.task_text_primary)
+        val secondaryText = ContextCompat.getColor(context, R.color.task_text_secondary)
+
+        if (isFutureStart) {
+            // Future start date: muted appearance, not clickable
+            holder.tvDay?.setTextColor(adjustAlpha(secondaryText, 0.40f))
+            holder.tvDate?.setTextColor(adjustAlpha(secondaryText, 0.35f))
+            holder.borderProgress?.visibility = View.VISIBLE
+            holder.borderProgress?.apply {
+                setProgress(0)
+                setProgressColor(taskColor)
+                setTrackColor(adjustAlpha(taskColor, 0.08f))
+                alpha = 0.5f
+            }
+            holder.itemView.setOnClickListener(null)
+            holder.itemView.isClickable = false
+            return
+        }
+
         val progress = progressByDate[date] ?: 0
         val isCompleted = progress >= 100
         val hasProgress = progress > 0
 
-        holder.tvDay?.text = item.dayLetter
-        val context = holder.itemView.context
-        holder.tvDate?.text = context.getString(R.string.history_date_format, date.dayOfMonth, date.monthValue)
-
-        val primaryText = ContextCompat.getColor(context, R.color.task_text_primary)
-        val secondaryText = ContextCompat.getColor(context, R.color.task_text_secondary)
-        val dateTextColor = if (hasProgress) taskColor else adjustAlpha(secondaryText, 0.9f)
-        val dayTextColor = if (hasProgress) adjustAlpha(primaryText, 0.92f) else adjustAlpha(secondaryText, 0.72f)
+        val dateTextColor = if (isCompleted) primaryText else adjustAlpha(secondaryText, 0.9f)
+        val dayTextColor = if (isCompleted) {
+            taskColor
+        } else if (hasProgress) {
+            adjustAlpha(primaryText, 0.92f)
+        } else {
+            adjustAlpha(secondaryText, 0.72f)
+        }
 
         holder.tvDate?.setTextColor(dateTextColor)
         holder.tvDay?.setTextColor(dayTextColor)
 
         holder.borderProgress?.visibility = View.VISIBLE
-
         holder.borderProgress?.apply {
             setProgress(progress)
             setProgressColor(taskColor)
@@ -78,6 +103,7 @@ class HistoryAdapter(
             alpha = if (isCompleted) 1f else 0.94f
         }
 
+        holder.itemView.isClickable = true
         holder.itemView.setOnClickListener(
             if (listener != null) {
                 View.OnClickListener { listener.onTaskCompleteClick(date.toString()) }

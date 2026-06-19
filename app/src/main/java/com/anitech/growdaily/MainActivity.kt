@@ -43,6 +43,7 @@ class MainActivity : AppCompatActivity() {
     private var toolbarDateDropdown: android.view.View? = null
     var showMenu = true
     private var isReady = false
+    private var lastDateText: String? = null
 
     val accentColor = MutableLiveData<Int>()
     val todayButtonState = MutableLiveData(TodayButtonState(isVisible = false))
@@ -154,6 +155,18 @@ class MainActivity : AppCompatActivity() {
             }
         }
         toolbarDateDropdown?.visibility = android.view.View.VISIBLE
+        
+        val dateTextToSet = lastDateText ?: run {
+            val navHostFragment = supportFragmentManager
+                .findFragmentById(R.id.nav_host_fragment_content_main) as? NavHostFragment
+            val mainFragment = navHostFragment?.childFragmentManager?.fragments?.get(0) as? com.anitech.growdaily.fragment.MainFragment
+            val taskFragment = mainFragment?.getCurrentFragment() as? com.anitech.growdaily.fragment.TaskFragment
+            taskFragment?.getSelectedDateFormatted()
+        } ?: run {
+            val formatter = java.time.format.DateTimeFormatter.ofPattern("MMM yyyy", java.util.Locale.getDefault())
+            java.time.LocalDate.now().format(formatter)
+        }
+        updateToolbarDate(dateTextToSet)
     }
 
     private fun removeToolbarDateDropdown() {
@@ -161,7 +174,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun updateToolbarDate(dateText: String) {
+        lastDateText = dateText
         toolbarDateDropdown?.findViewById<android.widget.TextView>(R.id.toolbarDateText)?.text = dateText
+    }
+
+    fun syncToolbarDateFromFragment() {
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment_content_main) as? NavHostFragment
+        val mainFragment = navHostFragment?.childFragmentManager?.fragments?.get(0) as? com.anitech.growdaily.fragment.MainFragment
+        val taskFragment = mainFragment?.getCurrentFragment() as? com.anitech.growdaily.fragment.TaskFragment
+        taskFragment?.getSelectedDateFormatted()?.let { dateText ->
+            updateToolbarDate(dateText)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

@@ -128,6 +128,13 @@ class TaskFragment : Fragment() {
         // reliability and to prevent leaks in this ViewPager setup.
     }
 
+    fun getSelectedDateFormatted(): String? {
+        val dateStr = viewModel.selectedDate.value ?: return null
+        val localDate = LocalDate.parse(dateStr)
+        val formatter = DateTimeFormatter.ofPattern("MMM yyyy", Locale.getDefault())
+        return localDate.format(formatter)
+    }
+
     fun showDatePicker() {
         val current = LocalDate.parse(viewModel.selectedDate.value ?: CommonMethods.getTodayDate())
         val calendar = Calendar.getInstance().apply {

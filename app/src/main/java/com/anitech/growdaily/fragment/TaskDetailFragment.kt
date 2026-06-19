@@ -17,10 +17,12 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
+import com.anitech.growdaily.MainActivity
 import com.anitech.growdaily.MyApp
 import com.anitech.growdaily.R
 import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.database.repository.AppRepository
+import androidx.core.graphics.ColorUtils
 import com.anitech.growdaily.databinding.FragmentTaskDetailBinding
 import com.google.android.material.tabs.TabLayoutMediator
 
@@ -33,6 +35,7 @@ class TaskDetailFragment : Fragment() {
 
     private lateinit var repository: AppRepository
     private var loadedTask: TaskEntity? = null
+    private var accentColor: Int? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -48,6 +51,7 @@ class TaskDetailFragment : Fragment() {
         repository = (requireActivity().application as MyApp).repository
 
         setupMenu()
+        observeAccentColor()
 
         val taskId = args.taskId
         val taskFromArgs = args.task
@@ -62,6 +66,22 @@ class TaskDetailFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun observeAccentColor() {
+        (requireActivity() as? MainActivity)?.accentColor?.observe(viewLifecycleOwner) { color ->
+            accentColor = color
+            updateTabsColor(color)
+        }
+    }
+
+    private fun updateTabsColor(color: Int) {
+        if (_binding == null) return
+        binding.tabLayoutTaskDetail.setSelectedTabIndicatorColor(color)
+        binding.tabLayoutTaskDetail.setTabTextColors(
+            ContextCompat.getColor(requireContext(), R.color.task_text_secondary),
+            color
+        )
     }
 
     private fun setupMenu() {
@@ -98,15 +118,11 @@ class TaskDetailFragment : Fragment() {
 
         (requireActivity() as? AppCompatActivity)?.supportActionBar?.title = task.title
 
-        val accentColor = com.anitech.growdaily.enum_class.TaskColor.fromName(task.colorCode)
-            ?.toColorInt(requireContext())
+        val color = accentColor
+            ?: (requireActivity() as? MainActivity)?.accentColor?.value
             ?: ContextCompat.getColor(requireContext(), R.color.brand_blue)
 
-        binding.tabLayoutTaskDetail.setSelectedTabIndicatorColor(accentColor)
-        binding.tabLayoutTaskDetail.setTabTextColors(
-            ContextCompat.getColor(requireContext(), R.color.task_text_secondary),
-            accentColor
-        )
+        updateTabsColor(color)
     }
 
     fun switchToEditTab() {

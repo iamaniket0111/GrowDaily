@@ -143,6 +143,7 @@ class AnalysisRepeatTaskFragment : Fragment() {
         binding.overview.txtBestStreakValue.setTextColor(color)
         binding.totalCompletion.txtMainPercentage.setTextColor(color)
         binding.totalCompletion.txtMainPercentageLabel.setTextColor(color)
+        binding.totalCompletion.txtTotalAchieved.setTextColor(color)
         binding.totalCompletion.progressOverall.setProgressColor(color)
 
         bindHeader(state.task, state.seriesStartDate, state.seriesEndDate, color)
@@ -160,6 +161,9 @@ class AnalysisRepeatTaskFragment : Fragment() {
         barAdapter.setBarColor(color)
         binding.progressBar.btnNext.setColorFilter(color)
         binding.progressBar.btnPrevious.setColorFilter(color)
+        viewModel.barState.value?.let { state ->
+            updateTabUI(state.period)
+        }
     }
 
     private fun updateHeatmapColors(state: com.anitech.growdaily.data_class.AnalysisHeatmapState, color: Int) {
@@ -200,6 +204,14 @@ class AnalysisRepeatTaskFragment : Fragment() {
             itemAnimator = null
             isNestedScrollingEnabled = false
             setHasFixedSize(true)
+            addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
+                override fun onInterceptTouchEvent(rv: RecyclerView, e: android.view.MotionEvent): Boolean {
+                    rv.parent.requestDisallowInterceptTouchEvent(true)
+                    return false
+                }
+                override fun onTouchEvent(rv: RecyclerView, e: android.view.MotionEvent) {}
+                override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+            })
         }
     }
 
@@ -215,6 +227,14 @@ class AnalysisRepeatTaskFragment : Fragment() {
             itemAnimator = null
             isNestedScrollingEnabled = false
             setHasFixedSize(true)
+            addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
+                override fun onInterceptTouchEvent(rv: RecyclerView, e: android.view.MotionEvent): Boolean {
+                    rv.parent.requestDisallowInterceptTouchEvent(true)
+                    return false
+                }
+                override fun onTouchEvent(rv: RecyclerView, e: android.view.MotionEvent) {}
+                override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+            })
         }
     }
 
@@ -233,9 +253,19 @@ class AnalysisRepeatTaskFragment : Fragment() {
             val task = state.task
             val taskColor = TaskColor.fromName(task.colorCode)?.toColorInt(requireContext())
                 ?: ContextCompat.getColor(requireContext(), R.color.brand_blue)
-            val displayColor = accentColor ?: taskColor
+            val displayColor = accentColor
+                ?: (requireActivity() as? MainActivity)?.accentColor?.value
+                ?: ContextCompat.getColor(requireContext(), R.color.brand_blue)
             val taskStart = state.seriesStartDate
-            val historyItems = buildHistoryItems(state.scheduledDates)
+            val historyItems = buildHistoryItems(state.scheduledDates).ifEmpty {
+                // Future start date: show one placeholder cell
+                listOf(com.anitech.growdaily.data_class.WeekHabit(
+                    date = taskStart,
+                    dayLetter = taskStart.dayOfWeek.getDisplayName(
+                        java.time.format.TextStyle.NARROW, java.util.Locale.getDefault()
+                    )
+                ))
+            }
 
             bindHeader(task, taskStart, state.seriesEndDate, displayColor)
             bindTaskIcon(task, taskColor) // Fixed to task color as requested
@@ -283,8 +313,8 @@ class AnalysisRepeatTaskFragment : Fragment() {
 
         // ---- BAR GRAPH: rebuilds only on period/anchor change ----
         viewModel.barState.observe(viewLifecycleOwner) { state ->
-            val color = accentColor ?: viewModel.overviewState.value?.task?.colorCode
-                ?.let { TaskColor.fromName(it)?.toColorInt(requireContext()) }
+            val color = accentColor
+                ?: (requireActivity() as? MainActivity)?.accentColor?.value
                 ?: ContextCompat.getColor(requireContext(), R.color.brand_blue)
 
             barAdapter.setPeriod(state.period)
@@ -314,7 +344,8 @@ class AnalysisRepeatTaskFragment : Fragment() {
         viewModel.heatmapState.observe(viewLifecycleOwner) { state ->
             val task = viewModel.overviewState.value?.task ?: return@observe
             val taskStart = state.seriesStartDate
-            val color = accentColor ?: TaskColor.fromName(task.colorCode)?.toColorInt(requireContext())
+            val color = accentColor
+                ?: (requireActivity() as? MainActivity)?.accentColor?.value
                 ?: ContextCompat.getColor(requireContext(), R.color.brand_blue)
             val unavailableDates = buildUnavailableDatesForYear(
                 seriesStartDate = state.seriesStartDate,
@@ -509,7 +540,9 @@ class AnalysisRepeatTaskFragment : Fragment() {
         if (endDate != null) {
             header.endDateRow.visibility = View.VISIBLE
             header.imgEndDate.setColorFilter(color)
-            header.txtEndDate.text = if (hasPastEndDate) {
+            header.txtEndDate.text = if (task.inactiveReason == com.anitech.growdaily.enum_class.TaskInactiveReason.PAUSED) {
+                getString(R.string.paused_on_format, endDate.plusDays(1).toDisplayFormat())
+            } else if (hasPastEndDate) {
                 getString(R.string.ended_on_format, endDate.toDisplayFormat())
             } else {
                 getString(R.string.ends_on_format, endDate.toDisplayFormat())

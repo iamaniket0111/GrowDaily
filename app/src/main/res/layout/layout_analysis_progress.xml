@@ -78,7 +78,7 @@
             android:layout_height="28dp"
             android:contentDescription="Previous"
             android:background="@drawable/circle_background"
-            android:backgroundTint="@color/task_chip_surface"
+            android:backgroundTint="@color/analysis_button_bg"
             android:src="@drawable/ic_left_arrow"
             app:tint="@color/brand_blue" />
 
@@ -102,7 +102,7 @@
             android:layout_height="28dp"
             android:contentDescription="Next"
             android:background="@drawable/circle_background"
-            android:backgroundTint="@color/task_chip_surface"
+            android:backgroundTint="@color/analysis_button_bg"
             android:src="@drawable/ic_right_arrow"
             app:tint="@color/brand_blue" />
     </LinearLayout>

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- VERSION 4: Day letter is the hero (large + bold), date below as supporting info -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="44dp"
@@ -15,27 +16,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <View
-        android:layout_width="0.5dp"
-        android:layout_height="20dp"
-        android:background="#26000000"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <LinearLayout
         android:layout_width="32dp"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical"
-        android:paddingTop="3dp"
         app:layout_constraintBottom_toBottomOf="@id/borderProgress"
         app:layout_constraintEnd_toEndOf="@id/borderProgress"
         app:layout_constraintStart_toStartOf="@id/borderProgress"
         app:layout_constraintTop_toTopOf="@id/borderProgress">
 
+        <!-- Day: large, brand colored, bold -->
         <TextView
             android:id="@+id/tvDay"
             android:layout_width="match_parent"
@@ -43,21 +34,23 @@
             android:gravity="center"
             android:includeFontPadding="false"
             android:text="M"
-            android:textColor="@color/task_text_primary"
-            android:textSize="10sp"
+            android:textColor="@color/brand_blue"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
+        <!-- Date: small, muted secondary label -->
         <TextView
             android:id="@+id/tvDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="1dp"
             android:gravity="center"
             android:includeFontPadding="false"
-            android:text="2/3"
-            android:textColor="@color/brand_blue"
-            android:textSize="8sp"
-            android:textStyle="bold" />
+            android:text="Jun 23"
+            android:textColor="@color/task_text_primary"
+            android:alpha="0.6"
+            android:textSize="6sp"
+            android:textStyle="normal" />
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

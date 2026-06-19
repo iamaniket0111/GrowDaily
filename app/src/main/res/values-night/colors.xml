@@ -30,6 +30,7 @@
     <color name="task_bar_fill">#8EA4FF</color>
     <color name="task_bar_selected_surface">#1D1E1C</color>
     <color name="task_bar_selected_stroke">#33363D</color>
+    <color name="analysis_button_bg">#05FFFFFF</color>
     <color name="add_form_surface">#1B1D22</color>
     <color name="add_form_text_primary">#F4F6FA</color>
     <color name="add_form_text_secondary">#A8B0C0</color>

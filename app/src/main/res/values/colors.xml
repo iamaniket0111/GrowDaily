@@ -50,6 +50,7 @@
     <color name="task_bar_fill">#5F7FFF</color>
     <color name="task_bar_selected_surface">#FFFFFF</color>
     <color name="task_bar_selected_stroke">#E4E4E4</color>
+    <color name="analysis_button_bg">#05000000</color>
 
     <!-- Add task semantic colors -->
     <color name="add_form_surface">#FFFFFF</color>

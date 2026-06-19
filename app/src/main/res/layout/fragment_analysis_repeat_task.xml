@@ -16,48 +16,36 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-
-
+            
             <include
                 android:id="@+id/header"
-                layout="@layout/layout_combined_icon_header"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp" />
+                style="@style/AnalysisCardInclude"
+                layout="@layout/layout_combined_icon_header" />
 
             <include
                 android:id="@+id/overview"
-                layout="@layout/layout_analysis_overview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp" />
+                style="@style/AnalysisCardInclude"
+                layout="@layout/layout_analysis_overview" />
 
             <include
                 android:id="@+id/totalCompletion"
-                layout="@layout/layout_total_completion"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp" />
+                style="@style/AnalysisCardInclude"
+                layout="@layout/layout_total_completion" />
 
             <include
                 android:id="@+id/yearHeapMap"
-                layout="@layout/layout_heatmap_analysis"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp" />
+                style="@style/AnalysisCardInclude"
+                layout="@layout/layout_heatmap_analysis" />
 
             <include
                 android:id="@+id/weekExpanded"
-                layout="@layout/layout_week_analysis_expanded"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp" />
+                style="@style/AnalysisCardInclude"
+                layout="@layout/layout_week_analysis_expanded" />
 
             <include
                 android:id="@+id/progressBar"
+                style="@style/AnalysisCardInclude"
                 layout="@layout/layout_analysis_progress"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:layout_marginBottom="32dp" />
 
         </LinearLayout>

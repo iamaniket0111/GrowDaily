@@ -26,7 +26,7 @@
              android:src="@drawable/ic_left_arrow"
             android:contentDescription="Previous year"
             android:background="@drawable/circle_background"
-            android:backgroundTint="@color/task_done_track"
+            android:backgroundTint="@color/analysis_button_bg"
             app:tint="@color/brand_blue"
             />
 
@@ -52,7 +52,7 @@
             android:layout_height="28dp"
              android:src="@drawable/ic_right_arrow"
             android:background="@drawable/circle_background"
-            android:backgroundTint="@color/task_done_track"
+            android:backgroundTint="@color/analysis_button_bg"
             android:contentDescription="Next year"
             app:tint="@color/brand_blue"
             />

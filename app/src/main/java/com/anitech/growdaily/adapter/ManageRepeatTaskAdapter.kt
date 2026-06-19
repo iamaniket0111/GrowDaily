@@ -141,8 +141,8 @@ class ManageRepeatTaskAdapter :
                     }
                 }
             }
-            val dateToFormat = if (item.section == ManageTaskSection.REPEAT_ALL && task.inactiveReason != null && task.taskRemovedDate != null) {
-                runCatching { LocalDate.parse(task.taskRemovedDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")) }.getOrNull() ?: item.metaDate
+            val dateToFormat = if (task.inactiveReason != null && task.taskRemovedDate != null) {
+                runCatching { LocalDate.parse(task.taskRemovedDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")) }.getOrNull()?.plusDays(1) ?: item.metaDate
             } else {
                 item.metaDate
             }
