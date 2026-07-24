@@ -100,7 +100,7 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/chipAddForToday"
+                android:id="@+id/chipDayActive"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
@@ -108,7 +108,20 @@
                 android:backgroundTint="@color/task_chip_surface"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="10dp"
-                android:text="@string/manage_tab_add_for_today"
+                android:text="@string/manage_tab_active"
+                android:textColor="@color/task_text_secondary"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/chipDayMissed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/task_filter_chip"
+                android:backgroundTint="@color/task_chip_surface"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="10dp"
+                android:text="@string/manage_tab_missed"
                 android:textColor="@color/task_text_secondary"
                 android:textStyle="bold" />
         </LinearLayout>

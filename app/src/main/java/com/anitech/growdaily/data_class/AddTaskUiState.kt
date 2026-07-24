@@ -24,7 +24,7 @@ data class AddTaskUiState(
     /** COUNT: how many times per day. Only relevant when trackingType == COUNT. */
     val dailyTargetCount: Int = 1,
     /** TIMER: target seconds per day. Only relevant when trackingType == TIMER. */
-    val targetDurationSeconds: Long = 600L,   // default 10 min
+    val targetDurationSeconds: Long = 60L,    // default 1 min
     /** CHECKLIST: fixed label list. Only relevant when trackingType == CHECKLIST. */
     val checklistItems: List<String> = emptyList(),
 

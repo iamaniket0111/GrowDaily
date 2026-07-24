@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -12,17 +13,61 @@
         android:background="@color/task_screen_bg"
         android:orientation="vertical">
 
+        <!-- Pinned Bar Graph (Sits at the very top, outside scroll container) -->
         <include
             android:id="@+id/barGraph2"
             layout="@layout/bar_graph_layout" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/mainRecyclerView"
+        <!-- CoordinatorLayout to handle scroll effects below the Bar Graph -->
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingBottom="100dp"
-            tools:listitem="@layout/rv_task_item" />
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <com.google.android.material.appbar.AppBarLayout
+                android:id="@+id/appBarLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/task_screen_bg"
+                app:elevation="0dp"
+                android:stateListAnimator="@null">
+
+                <!-- Collapsible Score Layout -->
+                <include
+                    android:id="@+id/scoreLayout"
+                    layout="@layout/score_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="4dp"
+                    app:layout_scrollFlags="scroll" />
+
+                <!-- Sticky Category Filters -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerViewFilters"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/task_screen_bg"
+                    android:clipToPadding="false"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="4dp" />
+
+            </com.google.android.material.appbar.AppBarLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/mainRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingTop="8dp"
+                android:paddingBottom="100dp"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                tools:listitem="@layout/rv_task_item" />
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     </LinearLayout>
 

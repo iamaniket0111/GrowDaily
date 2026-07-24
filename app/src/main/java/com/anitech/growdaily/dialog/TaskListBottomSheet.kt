@@ -18,7 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.anitech.growdaily.R
 import com.anitech.growdaily.adapter.ListCheckAdapter
 import com.anitech.growdaily.data_class.ListEntity
-import com.anitech.growdaily.databinding.BottomSheetTaskListBinding
+import com.anitech.growdaily.databinding.DialogAddTaskListBinding
 import com.anitech.growdaily.util.ListNameValidator
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -42,7 +42,7 @@ class TaskListBottomSheet(
     private val onListsSelected: (List<String>) -> Unit
 ) : BottomSheetDialogFragment() {
 
-    private var _binding: BottomSheetTaskListBinding? = null
+    private var _binding: DialogAddTaskListBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var adapter: ListCheckAdapter
@@ -67,7 +67,7 @@ class TaskListBottomSheet(
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = BottomSheetTaskListBinding.inflate(inflater, container, false)
+        _binding = DialogAddTaskListBinding.inflate(inflater, container, false)
         return binding.root
     }
 

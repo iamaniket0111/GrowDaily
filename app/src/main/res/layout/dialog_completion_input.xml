@@ -17,8 +17,8 @@
             android:id="@+id/header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
             android:gravity="center_horizontal"
             android:orientation="vertical">
 
@@ -26,24 +26,24 @@
                 android:id="@+id/txtTaskTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="8dp"
                 android:ellipsize="end"
                 android:gravity="center"
-                android:maxLines="2"
+                android:maxLines="1"
                 android:textColor="@color/task_text_primary"
-                android:textSize="20sp"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/txtTaskNote"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="2dp"
                 android:ellipsize="end"
                 android:gravity="center"
-                android:maxLines="3"
+                android:maxLines="1"
                 android:textColor="@color/task_text_secondary"
-                android:textSize="14sp" />
+                android:textSize="12sp" />
 
         </LinearLayout>
 
@@ -93,15 +93,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fillViewport="true"
-                app:maxHeight="350dp">
+                app:maxHeight="250dp">
 
                 <LinearLayout
                     android:id="@+id/checklistContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/completion_dialog_section_bg"
                     android:orientation="vertical"
-                    android:padding="6dp" />
+                     />
 
             </com.anitech.growdaily.view.MaxHeightScrollView>
 

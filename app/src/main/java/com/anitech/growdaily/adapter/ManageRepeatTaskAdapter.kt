@@ -41,9 +41,7 @@ class ManageRepeatTaskAdapter :
 
     enum class Action {
         RESUME,
-        RESTART,
-        ADD_TODAY,
-        REMOVE_TODAY
+        RESTART
     }
 
     enum class MenuAction {
@@ -130,8 +128,9 @@ class ManageRepeatTaskAdapter :
             val label = when (item.section) {
                 ManageTaskSection.PAUSED -> R.string.paused_on_format
                 ManageTaskSection.ENDED -> R.string.ended_on_format
-                ManageTaskSection.DAY_ADD_FOR_TODAY -> R.string.completed_on_format
-                ManageTaskSection.DAY_ALL -> R.string.added_on_format
+                ManageTaskSection.DAY_ALL,
+                ManageTaskSection.DAY_ACTIVE,
+                ManageTaskSection.DAY_MISSED -> R.string.added_on_format
                 ManageTaskSection.REPEAT_ACTIVE -> R.string.added_on_format
                 ManageTaskSection.REPEAT_ALL -> {
                     when (task.inactiveReason) {
@@ -155,9 +154,6 @@ class ManageRepeatTaskAdapter :
             val action = when (item.section) {
                 ManageTaskSection.PAUSED -> Action.RESUME
                 ManageTaskSection.ENDED -> Action.RESTART
-                ManageTaskSection.DAY_ADD_FOR_TODAY -> {
-                    if (item.isAddedForToday) Action.REMOVE_TODAY else Action.ADD_TODAY
-                }
                 else -> null
             }
             val resolvedAccent = accentColor ?: taskColor
@@ -166,8 +162,6 @@ class ManageRepeatTaskAdapter :
                     when (action) {
                         Action.RESUME -> R.string.resume_action
                         Action.RESTART -> R.string.restart_from_today_action
-                        Action.ADD_TODAY -> R.string.add_for_today_action
-                        Action.REMOVE_TODAY -> R.string.remove_from_today_action
                     }
                 )
                 binding.btnAction.background = buildActionBackground(context, resolvedAccent)
@@ -188,12 +182,13 @@ class ManageRepeatTaskAdapter :
                 binding.btnMenu.alpha = if (isBusy) 0.45f else 1f
                 binding.btnMenu.setOnClickListener { anchor ->
                     val menuRes = when (item.section) {
-                        ManageTaskSection.DAY_ALL -> R.menu.menu_manage_day_task
+                        ManageTaskSection.DAY_ALL,
+                        ManageTaskSection.DAY_ACTIVE,
+                        ManageTaskSection.DAY_MISSED -> R.menu.menu_manage_day_task
                         ManageTaskSection.REPEAT_ALL,
                         ManageTaskSection.REPEAT_ACTIVE,
                         ManageTaskSection.PAUSED,
                         ManageTaskSection.ENDED -> R.menu.menu_manage_repeat_task
-                        else -> return@setOnClickListener
                     }
                     PopupMenu(context, anchor).apply {
                         menuInflater.inflate(menuRes, menu)

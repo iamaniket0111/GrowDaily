@@ -21,9 +21,17 @@
     <string name="calendar_start_date_label">Start Date</string>
     <string name="calendar_toggle_hint">Tap a date to add or remove it from your schedule. The original start date cannot be removed.</string>
     <string name="cancel_button">Cancel</string>
+    <string name="done_button">Done</string>
+    <string name="remove_button">Remove</string>
+    <string name="toast_task_added_date">Task scheduled for %1$s</string>
+    <string name="toast_task_removed_date">Task removed from %1$s</string>
+    <string name="dialog_remove_date_title">Remove date?</string>
+    <string name="dialog_remove_date_message">Are you sure you want to remove this task from %1$s?</string>
     <string name="change_task_appearance">Change task appearance</string>
     <string name="char_count_limit">%1$d/30</string>
     <string name="checklist_status_format">%1$d / %2$d done</string>
+    <string name="manage_checklist_title">Manage Checklist</string>
+    <string name="add_checklist_item_hint">Add checklist item</string>
     <string name="choose_behavior_subtitle">Choose how this task should behave</string>
     <string name="clear_button">Clear</string>
     <string name="completed_on_format">Completed on %1$s</string>
@@ -40,9 +48,11 @@
     <string name="date_format_mmm_d">MMM d</string>
     <string name="day_all_tasks_empty_subtitle">Tasks scheduled for a specific day will appear here.</string>
     <string name="day_all_tasks_empty_title">No day tasks yet</string>
+    <string name="day_active_tasks_empty_subtitle">Tasks showing on today\u2019s daily view will appear here.</string>
+    <string name="day_active_tasks_empty_title">No active day tasks</string>
+    <string name="day_missed_tasks_empty_subtitle">Day tasks you didn\u2019t complete will show up here.</string>
+    <string name="day_missed_tasks_empty_title">No missed tasks</string>
     <string name="day_tasks_filter">Day Tasks</string>
-    <string name="decrease_count">Decrease</string>
-    <string name="decrease_duration">Decrease minutes</string>
     <string name="delete">Delete</string>
     <string name="delete_action">Delete</string>
     <string name="delete_button">Delete</string>
@@ -56,7 +66,6 @@
     <string name="discard_changes_title">Discard changes?</string>
     <string name="discard_list_message_add">You have started creating a list. If you leave now, those changes will be lost.</string>
     <string name="discard_list_message_edit">You have unsaved edits to this list. If you leave now, those changes will be lost.</string>
-    <string name="edit_item_title">Edit Item</string>
     <string name="edit_task_title">Edit Task</string>
     <string name="empty_day_tasks_subtitle">Focus on your goals for 
 today.</string>
@@ -79,7 +88,6 @@ you\'ll be able to group them into lists.</string>
     <string name="ends_on_format">Ends on %1$s</string>
     <string name="error_add_checklist_item">Add at least one checklist item</string>
     <string name="error_checklist_item_duplicate">Checklist item already exists</string>
-    <string name="error_checklist_item_empty">Item cannot be empty</string>
     <string name="error_end_date_before_start">End date must be after start date</string>
     <string name="error_enter_list_name">Enter a list name</string>
     <string name="error_enter_task_title">Please enter a task title</string>
@@ -92,8 +100,6 @@ you\'ll be able to group them into lists.</string>
     <string name="first_list_hint">Create your first list to start organizing tasks.</string>
     <string name="history_date_format">%1$s %2$d</string>
     <string name="holiday">Holiday</string>
-    <string name="increase_count">Increase</string>
-    <string name="increase_duration">Increase minutes</string>
     <string name="keep_editing_button">Keep editing</string>
     <string name="keep_new_date_button">Keep %1$s</string>
     <string name="keep_original_date_button">Keep %1$s</string>
@@ -114,10 +120,10 @@ you\'ll be able to group them into lists.</string>
     <string name="manage_tab_active">Active</string>
     <string name="manage_tab_add_for_today">Add for today</string>
     <string name="manage_tab_all">All</string>
+    <string name="manage_tab_missed">Missed</string>
     <string name="manage_task_menu">Task options</string>
     <string name="menu_add_task">Add Task</string>
     <string name="menu_home">Home</string>
-    <string name="minutes_short">min</string>
     <string name="month_day_summary_extra">%1$s +%2$d</string>
     <string name="multiple_lists_added_hint">This task will be added to %1$d lists.</string>
     <string name="new_list">New list</string>
@@ -191,7 +197,6 @@ task?</string>
     <string name="resume_daily_task_title">Resume daily task?</string>
     <string name="retry_button">Retry</string>
     <string name="running_for_days_format">· %1$d days</string>
-    <string name="save_button">Save</string>
     <string name="save_changes">Save Changes</string>
     <string name="save_failed_toast">Save failed</string>
     <string name="save_task_button">Save Task</string>
@@ -239,7 +244,7 @@ task?</string>
     <string name="tasks_in_list_header">Tasks in this list</string>
     <string name="time_placeholder">--:--</string>
     <string name="timer_hint">Drag the ring or adjust by 1 minute</string>
-    <string name="timer_value_format">%1$d:%2$02d / %3$d:00</string>
+    <string name="timer_value_format">%1$dm %2$02ds / %3$dm</string>
     <string name="today">Today</string>
     <string name="tomorrow">Tomorrow</string>
     <string name="tracking_binary">Binary</string>
@@ -256,4 +261,6 @@ task?</string>
     <string name="week_range_format">%1$s – %2$s</string>
     <string name="yesterday">Yesterday</string>
     <string name="zero_selected">0 selected</string>
+    <string name="enter_duration_title">Enter Duration</string>
+    <string name="enter_duration_message">Enter duration in minutes:</string>
 </resources>

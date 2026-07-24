@@ -135,9 +135,6 @@ class AddTaskFragment : Fragment(), AddTaskSectionHost {
 
     override fun onDestroyView() {
         dismissAddTaskTimePicker()
-        if (_binding != null) {
-            binding.taskTrackingType.checklistRecyclerView.adapter = null
-        }
         super.onDestroyView()
         _binding = null
     }

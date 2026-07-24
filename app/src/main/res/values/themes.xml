@@ -42,12 +42,7 @@
         <item name="android:textColorPrimary">@color/app_bar_content</item>
     </style>
 
-    <style name="Theme.GrowDaily.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog">
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowNoTitle">true</item>
-    </style>
-
-<!--    add task fragment styles
+    <!--    add task fragment styles
     <style name="TitleLabel">
         <item name="android:textColor">@color/add_form_text_secondary</item>
         <item name="android:textSize">16sp</item>

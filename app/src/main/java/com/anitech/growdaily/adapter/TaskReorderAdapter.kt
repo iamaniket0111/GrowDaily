@@ -49,33 +49,33 @@ class TaskReorderAdapter(
         @SuppressLint("ClickableViewAccessibility")
         fun bind(task: TaskEntity) {
 
-            binding.taskTitle.text = task.title
-            binding.taskTitle.setTextAppearance(R.style.ReorderItemTitle)
-            binding.taskNote.visibility = View.GONE
+            binding.body.taskTitle.text = task.title
+            binding.body.taskTitle.setTextAppearance(R.style.ReorderItemTitle)
+            binding.body.taskNote.visibility = View.GONE
 
             val icon = TaskIcon.valueOf(task.iconResId)
             val color = TaskColor.valueOf(task.colorCode)
             val colorInt = ContextCompat.getColor(binding.root.context, color.resId)
 
-            binding.imageProfile.setImageResource(icon.resId)
-            binding.imageProfile.setSolidBackgroundColorCompat(colorInt)
+            binding.body.imageProfile.setImageResource(icon.resId)
+            binding.body.imageProfile.setSolidBackgroundColorCompat(colorInt)
 
-            binding.weightContainer.visibility = View.GONE
-            binding.streakContainer.visibility = View.GONE
+            binding.body.weightContainer.visibility = View.GONE
+            binding.body.streakContainer.visibility = View.GONE
 
-            binding.taskType.setTextColor(colorInt)
-            binding.taskType.setTextAppearance(R.style.ReorderItemType)
-            binding.taskType.text = itemView.context.getString(task.taskType.labelRes)
+            binding.body.taskType.setTextColor(colorInt)
+            binding.body.taskType.setTextAppearance(R.style.ReorderItemType)
+            binding.body.taskType.text = itemView.context.getString(task.taskType.labelRes)
 
-            binding.done.background = null
-            binding.doneView.visibility = View.GONE
+            binding.body.done.background = null
+            binding.body.doneView.visibility = View.GONE
             
             // Show drag handle for all tasks in the reorder screen
-            binding.doneContainer.visibility = View.VISIBLE
-            binding.done.setImageResource(R.drawable.ic_drag_handle)
-            binding.done.imageTintList = ColorStateList.valueOf(colorInt)
+            binding.body.doneContainer.visibility = View.VISIBLE
+            binding.body.done.setImageResource(R.drawable.ic_drag_handle)
+            binding.body.done.imageTintList = ColorStateList.valueOf(colorInt)
 
-            binding.doneContainer.setOnTouchListener { _, event ->
+            binding.body.doneContainer.setOnTouchListener { _, event ->
                 if (event.actionMasked == MotionEvent.ACTION_DOWN) {
                     dragStartListener(this)
                 }
@@ -92,12 +92,12 @@ class TaskReorderAdapter(
             binding.shContainer.visibility = View.GONE
             
             // Reset visual state
-            binding.body.translationZ = 0f
-            binding.body.alpha = 1.0f
+            binding.body.root.translationZ = 0f
+            binding.body.root.alpha = 1.0f
         }
 
         fun onItemSelected() {
-            binding.body.animate()
+            binding.body.root.animate()
                 .translationZ(12f)
                 .alpha(0.85f)
                 .setDuration(150)
@@ -105,7 +105,7 @@ class TaskReorderAdapter(
         }
 
         fun onItemClear() {
-            binding.body.animate()
+            binding.body.root.animate()
                 .translationZ(0f)
                 .alpha(1.0f)
                 .setDuration(150)

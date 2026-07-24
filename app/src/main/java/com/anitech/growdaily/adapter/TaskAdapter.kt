@@ -86,15 +86,15 @@ class TaskAdapter(
             timeTxt.visibility = if (showTime) View.VISIBLE else View.GONE
 
             if (isFuture) {
-                doneView.visibility = View.VISIBLE
-                notAllowedImg.visibility = View.VISIBLE
-                done.visibility = View.GONE
-                doneContainer.alpha = 0.38f
+                body.doneView.visibility = View.VISIBLE
+                body.notAllowedImg.visibility = View.VISIBLE
+                body.done.visibility = View.GONE
+                body.doneContainer.alpha = 0.38f
             } else {
-                doneView.visibility = if (isPastLike || isToday) View.VISIBLE else View.GONE
-                notAllowedImg.visibility = View.GONE
-                done.visibility = View.VISIBLE
-                doneContainer.alpha = 1f
+                body.doneView.visibility = if (isPastLike || isToday) View.VISIBLE else View.GONE
+                body.notAllowedImg.visibility = View.GONE
+                body.done.visibility = View.VISIBLE
+                body.doneContainer.alpha = 1f
             }
 
             val isCompleted = item.isCompleted
@@ -106,16 +106,16 @@ class TaskAdapter(
 
         private fun setTaskNote(task: TaskEntity, pendingFromDate: String?) = with(binding) {
             if (!task.note.isNullOrEmpty()) {
-                taskNote.text = task.note
-                taskNote.visibility = View.VISIBLE
+                body.taskNote.text = task.note
+                body.taskNote.visibility = View.VISIBLE
             } else {
-                taskNote.visibility = View.GONE
+                body.taskNote.visibility = View.GONE
             }
             if (!pendingFromDate.isNullOrBlank()) {
-                taskPendingText.text = root.context.getString(R.string.pending_from_format, com.anitech.growdaily.CommonMethods.formatDate(pendingFromDate))
-                taskPendingText.visibility = View.VISIBLE
+                body.taskPendingText.text = root.context.getString(R.string.pending_from_format, com.anitech.growdaily.CommonMethods.formatDate(pendingFromDate))
+                body.taskPendingText.visibility = View.VISIBLE
             } else {
-                taskPendingText.visibility = View.GONE
+                body.taskPendingText.visibility = View.GONE
             }
         }
 
@@ -141,17 +141,17 @@ class TaskAdapter(
                     root.context.getString(task.taskType.labelRes)
                 }
             }
-            taskType.text = label
+            body.taskType.text = label
         }
 
         private fun setTaskData(item: TaskUiItem) = with(binding) {
             val task = item.task
-            taskTitle.text = task.title
-            imageProfile.setImageResource(TaskIcon.fromName(task.iconResId).resId)
-            taskWeight.text =
+            body.taskTitle.text = task.title
+            body.imageProfile.setImageResource(TaskIcon.fromName(task.iconResId).resId)
+            body.taskWeight.text =
                 root.context.getString(R.string.task_weight_prefix, item.trackingSettings.weightValue)
 
-            taskWeight.visibility = if (task.taskType == TaskType.UNTIL_COMPLETE) {
+            body.taskWeight.visibility = if (task.taskType == TaskType.UNTIL_COMPLETE) {
                 View.GONE
             } else {
                 View.VISIBLE
@@ -159,18 +159,18 @@ class TaskAdapter(
 
             // Show streak only for DAILY tasks
             if (task.taskType == TaskType.DAILY ) {
-                streakContainer.visibility = View.VISIBLE
-                taskStreak.text = "${item.currentStreak}"
+                body.streakContainer.visibility = View.VISIBLE
+                body.taskStreak.text = "${item.currentStreak}"
             } else {
-                streakContainer.visibility = View.GONE
+                body.streakContainer.visibility = View.GONE
             }
 
             // Show reminder time if reminder is enabled
             if (task.reminderEnabled && !task.reminderTime.isNullOrBlank()) {
-                reminderContainer.visibility = View.VISIBLE
-                remTime.text = task.reminderTime
+                body.reminderContainer.visibility = View.VISIBLE
+                body.remTime.text = task.reminderTime
             } else {
-                reminderContainer.visibility = View.GONE
+                body.reminderContainer.visibility = View.GONE
             }
         }
 
@@ -191,10 +191,10 @@ class TaskAdapter(
             completionPercent: Int,
             isCompleted: Boolean
         ) = with(binding) {
-            doneView.max = 100
-            doneView.progress = completionPercent.coerceIn(0, 100)
-            done.setImageResource(if (isCompleted) R.drawable.ic_check else 0)
-            done.alpha = if (isCompleted) 1f else 0f
+            body.doneView.max = 100
+            body.doneView.progress = completionPercent.coerceIn(0, 100)
+            body.done.setImageResource(if (isCompleted) R.drawable.ic_check else 0)
+            body.done.alpha = if (isCompleted) 1f else 0f
         }
 
 
@@ -219,73 +219,73 @@ class TaskAdapter(
 
             if (isActive) {
                 // TEXT COLORS
-                taskTitle.setTextColor(white)
-                taskNote.setTextColor(white)
-                taskPendingText.setTextColor(white)
-                taskType.setTextColor(white)
-                taskWeight.setTextColor(white)
-                taskStreak.setTextColor(white)
-                remTime.setTextColor(white)
+                body.taskTitle.setTextColor(white)
+                body.taskNote.setTextColor(white)
+                body.taskPendingText.setTextColor(white)
+                body.taskType.setTextColor(white)
+                body.taskWeight.setTextColor(white)
+                body.taskStreak.setTextColor(white)
+                body.remTime.setTextColor(white)
 
                 // ICON
-                imageProfile.setSolidBackgroundColorCompat(white)
-                imageProfile.setColorFilter(color)
-                flag.setColorFilter(white)
-                fire.setColorFilter(white)
-                bell.setColorFilter(white)
-                notAllowedImg.setColorFilter(white)
+                body.imageProfile.setSolidBackgroundColorCompat(white)
+                body.imageProfile.setColorFilter(color)
+                body.flag.setColorFilter(white)
+                body.fire.setColorFilter(white)
+                body.bell.setColorFilter(white)
+                body.notAllowedImg.setColorFilter(white)
 
                 // DONE
                 styleDoneProgress(
-                    progressView = doneView,
+                    progressView = body.doneView,
                     indicatorColor = white,
                     trackColor = white.adjustAlpha(0.28f)
                 )
-                done.setSolidBackgroundColorCompat(if (isCompleted) color else white)
-                done.imageTintList = getCachedColorStateList(white)
+                body.done.setSolidBackgroundColorCompat(if (isCompleted) color else white)
+                body.done.imageTintList = getCachedColorStateList(white)
 
                 // BACKGROUND
-                body.backgroundTintList = getCachedColorStateList(color)
-                weightContainer.backgroundTintList = getCachedColorStateList(color)
-                streakContainer.backgroundTintList = getCachedColorStateList(color)
-                reminderContainer.backgroundTintList = getCachedColorStateList(color)
+                body.root.backgroundTintList = getCachedColorStateList(color)
+                body.weightContainer.backgroundTintList = getCachedColorStateList(color)
+                body.streakContainer.backgroundTintList = getCachedColorStateList(color)
+                body.reminderContainer.backgroundTintList = getCachedColorStateList(color)
 
             } else {
 
                 // TEXT COLORS
-                taskTitle.setTextColor(primaryText)
-                taskNote.setTextColor(secondaryText)
-                taskPendingText.setTextColor(color)
-                taskType.setTextColor(color)
-                taskWeight.setTextColor(secondaryText)
-                taskStreak.setTextColor(secondaryText)
-                remTime.setTextColor(secondaryText)
+                body.taskTitle.setTextColor(primaryText)
+                body.taskNote.setTextColor(secondaryText)
+                body.taskPendingText.setTextColor(color)
+                body.taskType.setTextColor(color)
+                body.taskWeight.setTextColor(secondaryText)
+                body.taskStreak.setTextColor(secondaryText)
+                body.remTime.setTextColor(secondaryText)
 
                 // ICON
-                imageProfile.setSolidBackgroundColorCompat(color)
-                imageProfile.setColorFilter(white)
-                flag.setColorFilter(iconTint)
-                fire.setColorFilter(iconTint)
-                bell.setColorFilter(iconTint)
-                notAllowedImg.setColorFilter(color)
+                body.imageProfile.setSolidBackgroundColorCompat(color)
+                body.imageProfile.setColorFilter(white)
+                body.flag.setColorFilter(iconTint)
+                body.fire.setColorFilter(iconTint)
+                body.bell.setColorFilter(iconTint)
+                body.notAllowedImg.setColorFilter(color)
 
                 // DONE
                 styleDoneProgress(
-                    progressView = doneView,
+                    progressView = body.doneView,
                     indicatorColor = color,
                     trackColor = color.adjustAlpha(0.18f)
                 )
-                done.setSolidBackgroundColorCompat(if (isCompleted) color else cardSurface)
-                done.imageTintList = getCachedColorStateList(white)
+                body.done.setSolidBackgroundColorCompat(if (isCompleted) color else cardSurface)
+                body.done.imageTintList = getCachedColorStateList(white)
 
                 // BACKGROUND
                 val isNight = (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
                 val alphaFactor = if (isNight) 0.12f else 0.07f
                 
-                body.backgroundTintList = getCachedColorStateList(cardSurface)
-                weightContainer.backgroundTintList = getCachedColorStateList(color.adjustAlpha(alphaFactor))
-                streakContainer.backgroundTintList = getCachedColorStateList(color.adjustAlpha(alphaFactor))
-                reminderContainer.backgroundTintList = getCachedColorStateList(color.adjustAlpha(alphaFactor))
+                body.root.backgroundTintList = getCachedColorStateList(cardSurface)
+                body.weightContainer.backgroundTintList = getCachedColorStateList(color.adjustAlpha(alphaFactor))
+                body.streakContainer.backgroundTintList = getCachedColorStateList(color.adjustAlpha(alphaFactor))
+                body.reminderContainer.backgroundTintList = getCachedColorStateList(color.adjustAlpha(alphaFactor))
             }
 
             // shView update
@@ -341,18 +341,18 @@ class TaskAdapter(
             }
 
             if (item.dateMode == DateMode.FUTURE) {
-                doneContainer.setOnClickListener(null)
-                doneContainer.setOnLongClickListener(null)
-                doneContainer.isClickable = false
-                doneContainer.isFocusable = false
+                body.doneContainer.setOnClickListener(null)
+                body.doneContainer.setOnLongClickListener(null)
+                body.doneContainer.isClickable = false
+                body.doneContainer.isFocusable = false
             } else {
-                doneContainer.isClickable = true
-                doneContainer.isFocusable = true
-                doneContainer.setOnClickListener {
+                body.doneContainer.isClickable = true
+                body.doneContainer.isFocusable = true
+                body.doneContainer.setOnClickListener {
                     listener.onTaskCompleteClick(task.id, item.completionDate)
                 }
 
-                doneContainer.setOnLongClickListener {
+                body.doneContainer.setOnLongClickListener {
                     listener.onTaskCompleteLongClick(task.id, item.completionDate)
                     true
                 }

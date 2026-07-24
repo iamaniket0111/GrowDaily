@@ -79,7 +79,7 @@
     <color name="completion_dialog_chip_surface">#FAFBFE</color>
     <color name="completion_dialog_button_secondary">#EEF2F7</color>
     <color name="completion_dialog_button_secondary_text">#1B2230</color>
-    <color name="completion_dialog_row_surface">#FCFCFE</color>
+    <color name="completion_dialog_row_surface">#F5F7FA</color>
     <color name="completion_dialog_value_pending">#111111</color>
     <color name="completion_dialog_stroke">#E5EAF2</color>
     <color name="completion_dialog_chip_stroke">#DEE5EF</color>

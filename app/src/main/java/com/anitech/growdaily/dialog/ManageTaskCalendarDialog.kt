@@ -52,19 +52,44 @@ class ManageTaskCalendarDialog : DialogFragment() {
     }
 
     private var currentMonth: YearMonth = YearMonth.now()
+    private var isToggling = false
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         _binding = DialogManageTaskCalendarBinding.inflate(LayoutInflater.from(requireContext()))
         currentMonth = YearMonth.from(originalDate)
 
+        val dialog = Dialog(requireContext())
+        dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+        dialog.setContentView(binding.root)
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
+
         val daysAdapter = DaysAdapter(accentColor) { day ->
+            if (isToggling) return@DaysAdapter
             if (day != null && day != originalDate) {
                 val key = day.toString()
                 val currentlyActive = activeDates.contains(key)
                 val shouldAdd = !currentlyActive
-                callback?.onToggle(key, shouldAdd)
-                if (shouldAdd) activeDates.add(key) else activeDates.remove(key)
-                renderMonth()
+                
+                isToggling = true
+                if (shouldAdd) {
+                    activeDates.add(key)
+                    renderMonth()
+                    binding.root.postDelayed({
+                        if (isAdded) {
+                            callback?.onToggle(key, true)
+                            dismiss()
+                        }
+                    }, 350)
+                } else {
+                    activeDates.remove(key)
+                    renderMonth()
+                    binding.root.postDelayed({
+                        if (isAdded) {
+                            callback?.onToggle(key, false)
+                            dismiss()
+                        }
+                    }, 350)
+                }
             }
         }
 
@@ -83,15 +108,22 @@ class ManageTaskCalendarDialog : DialogFragment() {
             renderMonth()
         }
 
-        binding.indicatorOriginal.backgroundTintList = ColorStateList.valueOf(accentColor)
-        binding.indicatorActive.backgroundTintList = ColorStateList.valueOf(accentColor)
+        binding.indicatorOriginal.background = solidCircle(accentColor)
+        binding.indicatorActive.background = strokeCircle(resources.displayMetrics.density, accentColor)
+        
+        binding.btnDone.backgroundTintList = ColorStateList.valueOf(accentColor)
+        binding.btnDone.setOnClickListener {
+            dismiss()
+        }
 
         renderMonth()
 
-        return MaterialAlertDialogBuilder(requireContext(), R.style.Theme_GrowDaily_Picker_Base)
-            .setView(binding.root)
-            .setPositiveButton(R.string.picker_set_date, null)
-            .create()
+        dialog.window?.setLayout(
+            ((resources.displayMetrics.widthPixels) * 0.9f).toInt(),
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+
+        return dialog
     }
 
     private fun renderMonth() {
@@ -170,14 +202,14 @@ class ManageTaskCalendarDialog : DialogFragment() {
                         binding.txtDay.setTypeface(null, android.graphics.Typeface.BOLD)
                     }
                     isActive -> {
-                        binding.txtDay.background = strokeCircle(accentColor)
+                        binding.txtDay.background = strokeCircle(binding.root.resources.displayMetrics.density, accentColor)
                         binding.txtDay.setTextColor(accentColor)
                         binding.txtDay.setTypeface(null, android.graphics.Typeface.BOLD)
                     }
                     isToday -> {
-                        binding.txtDay.background = todayCircle(accentColor)
+                        binding.txtDay.background = null
                         binding.txtDay.setTextColor(accentColor)
-                        binding.txtDay.setTypeface(null, android.graphics.Typeface.NORMAL)
+                        binding.txtDay.setTypeface(null, android.graphics.Typeface.BOLD)
                     }
                     else -> {
                         binding.txtDay.background = null
@@ -187,22 +219,6 @@ class ManageTaskCalendarDialog : DialogFragment() {
                 }
 
                 binding.root.setOnClickListener { onClick(day) }
-            }
-
-            private fun solidCircle(color: Int) = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(color)
-            }
-
-            private fun strokeCircle(color: Int) = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(ColorUtils.setAlphaComponent(color, 25))
-                setStroke((binding.root.resources.displayMetrics.density * 2).toInt(), color)
-            }
-
-            private fun todayCircle(color: Int) = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setStroke((binding.root.resources.displayMetrics.density * 1).toInt(), ColorUtils.setAlphaComponent(color, 120))
             }
         }
 
@@ -218,6 +234,17 @@ class ManageTaskCalendarDialog : DialogFragment() {
         private const val ARG_ORIGINAL_DATE = "originalDate"
         private const val ARG_ACTIVE_DATES = "activeDates"
         private const val ARG_ACCENT_COLOR = "accentColor"
+
+        fun solidCircle(color: Int) = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(color)
+        }
+
+        fun strokeCircle(density: Float, color: Int) = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(ColorUtils.setAlphaComponent(color, 25))
+            setStroke((density * 2).toInt(), color)
+        }
 
         fun newInstance(
             originalDate: String,

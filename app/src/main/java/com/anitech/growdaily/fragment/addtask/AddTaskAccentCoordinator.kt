@@ -41,7 +41,6 @@ internal class AddTaskAccentCoordinator(
             buttonSave.backgroundTintList = ColorStateList.valueOf(color)
             buttonSave.setTextColor(onAccentTextColor())
             progressBarSave.indeterminateTintList = ColorStateList.valueOf(color)
-            taskTrackingType.btnAddChecklistItem.backgroundTintList = ColorStateList.valueOf(color)
             taskWeightPriorityLayout.txtPriority.setTextColor(color)
             startDateLayout.txtStartDate.setTextColor(color)
             repeatLayout.txtRepeatSummary.setTextColor(color)
@@ -110,8 +109,7 @@ internal class AddTaskAccentCoordinator(
         val binding = host.binding
         listOf(
             binding.titleNoteLayout.editTextTitle,
-            binding.titleNoteLayout.editTextNote,
-            binding.taskTrackingType.etChecklistItem
+            binding.titleNoteLayout.editTextNote
         ).forEach { editText ->
             editText.textCursorDrawable = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE

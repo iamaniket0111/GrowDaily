@@ -46,12 +46,12 @@ interface TaskCompletionDao {
                 TaskCompletionEntity(
                     taskId = taskId,
                     date = date,
-                    durationSeconds = addSeconds
+                    durationSeconds = maxOf(0L, addSeconds)
                 )
             )
         } else {
             insertCompletion(
-                existing.copy(durationSeconds = existing.durationSeconds + addSeconds)
+                existing.copy(durationSeconds = maxOf(0L, existing.durationSeconds + addSeconds))
             )
         }
     }

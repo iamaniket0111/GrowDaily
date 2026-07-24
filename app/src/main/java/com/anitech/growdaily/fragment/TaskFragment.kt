@@ -28,10 +28,10 @@ import com.anitech.growdaily.MyApp
 import com.anitech.growdaily.R
 import com.anitech.growdaily.adapter.BarAdapter
 import com.anitech.growdaily.adapter.EmptyStateAdapter
-import com.anitech.growdaily.adapter.FilterSectionAdapter
 import com.anitech.growdaily.adapter.ListAdapter
-import com.anitech.growdaily.adapter.ScoreSectionAdapter
 import com.anitech.growdaily.adapter.TaskAdapter
+import com.anitech.growdaily.adjustAlpha
+import kotlin.math.roundToInt
 import com.anitech.growdaily.data_class.DailyScore
 import com.anitech.growdaily.data_class.ListEntity
 import com.anitech.growdaily.data_class.TaskEntity
@@ -67,8 +67,6 @@ class TaskFragment : Fragment() {
     private var barAdapter: BarAdapter? = null
 
     // New section adapters
-    private var scoreSectionAdapter: ScoreSectionAdapter? = null
-    private var filterSectionAdapter: FilterSectionAdapter? = null
     private var emptyStateAdapter: EmptyStateAdapter? = null
     private var hasPositionedBarInitially = false
     private var pendingScrollToToday = false
@@ -187,16 +185,11 @@ class TaskFragment : Fragment() {
         setupListRecycler()
         setupBarRecycler()
         
-        val sAdapter = ScoreSectionAdapter().also { scoreSectionAdapter = it }
-        val lAdapter = listAdapter ?: return
-        val fAdapter = FilterSectionAdapter(lAdapter).also { filterSectionAdapter = it }
         val tAdapter = taskAdapter ?: return
         val eAdapter = EmptyStateAdapter().also { emptyStateAdapter = it }
 
         // Combine all into TaskFragmentConcatAdapter
         val taskFragmentConcatAdapter = ConcatAdapter(
-            sAdapter,
-            fAdapter,
             tAdapter,
             eAdapter
         )
@@ -241,11 +234,23 @@ class TaskFragment : Fragment() {
     private fun observeAccentColor() {
         (requireActivity() as? MainActivity)?.accentColor?.observe(viewLifecycleOwner) { color ->
             accentColor = color
-            scoreSectionAdapter?.setAccentColor(color)
             listAdapter?.setAccentColor(color)
             barAdapter?.setAccentColor(color)
             //taskAdapter?.setAccentColor(color)
             binding.barGraph2.scoreBarBg.setAccentColor(color)
+            
+            val state = viewModel.taskUiState.value
+            if (state != null) {
+                updateScoreLayout(
+                    dayScore = state.dayScore,
+                    weekScore = state.weekScore,
+                    monthScore = state.monthScore,
+                    dayText = getDayText(state.date),
+                    weekText = getWeekText(state.date),
+                    monthText = getMonthText(state.date)
+                )
+            }
+            
             binding.navigationLoadingOverlay.findViewById<android.widget.ProgressBar>(R.id.progressBarAnalysis)?.indeterminateTintList =
                 android.content.res.ColorStateList.valueOf(color)
         }
@@ -276,7 +281,7 @@ class TaskFragment : Fragment() {
         taskAdapter?.updateList(state.tasks, state.date, mode = state.dateMode)
 
         // score section
-        scoreSectionAdapter?.updateScores(
+        updateScoreLayout(
             dayScore = state.dayScore,
             weekScore = state.weekScore,
             monthScore = state.monthScore,
@@ -463,6 +468,23 @@ class TaskFragment : Fragment() {
                     findNavController().navigate(R.id.manageListFragment)
                 }
             })
+
+        binding.recyclerViewFilters.apply {
+            layoutManager =
+                LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+            adapter = listAdapter
+            setHasFixedSize(true)
+            itemAnimator = null
+
+            addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
+                override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                    rv.parent.requestDisallowInterceptTouchEvent(true)
+                    return false
+                }
+                override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
+                override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+            })
+        }
     }
 
     private fun setupBarRecycler() {
@@ -638,16 +660,86 @@ class TaskFragment : Fragment() {
 
                 barAdapter?.refreshTodayHighlight()
                 checkCurrentWeekStatus()
-                scoreSectionAdapter?.updateScores(
-                    dayScore = viewModel.taskUiState.value?.dayScore ?: 0f,
-                    weekScore = viewModel.taskUiState.value?.weekScore ?: 0f,
-                    monthScore = viewModel.taskUiState.value?.monthScore ?: 0f,
-                    dayText = getDayText(viewModel.taskUiState.value?.date ?: CommonMethods.getTodayDate()),
-                    weekText = getWeekText(viewModel.taskUiState.value?.date ?: CommonMethods.getTodayDate()),
-                    monthText = getMonthText(viewModel.taskUiState.value?.date ?: CommonMethods.getTodayDate())
+                val state = viewModel.taskUiState.value
+                updateScoreLayout(
+                    dayScore = state?.dayScore ?: 0f,
+                    weekScore = state?.weekScore ?: 0f,
+                    monthScore = state?.monthScore ?: 0f,
+                    dayText = getDayText(state?.date ?: CommonMethods.getTodayDate()),
+                    weekText = getWeekText(state?.date ?: CommonMethods.getTodayDate()),
+                    monthText = getMonthText(state?.date ?: CommonMethods.getTodayDate())
                 )
             }
         }
+    }
+
+    private fun updateScoreLayout(
+        dayScore: Float,
+        weekScore: Float,
+        monthScore: Float,
+        dayText: String,
+        weekText: String,
+        monthText: String
+    ) {
+        val scoreLayout = binding.scoreLayout
+        val context = requireContext()
+        
+        val baseWeekColor = ContextCompat.getColor(context, R.color.category_purple)
+        val baseMonthColor = ContextCompat.getColor(context, R.color.category_teal)
+        
+        val (finalDayColor, finalWeekColor, finalMonthColor) = if (accentColor != Color.BLUE) {
+            val accent = accentColor
+            val week = if (accent == baseWeekColor) {
+                ContextCompat.getColor(context, R.color.category_orange)
+            } else {
+                baseWeekColor
+            }
+            val month = if (accent == baseMonthColor) {
+                ContextCompat.getColor(context, R.color.category_green)
+            } else {
+                baseMonthColor
+            }
+            Triple(accent, week, month)
+        } else {
+            Triple(
+                ContextCompat.getColor(context, R.color.category_dark_blue),
+                baseWeekColor,
+                baseMonthColor
+            )
+        }
+
+        fun formatScore(value: Float): String {
+            return if (value % 1f == 0f) {
+                value.toInt().toString()
+            } else {
+                String.format(Locale.getDefault(), "%.1f", value)
+            }
+        }
+
+        fun scoreToProgress(value: Float): Int {
+            return (value.coerceIn(0f, 10f) * 10f).roundToInt()
+        }
+
+        scoreLayout.cpi.setIndicatorColor(finalDayColor)
+        scoreLayout.cpi.trackColor = finalDayColor.adjustAlpha(0.25f)
+        scoreLayout.doneWeight.setTextColor(finalDayColor)
+        scoreLayout.doneWeight.text = formatScore(dayScore)
+        scoreLayout.cpi.setProgressCompat(scoreToProgress(dayScore), true)
+        scoreLayout.dayText.text = dayText
+
+        scoreLayout.cpiWeek.setIndicatorColor(finalWeekColor)
+        scoreLayout.cpiWeek.trackColor = finalWeekColor.adjustAlpha(0.25f)
+        scoreLayout.doneWeekWeight.setTextColor(finalWeekColor)
+        scoreLayout.doneWeekWeight.text = formatScore(weekScore)
+        scoreLayout.cpiWeek.setProgressCompat(scoreToProgress(weekScore), true)
+        scoreLayout.weekText.text = weekText
+
+        scoreLayout.cpiMonth.setIndicatorColor(finalMonthColor)
+        scoreLayout.cpiMonth.trackColor = finalMonthColor.adjustAlpha(0.25f)
+        scoreLayout.doneMonthWeight.setTextColor(finalMonthColor)
+        scoreLayout.doneMonthWeight.text = formatScore(monthScore)
+        scoreLayout.cpiMonth.setProgressCompat(scoreToProgress(monthScore), true)
+        scoreLayout.monthText.text = monthText
     }
 
     private fun getDayText(date: String): String {
@@ -689,14 +781,13 @@ class TaskFragment : Fragment() {
     override fun onDestroyView() {
         if (_binding != null) {
             binding.mainRecyclerView.adapter = null
+            binding.recyclerViewFilters.adapter = null
             binding.barGraph2.recyclerViewBar.adapter = null
         }
         super.onDestroyView()
         taskAdapter = null
         listAdapter = null
         barAdapter = null
-        scoreSectionAdapter = null
-        filterSectionAdapter = null
         emptyStateAdapter = null
         _binding = null
     }

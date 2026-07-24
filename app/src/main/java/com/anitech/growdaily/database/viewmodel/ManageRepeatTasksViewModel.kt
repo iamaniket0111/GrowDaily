@@ -132,15 +132,7 @@ class ManageRepeatTasksViewModel(
             .flowOn(Dispatchers.Default)
             .asLiveData()
 
-    private data class DayAddForTodayManageBase(
-        val tasks: List<TaskEntity>,
-        val completions: List<TaskCompletionEntity>,
-        val trackingVersions: List<TaskTrackingVersionEntity>,
-        val snapshots: List<TaskDaySnapshotEntity>,
-        val extraDates: List<TaskExtraDateEntity>
-    )
-
-    val dayAddForTodayTasks: LiveData<List<ManagedRepeatTaskUi>> =
+    val dayActiveTasks: LiveData<List<ManagedRepeatTaskUi>> =
         combine(
             repository.getAllTasksFlow(),
             repository.getAllCompletionsFlow(),
@@ -148,7 +140,7 @@ class ManageRepeatTasksViewModel(
             repository.getAllTaskDaySnapshotsFlow(),
             repository.getAllTaskExtraDatesFlow()
         ) { tasks, completions, trackingVersions, snapshots, extraDates ->
-            DayAddForTodayManageBase(
+            AllDayManageBase(
                 tasks = tasks,
                 completions = completions,
                 trackingVersions = trackingVersions,
@@ -156,22 +148,42 @@ class ManageRepeatTasksViewModel(
                 extraDates = extraDates
             )
         }.combine(repository.getAllUntilCompleteChildrenFlow()) { base, children ->
-            (
-                buildDayAddForTodayList(
-                    tasks = base.tasks,
-                    completions = base.completions,
-                    trackingVersions = base.trackingVersions,
-                    snapshots = base.snapshots,
-                    extraDates = base.extraDates
-                ) +
-                    buildUntilCompleteAddForTodayList(
-                        tasks = base.tasks,
-                        completions = base.completions,
-                        trackingVersions = base.trackingVersions,
-                        snapshots = base.snapshots,
-                        children = children
-                    )
-                ).sortedByDescending { it.metaDate }
+            buildActiveDayList(
+                tasks = base.tasks,
+                completions = base.completions,
+                trackingVersions = base.trackingVersions,
+                snapshots = base.snapshots,
+                extraDates = base.extraDates,
+                children = children
+            )
+        }
+            .flowOn(Dispatchers.Default)
+            .asLiveData()
+
+    val dayMissedTasks: LiveData<List<ManagedRepeatTaskUi>> =
+        combine(
+            repository.getAllTasksFlow(),
+            repository.getAllCompletionsFlow(),
+            repository.getAllTaskTrackingVersionsFlow(),
+            repository.getAllTaskDaySnapshotsFlow(),
+            repository.getAllTaskExtraDatesFlow()
+        ) { tasks, completions, trackingVersions, snapshots, extraDates ->
+            AllDayManageBase(
+                tasks = tasks,
+                completions = completions,
+                trackingVersions = trackingVersions,
+                snapshots = snapshots,
+                extraDates = extraDates
+            )
+        }.combine(repository.getAllUntilCompleteChildrenFlow()) { base, children ->
+            buildMissedDayList(
+                tasks = base.tasks,
+                completions = base.completions,
+                trackingVersions = base.trackingVersions,
+                snapshots = base.snapshots,
+                extraDates = base.extraDates,
+                children = children
+            )
         }
             .flowOn(Dispatchers.Default)
             .asLiveData()
@@ -453,12 +465,132 @@ class ManageRepeatTasksViewModel(
             .sortedByDescending { it.metaDate }
     }
 
-    private fun buildDayAddForTodayList(
+    private fun buildActiveDayList(
         tasks: List<TaskEntity>,
         completions: List<TaskCompletionEntity>,
         trackingVersions: List<TaskTrackingVersionEntity>,
         snapshots: List<TaskDaySnapshotEntity>,
-        extraDates: List<TaskExtraDateEntity>
+        extraDates: List<TaskExtraDateEntity>,
+        children: List<UntilCompleteChildEntity>
+    ): List<ManagedRepeatTaskUi> {
+        val trackingVersionMap = trackingVersions
+            .groupBy { it.taskId }
+            .mapValues { entry -> entry.value.sortedBy { it.effectiveFromDate } }
+        val completionByTaskId = completions.groupBy { it.taskId.trim().lowercase() }
+        val snapshotByTaskId = snapshots
+            .groupBy { it.taskId.trim().lowercase() }
+            .mapValues { entry -> entry.value.associateBy { it.date } }
+        val extraDateMap = extraDates
+            .groupBy { it.taskId }
+            .mapValues { entry -> entry.value.map { it.date }.toSet() }
+        val childrenByParent = children.groupBy { it.parentTaskId }
+
+        return tasks
+            .asSequence()
+            .filter { it.taskType == TaskType.DAY || it.taskType == TaskType.UNTIL_COMPLETE }
+            .filter { CommonMethods.isWithinTaskLifetime(it, todayString) }
+            .mapNotNull { task ->
+                val metaDate = runCatching { LocalDate.parse(task.taskAddedDate, dateFormatter) }.getOrNull()
+                    ?: return@mapNotNull null
+
+                val activeDates = linkedSetOf(task.taskAddedDate)
+                when (task.taskType) {
+                    TaskType.UNTIL_COMPLETE ->
+                        activeDates.addAll(childrenByParent[task.id]?.map { it.taskAddedDate }.orEmpty())
+                    else ->
+                        activeDates.addAll(extraDateMap[task.id].orEmpty())
+                }
+
+                // Determine if this task is active on today's view
+                val isActiveToday = when {
+                    // Today is one of the scheduled dates
+                    todayString in activeDates -> true
+                    // DAY task with showUntilCompleted=true: active if any session is uncompleted
+                    task.taskType == TaskType.DAY && task.showUntilCompleted -> {
+                        activeDates.any { date ->
+                            val snapshot = snapshotByTaskId[task.id.trim().lowercase()]?.get(date)
+                            val completion = completionByTaskId[task.id.trim().lowercase()]
+                                ?.firstOrNull { it.date == date }
+                            val settings = resolveTrackingSettings(
+                                task = task, date = date,
+                                versions = trackingVersionMap[task.id].orEmpty()
+                            )
+                            val completed = snapshot?.isCompleted
+                                ?: isCompletedDerived(task, completion, settings)
+                            !completed
+                        }
+                    }
+                    // UNTIL_COMPLETE task: active if parent or any child is uncompleted
+                    task.taskType == TaskType.UNTIL_COMPLETE -> {
+                        // Check parent completion on its original date
+                        val parentSnapshot = snapshotByTaskId[task.id.trim().lowercase()]?.get(task.taskAddedDate)
+                        val parentCompletion = completionByTaskId[task.id.trim().lowercase()]
+                            ?.firstOrNull { it.date == task.taskAddedDate }
+                        val parentSettings = resolveTrackingSettings(
+                            task = task, date = task.taskAddedDate,
+                            versions = trackingVersionMap[task.id].orEmpty()
+                        )
+                        val parentCompleted = parentSnapshot?.isCompleted
+                            ?: isCompletedDerived(task, parentCompletion, parentSettings)
+                        if (!parentCompleted) {
+                            true
+                        } else {
+                            // Check children
+                            childrenByParent[task.id]?.any { child ->
+                                val childSnapshot = snapshotByTaskId[child.childTaskId.trim().lowercase()]?.get(child.taskAddedDate)
+                                val childCompletion = completionByTaskId[child.childTaskId.trim().lowercase()]
+                                    ?.firstOrNull { it.date == child.taskAddedDate }
+                                val childSettings = resolveTrackingSettings(
+                                    task = task.copy(id = child.childTaskId, taskAddedDate = child.taskAddedDate),
+                                    date = child.taskAddedDate,
+                                    versions = trackingVersionMap[task.id].orEmpty()
+                                )
+                                val childCompleted = childSnapshot?.isCompleted
+                                    ?: isCompletedDerived(task, childCompletion, childSettings)
+                                !childCompleted
+                            } ?: false
+                        }
+                    }
+                    else -> false
+                }
+                if (!isActiveToday) return@mapNotNull null
+
+                val completion = completionByTaskId[task.id.trim().lowercase()]
+                    ?.firstOrNull { it.date == task.taskAddedDate }
+                val snapshot = snapshotByTaskId[task.id.trim().lowercase()]?.get(task.taskAddedDate)
+                val settings = resolveTrackingSettings(
+                    task = task, date = task.taskAddedDate,
+                    versions = trackingVersionMap[task.id].orEmpty()
+                )
+                val completed = snapshot?.isCompleted
+                    ?: isCompletedDerived(task, completion, settings)
+
+                ManagedRepeatTaskUi(
+                    task = task,
+                    section = ManageTaskSection.DAY_ACTIVE,
+                    actionKey = task.id,
+                    metaDate = metaDate,
+                    completionOutOf10 = if (completed) 10f else 0f,
+                    bestStreak = if (completed) 1 else 0,
+                    completedCount = if (completed) 1 else 0,
+                    totalDays = activeDates.size.coerceAtLeast(1),
+                    showAction = false,
+                    showMenu = true,
+                    originalDate = task.taskAddedDate,
+                    activeDates = activeDates.toSet()
+                )
+            }
+            .sortedByDescending { it.metaDate }
+            .toList()
+    }
+
+    private fun buildMissedDayList(
+        tasks: List<TaskEntity>,
+        completions: List<TaskCompletionEntity>,
+        trackingVersions: List<TaskTrackingVersionEntity>,
+        snapshots: List<TaskDaySnapshotEntity>,
+        extraDates: List<TaskExtraDateEntity>,
+        children: List<UntilCompleteChildEntity>
     ): List<ManagedRepeatTaskUi> {
         val trackingVersionMap = trackingVersions
             .groupBy { it.taskId }
@@ -473,176 +605,76 @@ class ManageRepeatTasksViewModel(
 
         return tasks
             .asSequence()
-            .filter { it.taskType == TaskType.DAY && it.taskAddedDate != todayString }
+            // Only DAY tasks with showUntilCompleted=false can be "missed"
+            .filter { it.taskType == TaskType.DAY && !it.showUntilCompleted }
             .filter { CommonMethods.isWithinTaskLifetime(it, todayString) }
             .mapNotNull { task ->
-                val originalDate = task.taskAddedDate
-                val completion = completionByTaskId[task.id.trim().lowercase()]
-                    ?.firstOrNull { it.date == originalDate }
-                val snapshot = snapshotByTaskId[task.id.trim().lowercase()]?.get(originalDate)
-                val settings = resolveTrackingSettings(
-                    task = task,
-                    date = originalDate,
-                    versions = trackingVersionMap[task.id].orEmpty()
-                )
-
-                val completedDates = mutableSetOf<String>()
-                snapshotByTaskId[task.id.trim().lowercase()]
-                    ?.forEach { (date, taskSnapshot) ->
-                        if (taskSnapshot.isCompleted) completedDates += date
-                    }
-                completionByTaskId[task.id.trim().lowercase()].orEmpty()
-                    .forEach { entity ->
-                        if (
-                            isCompletedDerived(
-                                task,
-                                entity,
-                                resolveTrackingSettings(
-                                    task = task,
-                                    date = entity.date,
-                                    versions = trackingVersionMap[task.id].orEmpty()
-                                )
-                            )
-                        ) {
-                            completedDates += entity.date
-                        }
-                    }
+                val metaDate = runCatching { LocalDate.parse(task.taskAddedDate, dateFormatter) }.getOrNull()
+                    ?: return@mapNotNull null
 
                 val activeDates = linkedSetOf(task.taskAddedDate)
                 activeDates.addAll(extraDateMap[task.id].orEmpty())
-                val isAddedForToday = todayString in activeDates
+
+                // If any date is today, the task is active, not missed
+                if (todayString in activeDates) return@mapNotNull null
+
+                // All dates must be in the past
+                if (activeDates.any { it >= todayString }) return@mapNotNull null
+
+                // Check if the task was completed on its original date
+                val snapshot = snapshotByTaskId[task.id.trim().lowercase()]?.get(task.taskAddedDate)
+                val completion = completionByTaskId[task.id.trim().lowercase()]
+                    ?.firstOrNull { it.date == task.taskAddedDate }
+                val settings = resolveTrackingSettings(
+                    task = task, date = task.taskAddedDate,
+                    versions = trackingVersionMap[task.id].orEmpty()
+                )
+                val completedOnOriginal = snapshot?.isCompleted
+                    ?: isCompletedDerived(task, completion, settings)
+
+                // Check if ALL active dates are completed — if so, nothing was missed
+                val allCompleted = activeDates.all { date ->
+                    val dateSnapshot = snapshotByTaskId[task.id.trim().lowercase()]?.get(date)
+                    val dateCompletion = completionByTaskId[task.id.trim().lowercase()]
+                        ?.firstOrNull { it.date == date }
+                    val dateSettings = resolveTrackingSettings(
+                        task = task, date = date,
+                        versions = trackingVersionMap[task.id].orEmpty()
+                    )
+                    dateSnapshot?.isCompleted
+                        ?: isCompletedDerived(task, dateCompletion, dateSettings)
+                }
+                if (allCompleted) return@mapNotNull null
+
+                val completedCount = activeDates.count { date ->
+                    val dateSnapshot = snapshotByTaskId[task.id.trim().lowercase()]?.get(date)
+                    val dateCompletion = completionByTaskId[task.id.trim().lowercase()]
+                        ?.firstOrNull { it.date == date }
+                    val dateSettings = resolveTrackingSettings(
+                        task = task, date = date,
+                        versions = trackingVersionMap[task.id].orEmpty()
+                    )
+                    dateSnapshot?.isCompleted
+                        ?: isCompletedDerived(task, dateCompletion, dateSettings)
+                }
 
                 ManagedRepeatTaskUi(
                     task = task,
-                    section = ManageTaskSection.DAY_ADD_FOR_TODAY,
+                    section = ManageTaskSection.DAY_MISSED,
                     actionKey = task.id,
-                    metaDate = runCatching { LocalDate.parse(task.taskAddedDate, dateFormatter) }.getOrNull()
-                        ?: return@mapNotNull null,
-                    completionOutOf10 = if (completedDates.contains(originalDate)) 10f else 0f,
-                    bestStreak = if (completedDates.isNotEmpty()) 1 else 0,
-                    completedCount = activeDates.count { completedDates.contains(it) },
-                    totalDays = activeDates.size,
-                    isAddedForToday = isAddedForToday,
-                    showAction = true,
-                    showMenu = false,
+                    metaDate = metaDate,
+                    completionOutOf10 = if (completedOnOriginal) 10f else 0f,
+                    bestStreak = if (completedCount > 0) 1 else 0,
+                    completedCount = completedCount,
+                    totalDays = activeDates.size.coerceAtLeast(1),
+                    showAction = false,
+                    showMenu = true,
                     originalDate = task.taskAddedDate,
                     activeDates = activeDates.toSet()
                 )
             }
             .sortedByDescending { it.metaDate }
             .toList()
-    }
-
-    private fun buildUntilCompleteAddForTodayList(
-        tasks: List<TaskEntity>,
-        completions: List<TaskCompletionEntity>,
-        trackingVersions: List<TaskTrackingVersionEntity>,
-        snapshots: List<TaskDaySnapshotEntity>,
-        children: List<UntilCompleteChildEntity>
-    ): List<ManagedRepeatTaskUi> {
-        val trackingVersionMap = trackingVersions
-            .groupBy { it.taskId }
-            .mapValues { entry -> entry.value.sortedBy { it.effectiveFromDate } }
-        val completionsByTaskDate = completions
-            .groupBy { it.taskId.trim().lowercase() }
-            .mapValues { entry -> entry.value.associateBy { it.date } }
-        val snapshotsByTaskDate = snapshots
-            .groupBy { it.taskId.trim().lowercase() }
-            .mapValues { entry -> entry.value.associateBy { it.date } }
-        val childrenByParent = children.groupBy { it.parentTaskId }
-
-        return tasks
-            .asSequence()
-            .filter { it.taskType == TaskType.UNTIL_COMPLETE && it.taskAddedDate != todayString }
-            .filter { CommonMethods.isWithinTaskLifetime(it, todayString) }
-            .mapNotNull { parent ->
-                val childItems = childrenByParent[parent.id].orEmpty()
-                val todaysChild = childItems.firstOrNull { it.taskAddedDate == todayString }
-                val parentCompletedDate = findUntilCompleteCompletionDate(
-                    task = parent,
-                    startDate = parent.taskAddedDate,
-                    completionsByTaskDate = completionsByTaskDate,
-                    snapshotsByTaskDate = snapshotsByTaskDate,
-                    trackingVersionMap = trackingVersionMap,
-                    versionOwnerId = parent.id
-                )
-                val childCompletedDates = childItems.associate { child ->
-                    child.childTaskId to findUntilCompleteCompletionDate(
-                        task = parent.copy(id = child.childTaskId, taskAddedDate = child.taskAddedDate),
-                        startDate = child.taskAddedDate,
-                        completionsByTaskDate = completionsByTaskDate,
-                        snapshotsByTaskDate = snapshotsByTaskDate,
-                        trackingVersionMap = trackingVersionMap,
-                        versionOwnerId = parent.id
-                    )
-                }
-
-                val completedDates = linkedSetOf<String>()
-                val activeDates = linkedSetOf<String>()
-                if (childItems.isNotEmpty()) {
-                    activeDates.addAll(childItems.map { it.taskAddedDate })
-                    childItems.forEach { child ->
-                        val childCompletedDate = childCompletedDates[child.childTaskId]
-                        if (childCompletedDate != null) completedDates += childCompletedDate
-                    }
-                } else {
-                    activeDates += parent.taskAddedDate
-                    if (parentCompletedDate != null) completedDates += parentCompletedDate
-                }
-
-                ManagedRepeatTaskUi(
-                    task = parent,
-                    section = ManageTaskSection.DAY_ADD_FOR_TODAY,
-                    actionKey = parent.id,
-                    metaDate = runCatching { LocalDate.parse(parent.taskAddedDate, dateFormatter) }.getOrNull()
-                        ?: return@mapNotNull null,
-                    completionOutOf10 = if (activeDates.isEmpty()) 0f else (completedDates.size.toFloat() / activeDates.size.toFloat()) * 10f,
-                    bestStreak = completedDates.size,
-                    completedCount = completedDates.size,
-                    totalDays = activeDates.size,
-                    isAddedForToday = todaysChild != null,
-                    showAction = true,
-                    showMenu = false,
-                    originalDate = parent.taskAddedDate,
-                    activeDates = (activeDates + parent.taskAddedDate).toSet()
-                )
-            }
-            .sortedByDescending { it.metaDate }
-            .toList()
-    }
-
-    private fun findUntilCompleteCompletionDate(
-        task: TaskEntity,
-        startDate: String,
-        completionsByTaskDate: Map<String, Map<String, TaskCompletionEntity>>,
-        snapshotsByTaskDate: Map<String, Map<String, TaskDaySnapshotEntity>>,
-        trackingVersionMap: Map<String, List<TaskTrackingVersionEntity>>,
-        versionOwnerId: String
-    ): String? {
-        val completionEntries = completionsByTaskDate[task.id.trim().lowercase()].orEmpty()
-            .filterKeys { it >= startDate }
-            .toSortedMap()
-        val snapshotEntries = snapshotsByTaskDate[task.id.trim().lowercase()].orEmpty()
-            .filterKeys { it >= startDate }
-            .toSortedMap()
-        val candidateDates = (completionEntries.keys + snapshotEntries.keys).toSortedSet()
-
-        candidateDates.forEach { date ->
-            val snapshot = snapshotEntries[date]
-            if (snapshot?.isCompleted == true) return date
-
-            val completion = completionEntries[date]
-            val settings = resolveTrackingSettings(
-                task = task,
-                date = date,
-                versions = trackingVersionMap[versionOwnerId].orEmpty()
-            )
-            if (isCompletedDerived(task, completion, settings)) {
-                return date
-            }
-        }
-
-        return null
     }
 
     private fun <T, K, V> Iterable<T>.associateByNotNull(
@@ -669,17 +701,6 @@ class ManageRepeatTasksViewModel(
         }
     }
 
-    fun addDayTaskForToday(item: ManagedRepeatTaskUi) {
-        runSeriesAction(item.actionKey) {
-            repository.addTaskForExtraDate(item.task.id, todayString)
-        }
-    }
-
-    fun removeDayTaskFromToday(item: ManagedRepeatTaskUi) {
-        runSeriesAction(item.actionKey) {
-            repository.removeTaskFromExtraDate(item.task.id, todayString)
-        }
-    }
 
     fun addDayTaskForDate(item: ManagedRepeatTaskUi, date: String) {
         if (date == item.task.taskAddedDate) return
@@ -692,20 +713,6 @@ class ManageRepeatTasksViewModel(
         if (date == item.task.taskAddedDate) return
         runSeriesAction(item.actionKey) {
             repository.removeTaskFromExtraDate(item.task.id, date)
-        }
-    }
-
-    fun addUntilCompleteForToday(item: ManagedRepeatTaskUi) {
-        runSeriesAction(item.actionKey) {
-            repository.addUntilCompleteChild(item.task.id, todayString)
-        }
-    }
-
-    fun removeUntilCompleteFromToday(item: ManagedRepeatTaskUi) {
-        runSeriesAction(item.actionKey) {
-            repository.getUntilCompleteChildForParentDate(item.task.id, todayString)?.let { child ->
-                repository.removeUntilCompleteChild(child)
-            }
         }
     }
 

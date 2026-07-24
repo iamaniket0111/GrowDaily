@@ -29,6 +29,9 @@ import com.anitech.growdaily.dialog.TaskActionDialog
 import com.anitech.growdaily.enum_class.ManageTaskSection
 import com.anitech.growdaily.enum_class.TaskType
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import android.widget.Toast
 
 class ManageRepeatTasksFragment : Fragment() {
 
@@ -79,13 +82,14 @@ class ManageRepeatTasksFragment : Fragment() {
         manageRepeatTaskAdapter = adapterInstance
         adapterInstance.setOnItemClickListener { item ->
             when (item.section) {
-                ManageTaskSection.DAY_ALL,
-                ManageTaskSection.DAY_ADD_FOR_TODAY -> {
+                ManageTaskSection.DAY_ALL -> {
                     findNavController().navigate(
                         R.id.nav_add_task,
                         bundleOf("task" to item.task)
                     )
                 }
+                ManageTaskSection.DAY_ACTIVE,
+                ManageTaskSection.DAY_MISSED,
                 ManageTaskSection.REPEAT_ALL,
                 ManageTaskSection.REPEAT_ACTIVE,
                 ManageTaskSection.PAUSED,
@@ -104,20 +108,6 @@ class ManageRepeatTasksFragment : Fragment() {
             when (action) {
                 ManageRepeatTaskAdapter.Action.RESUME -> showResumeConfirmDialog(item)
                 ManageRepeatTaskAdapter.Action.RESTART -> showRestartConfirmDialog(item)
-                ManageRepeatTaskAdapter.Action.ADD_TODAY -> {
-                    if (item.section != ManageTaskSection.DAY_ADD_FOR_TODAY) return@setOnActionClickListener
-                    when (item.task.taskType) {
-                        TaskType.UNTIL_COMPLETE -> viewModel.addUntilCompleteForToday(item)
-                        else -> viewModel.addDayTaskForToday(item)
-                    }
-                }
-                ManageRepeatTaskAdapter.Action.REMOVE_TODAY -> {
-                    if (item.section != ManageTaskSection.DAY_ADD_FOR_TODAY) return@setOnActionClickListener
-                    when (item.task.taskType) {
-                        TaskType.UNTIL_COMPLETE -> viewModel.removeUntilCompleteFromToday(item)
-                        else -> viewModel.removeDayTaskFromToday(item)
-                    }
-                }
             }
         }
         adapterInstance.setOnMenuActionListener { item, action ->
@@ -148,15 +138,42 @@ class ManageRepeatTasksFragment : Fragment() {
             setCallback(object : ManageTaskCalendarDialog.Callback {
                 override fun onToggle(date: String, shouldAdd: Boolean) {
                     if (date == original) return
-                    when (item.task.taskType) {
-                        TaskType.UNTIL_COMPLETE -> {
-                            if (shouldAdd) viewModel.addUntilCompleteForDate(item, date)
-                            else viewModel.removeUntilCompleteFromDate(item, date)
+                    val parsedDate = runCatching { LocalDate.parse(date) }.getOrNull()
+                    val formattedDate = parsedDate?.format(DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault())) ?: date
+
+                    if (shouldAdd) {
+                        when (item.task.taskType) {
+                            TaskType.UNTIL_COMPLETE -> viewModel.addUntilCompleteForDate(item, date)
+                            else -> viewModel.addDayTaskForDate(item, date)
                         }
-                        else -> {
-                            if (shouldAdd) viewModel.addDayTaskForDate(item, date)
-                            else viewModel.removeDayTaskFromDate(item, date)
-                        }
+                        Toast.makeText(
+                            this@ManageRepeatTasksFragment.requireContext(),
+                            this@ManageRepeatTasksFragment.getString(R.string.toast_task_added_date, formattedDate),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        val warningColor = ContextCompat.getColor(this@ManageRepeatTasksFragment.requireContext(), R.color.category_red)
+                        val bubbleColor = 0x50EF5350.toInt()
+                        TaskActionDialog(
+                            context = this@ManageRepeatTasksFragment.requireContext(),
+                            title = this@ManageRepeatTasksFragment.getString(R.string.dialog_remove_date_title),
+                            message = this@ManageRepeatTasksFragment.getString(R.string.dialog_remove_date_message, formattedDate),
+                            primaryLabel = this@ManageRepeatTasksFragment.getString(R.string.remove_button),
+                            iconRes = R.drawable.ic_warning,
+                            accentColor = warningColor,
+                            iconBubbleColor = bubbleColor,
+                            onPrimaryAction = {
+                                when (item.task.taskType) {
+                                    TaskType.UNTIL_COMPLETE -> viewModel.removeUntilCompleteFromDate(item, date)
+                                    else -> viewModel.removeDayTaskFromDate(item, date)
+                                }
+                                Toast.makeText(
+                                    this@ManageRepeatTasksFragment.requireContext(),
+                                    this@ManageRepeatTasksFragment.getString(R.string.toast_task_removed_date, formattedDate),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        ).show()
                     }
                 }
             })
@@ -235,8 +252,11 @@ class ManageRepeatTasksFragment : Fragment() {
         viewModel.allDayTasks.observe(viewLifecycleOwner) {
             if (topSection == TopSection.DAY && daySection == ManageTaskSection.DAY_ALL) render()
         }
-        viewModel.dayAddForTodayTasks.observe(viewLifecycleOwner) {
-            if (topSection == TopSection.DAY && daySection == ManageTaskSection.DAY_ADD_FOR_TODAY) render()
+        viewModel.dayActiveTasks.observe(viewLifecycleOwner) {
+            if (topSection == TopSection.DAY && daySection == ManageTaskSection.DAY_ACTIVE) render()
+        }
+        viewModel.dayMissedTasks.observe(viewLifecycleOwner) {
+            if (topSection == TopSection.DAY && daySection == ManageTaskSection.DAY_MISSED) render()
         }
         viewModel.allRepeatTasks.observe(viewLifecycleOwner) {
             if (topSection == TopSection.REPEAT && repeatSection == ManageTaskSection.REPEAT_ALL) render()
@@ -268,8 +288,12 @@ class ManageRepeatTasksFragment : Fragment() {
             daySection = ManageTaskSection.DAY_ALL
             render()
         }
-        binding.chipAddForToday.setOnClickListener {
-            daySection = ManageTaskSection.DAY_ADD_FOR_TODAY
+        binding.chipDayActive.setOnClickListener {
+            daySection = ManageTaskSection.DAY_ACTIVE
+            render()
+        }
+        binding.chipDayMissed.setOnClickListener {
+            daySection = ManageTaskSection.DAY_MISSED
             render()
         }
         binding.chipAllRepeat.setOnClickListener {
@@ -300,7 +324,8 @@ class ManageRepeatTasksFragment : Fragment() {
 
         if (isDay) {
             styleChip(binding.chipAllDay, daySection == ManageTaskSection.DAY_ALL)
-            styleChip(binding.chipAddForToday, daySection == ManageTaskSection.DAY_ADD_FOR_TODAY)
+            styleChip(binding.chipDayActive, daySection == ManageTaskSection.DAY_ACTIVE)
+            styleChip(binding.chipDayMissed, daySection == ManageTaskSection.DAY_MISSED)
         } else {
             styleChip(binding.chipAllRepeat, repeatSection == ManageTaskSection.REPEAT_ALL)
             styleChip(binding.chipActive, repeatSection == ManageTaskSection.REPEAT_ACTIVE)
@@ -311,7 +336,8 @@ class ManageRepeatTasksFragment : Fragment() {
         val section = currentSection()
         val items = when (section) {
             ManageTaskSection.DAY_ALL -> viewModel.allDayTasks.value.orEmpty()
-            ManageTaskSection.DAY_ADD_FOR_TODAY -> viewModel.dayAddForTodayTasks.value.orEmpty()
+            ManageTaskSection.DAY_ACTIVE -> viewModel.dayActiveTasks.value.orEmpty()
+            ManageTaskSection.DAY_MISSED -> viewModel.dayMissedTasks.value.orEmpty()
             ManageTaskSection.REPEAT_ALL -> viewModel.allRepeatTasks.value.orEmpty()
             ManageTaskSection.REPEAT_ACTIVE -> viewModel.activeRepeatTasks.value.orEmpty()
             ManageTaskSection.PAUSED -> viewModel.pausedTasks.value.orEmpty()
@@ -325,9 +351,14 @@ class ManageRepeatTasksFragment : Fragment() {
                 R.string.day_all_tasks_empty_subtitle,
                 R.drawable.ic_to_do_list
             )
-            ManageTaskSection.DAY_ADD_FOR_TODAY -> Triple(
-                R.string.completed_tasks_empty_title,
-                R.string.completed_tasks_empty_subtitle,
+            ManageTaskSection.DAY_ACTIVE -> Triple(
+                R.string.day_active_tasks_empty_title,
+                R.string.day_active_tasks_empty_subtitle,
+                R.drawable.ic_to_do_list
+            )
+            ManageTaskSection.DAY_MISSED -> Triple(
+                R.string.day_missed_tasks_empty_title,
+                R.string.day_missed_tasks_empty_subtitle,
                 R.drawable.ic_to_do_list
             )
             ManageTaskSection.REPEAT_ALL -> Triple(

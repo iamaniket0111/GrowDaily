@@ -57,7 +57,7 @@
     <color name="completion_dialog_chip_surface">#2A2F38</color>
     <color name="completion_dialog_button_secondary">#2A2E36</color>
     <color name="completion_dialog_button_secondary_text">#F4F6FA</color>
-    <color name="completion_dialog_row_surface">#20242B</color>
+    <color name="completion_dialog_row_surface">#262B35</color>
     <color name="completion_dialog_value_pending">#F4F6FA</color>
     <color name="completion_dialog_stroke">#323843</color>
     <color name="completion_dialog_chip_stroke">#39404B</color>

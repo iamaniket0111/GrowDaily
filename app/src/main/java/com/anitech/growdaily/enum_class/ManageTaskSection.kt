@@ -2,7 +2,8 @@ package com.anitech.growdaily.enum_class
 
 enum class ManageTaskSection {
     DAY_ALL,
-    DAY_ADD_FOR_TODAY,
+    DAY_ACTIVE,
+    DAY_MISSED,
     REPEAT_ALL,
     REPEAT_ACTIVE,
     PAUSED,
