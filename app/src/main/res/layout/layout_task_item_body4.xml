@@ -143,6 +143,60 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
+            <!-- Status Badge (Paused / Stopped) -->
+            <LinearLayout
+                android:id="@+id/statusContainer"
+                style="@style/TaskItemBadgeContainer"
+                android:layout_marginStart="6dp"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
+                    android:id="@+id/statusText"
+                    style="@style/TaskItemBadgeText"
+                    android:textColor="@color/default_text_color"
+                    android:textSize="10sp"
+                    tools:text="Paused" />
+
+                <ImageView
+                    android:id="@+id/statusIcon"
+                    style="@style/TaskItemBadgeIcon"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginStart="2dp"
+                    android:src="@drawable/ic_pause"
+                    app:tint="@color/white" />
+            </LinearLayout>
+
+            <!-- Schedule Time Badge -->
+            <LinearLayout
+                android:id="@+id/scheduleTimeContainer"
+                style="@style/TaskItemBadgeContainer"
+                android:layout_marginStart="6dp"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
+                    android:id="@+id/scheduleTimeText"
+                    style="@style/TaskItemBadgeText"
+                    android:textColor="@color/default_text_color"
+                    android:textSize="10sp"
+                    tools:text="08:00 AM" />
+
+                <ImageView
+                    android:id="@+id/scheduleClockIcon"
+                    style="@style/TaskItemBadgeIcon"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginStart="2dp"
+                    android:src="@drawable/ic_alarm_clock"
+                    app:tint="@color/white" />
+            </LinearLayout>
+
             <LinearLayout
                 android:id="@+id/weightContainer"
                 style="@style/TaskItemBadgeContainer"

@@ -490,7 +490,6 @@ class CommonMethods {
         }
 
         fun applySmartTimeOrder(tasks: List<TaskEntity>): List<TaskEntity> {
-
             val baseList = tasks.sortedBy { it.manualOrder }.toMutableList()
 
             val timedTasks = baseList

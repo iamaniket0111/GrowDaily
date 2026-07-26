@@ -96,10 +96,48 @@ class ReorderTaskFragment : Fragment() {
         }
     }
 
+    private fun TextView.applyFilterChipStyle(
+        isExcluded: Boolean,
+        accent: Int,
+        surface: Int,
+        textSecondary: Int
+    ) {
+        val textColor = if (isExcluded) textSecondary else accent
+        val bgColor = if (isExcluded) surface else ColorUtils.setAlphaComponent(accent, 40)
+
+        backgroundTintList = ColorStateList.valueOf(bgColor)
+        setTextColor(textColor)
+
+        val iconRes = if (isExcluded) R.drawable.ic_close else R.drawable.ic_check
+        val drawable = ContextCompat.getDrawable(context, iconRes)?.mutate()
+        drawable?.let {
+            androidx.core.graphics.drawable.DrawableCompat.setTint(it, textColor)
+            val iconSize = (12 * resources.displayMetrics.density).toInt()
+            it.setBounds(0, 0, iconSize, iconSize)
+            setCompoundDrawables(it, null, null, null)
+            compoundDrawablePadding = (5 * resources.displayMetrics.density).toInt()
+        }
+    }
+
     private fun updateStaticFilterUi() {
         val accent = (requireActivity() as? MainActivity)?.accentColor?.value ?: Color.BLUE
         val surface = ContextCompat.getColor(requireContext(), R.color.task_chip_surface)
         val textSecondary = ContextCompat.getColor(requireContext(), R.color.task_text_secondary)
+
+        // Scheduled chip is a fixed indicator and is shown as inactive with its check icon
+        val trackColor = ContextCompat.getColor(requireContext(), R.color.task_done_track)
+        binding.chipScheduled.backgroundTintList = ColorStateList.valueOf(trackColor)
+        binding.chipScheduled.setTextColor(textSecondary)
+        binding.chipScheduled.alpha = 0.6f
+
+        val scheduledDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_check)?.mutate()
+        scheduledDrawable?.let {
+            androidx.core.graphics.drawable.DrawableCompat.setTint(it, textSecondary)
+            val iconSize = (12 * resources.displayMetrics.density).toInt()
+            it.setBounds(0, 0, iconSize, iconSize)
+            binding.chipScheduled.setCompoundDrawables(it, null, null, null)
+            binding.chipScheduled.compoundDrawablePadding = (5 * resources.displayMetrics.density).toInt()
+        }
 
         val chips = listOf(
             binding.chipDaily to TaskFilter.DAILY,
@@ -110,10 +148,12 @@ class ReorderTaskFragment : Fragment() {
 
         chips.forEach { (view, filter) ->
             val isExcluded = excludedStaticFilters.contains(filter)
-            view.backgroundTintList = ColorStateList.valueOf(
-                if (isExcluded) ColorUtils.setAlphaComponent(accent, 40) else surface
+            view.applyFilterChipStyle(
+                isExcluded = isExcluded,
+                accent = accent,
+                surface = surface,
+                textSecondary = textSecondary
             )
-            view.setTextColor(if (isExcluded) accent else textSecondary)
         }
     }
 
@@ -144,10 +184,12 @@ class ReorderTaskFragment : Fragment() {
             chip.text = list.listTitle
 
             val isExcluded = excludedListIds.contains(list.id)
-            chip.backgroundTintList = ColorStateList.valueOf(
-                if (isExcluded) ColorUtils.setAlphaComponent(accent, 40) else surface
+            chip.applyFilterChipStyle(
+                isExcluded = isExcluded,
+                accent = accent,
+                surface = surface,
+                textSecondary = textSecondary
             )
-            chip.setTextColor(if (isExcluded) accent else textSecondary)
 
             chip.setOnClickListener {
                 if (excludedListIds.contains(list.id)) {
@@ -173,8 +215,14 @@ class ReorderTaskFragment : Fragment() {
         requireActivity().addMenuProvider(
             object : MenuProvider {
                 override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                    val iconColor = ContextCompat.getColor(requireContext(), R.color.task_text_primary)
+                    val iconDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_restore)?.mutate()
+                    iconDrawable?.let {
+                        androidx.core.graphics.drawable.DrawableCompat.setTint(it, iconColor)
+                    }
+
                     menu.add(Menu.NONE, R.id.menu_reset_order, Menu.NONE, R.string.reset_button).apply {
-                        setIcon(R.drawable.ic_restore)
+                        icon = iconDrawable
                         setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
                     }
                 }

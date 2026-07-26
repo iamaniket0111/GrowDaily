@@ -59,7 +59,7 @@
 
     <include
         android:id="@+id/body"
-        layout="@layout/layout_task_item_body"
+        layout="@layout/layout_task_item_body4"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"

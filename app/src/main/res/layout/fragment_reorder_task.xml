@@ -27,32 +27,31 @@
                 style="@style/ReorderFilterChip"
                 android:backgroundTint="@color/task_done_track"
                 android:text="@string/scheduled_tasks_filter"
-                android:alpha="0.6"
                 android:clickable="false"
                 android:focusable="false" />
 
             <TextView
                 android:id="@+id/chipDaily"
                 style="@style/ReorderFilterChip"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="6dp"
                 android:text="@string/task_type_daily" />
 
             <TextView
                 android:id="@+id/chipDay"
                 style="@style/ReorderFilterChip"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="6dp"
                 android:text="@string/day_tasks_filter" />
 
             <TextView
                 android:id="@+id/chipPaused"
                 style="@style/ReorderFilterChip"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="6dp"
                 android:text="@string/paused_repeat_tasks_tab" />
 
             <TextView
                 android:id="@+id/chipEnded"
                 style="@style/ReorderFilterChip"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="6dp"
                 android:text="@string/ended_repeat_tasks_tab" />
         </LinearLayout>
     </HorizontalScrollView>
@@ -63,20 +62,25 @@
         android:layout_height="0dp"
         android:layout_marginTop="12dp"
         android:clipToPadding="false"
-        android:paddingHorizontal="16dp"
+        android:paddingHorizontal="0dp"
         android:paddingBottom="100dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/filterScroll" />
+        app:layout_constraintTop_toBottomOf="@id/filterScroll"
+        app:layout_constraintVertical_bias="0.0"
+        tools:layout_editor_absoluteX="0dp" />
+
+    <!-- Empty State -->
+
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnDone"
-        style="@style/ReorderDoneButton"
+        style="@style/PrimaryActionButton"
         android:text="@string/set_my_flow"
+        android:layout_margin="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Empty State -->
     <LinearLayout
         android:id="@+id/emptyState"
         android:layout_width="match_parent"

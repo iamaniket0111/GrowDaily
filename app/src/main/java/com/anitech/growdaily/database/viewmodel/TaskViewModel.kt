@@ -263,7 +263,10 @@ class TaskViewModel(
                                 .map { it.task }
                                 .distinctBy { it.id }
                                 .filter { it.isScheduled && it.scheduledMinutes != null }
-                                .filter { it.scheduledMinutes!! <= currentMinutes }
+                                .filter {
+                                    val scheduled = it.scheduledMinutes!!
+                                    scheduled <= currentMinutes && (currentMinutes - scheduled) <= 60
+                                }
                                 .maxByOrNull { it.scheduledMinutes!! }
                                 ?.scheduledMinutes
                         } else null
