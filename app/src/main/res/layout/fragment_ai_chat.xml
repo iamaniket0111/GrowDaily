@@ -29,28 +29,60 @@
                 style="@style/Widget.MaterialComponents.Chip.Action"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🌿 Suggest Morning Habits" />
+                android:text="🌿 Suggest Morning Habits"
+                android:textColor="@color/task_text_primary"
+                android:textSize="13sp"
+                app:chipBackgroundColor="@color/task_chip_surface"
+                app:chipCornerRadius="16dp"
+                app:chipMinHeight="38dp"
+                app:chipStrokeColor="@color/task_chip_stroke"
+                app:chipStrokeWidth="1dp"
+                app:rippleColor="#20708CFF" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipBreakDownGoal"
                 style="@style/Widget.MaterialComponents.Chip.Action"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🎯 Break Down a Goal" />
+                android:text="🎯 Break Down a Goal"
+                android:textColor="@color/task_text_primary"
+                android:textSize="13sp"
+                app:chipBackgroundColor="@color/task_chip_surface"
+                app:chipCornerRadius="16dp"
+                app:chipMinHeight="38dp"
+                app:chipStrokeColor="@color/task_chip_stroke"
+                app:chipStrokeWidth="1dp"
+                app:rippleColor="#20708CFF" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipEveningUnwind"
                 style="@style/Widget.MaterialComponents.Chip.Action"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🌙 Evening Unwind Routine" />
+                android:text="🌙 Evening Unwind Routine"
+                android:textColor="@color/task_text_primary"
+                android:textSize="13sp"
+                app:chipBackgroundColor="@color/task_chip_surface"
+                app:chipCornerRadius="16dp"
+                app:chipMinHeight="38dp"
+                app:chipStrokeColor="@color/task_chip_stroke"
+                app:chipStrokeWidth="1dp"
+                app:rippleColor="#20708CFF" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipFocusTips"
                 style="@style/Widget.MaterialComponents.Chip.Action"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="⚡ Boost Daily Focus" />
+                android:text="⚡ Boost Daily Focus"
+                android:textColor="@color/task_text_primary"
+                android:textSize="13sp"
+                app:chipBackgroundColor="@color/task_chip_surface"
+                app:chipCornerRadius="16dp"
+                app:chipMinHeight="38dp"
+                app:chipStrokeColor="@color/task_chip_stroke"
+                app:chipStrokeWidth="1dp"
+                app:rippleColor="#20708CFF" />
 
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
