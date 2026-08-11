@@ -96,8 +96,16 @@ class AiChatRepository(
             val errorMsg = when {
                 lastException is java.net.UnknownHostException || lastException is java.io.IOException ->
                     "No internet connection. Please check your network connection and try again."
-                msg.contains("quota", ignoreCase = true) || msg.contains("429") || msg.contains("rate limit", ignoreCase = true) || msg.contains("RESOURCE_EXHAUSTED", ignoreCase = true) ->
-                    "Rate limit reached. Please wait a minute before asking your next question. ⏳"
+                msg.contains("quota", ignoreCase = true) || msg.contains("429") || msg.contains("rate limit", ignoreCase = true) || msg.contains("RESOURCE_EXHAUSTED", ignoreCase = true) -> {
+                    val retryMatch = Regex("""retry in\s+([\d.]+)\s*s""", RegexOption.IGNORE_CASE).find(msg)
+                    val seconds = retryMatch?.groupValues?.get(1)?.toDoubleOrNull()?.let { kotlin.math.ceil(it).toInt() }
+                    val waitText = if (seconds != null && seconds > 0) {
+                        if (seconds == 1) "1 second" else "$seconds seconds"
+                    } else {
+                        "60 seconds"
+                    }
+                    "Rate limit reached. Please wait $waitText before trying again. ⏳"
+                }
                 else -> "Unable to connect to AI Assistant. Please try again in a few moments."
             }
             Pair(errorMsg, null)
