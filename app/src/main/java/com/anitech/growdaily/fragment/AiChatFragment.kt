@@ -117,6 +117,15 @@ class AiChatFragment : Fragment() {
                 }
             }
         }
+
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            binding.btnSend.isEnabled = !isLoading
+            binding.etPrompt.isEnabled = !isLoading
+            binding.chipMorningRoutine.isEnabled = !isLoading
+            binding.chipBreakDownGoal.isEnabled = !isLoading
+            binding.chipEveningUnwind.isEnabled = !isLoading
+            binding.chipFocusTips.isEnabled = !isLoading
+        }
     }
 
     private fun observeAccentColor() {
