@@ -99,8 +99,9 @@ class AiChatViewModel(
             val targetTask = tasks[taskIndex]
             if (targetTask.isAdded) return@launch
 
-            // Insert into Room DB
-            val taskEntity = targetTask.toTaskEntity(selectedDate)
+            // Insert into Room DB with next manual order
+            val nextOrder = (appRepository.getMaxManualOrder() ?: 0) + 1
+            val taskEntity = targetTask.toTaskEntity(selectedDate, manualOrder = nextOrder)
             appRepository.insertTask(taskEntity)
 
             // Mark as added in UI

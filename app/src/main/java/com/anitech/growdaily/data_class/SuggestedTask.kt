@@ -21,7 +21,7 @@ data class SuggestedTask(
     val safeRepeatType: String get() = repeatType ?: RepeatType.DAILY.name
     val safeTaskColor: String get() = taskColor ?: TaskColor.DARK_BLUE.name
 
-    fun toTaskEntity(selectedDate: String): TaskEntity {
+    fun toTaskEntity(selectedDate: String, manualOrder: Int = 0): TaskEntity {
         val parsedTaskType = runCatching { TaskType.valueOf(safeTaskType) }.getOrDefault(TaskType.DAILY)
         val parsedRepeatType = runCatching { RepeatType.valueOf(safeRepeatType) }.getOrDefault(RepeatType.DAILY)
         val parsedColor = runCatching { TaskColor.valueOf(safeTaskColor) }.getOrDefault(TaskColor.DARK_BLUE)
@@ -29,7 +29,6 @@ data class SuggestedTask(
 
         val startMins = scheduleTime?.let { CommonMethods.timeToMinutes(it) }
         val calculatedEndTime = startMins?.let { CommonMethods.minutesToTime((it + 15) % 1440) }
-        val durationMins = if (startMins != null) 15 else null
 
         return TaskEntity(
             id = taskId,
@@ -52,8 +51,8 @@ data class SuggestedTask(
             repeatType = parsedRepeatType,
             repeatDays = null,
             dailyTargetCount = 1,
-            manualOrder = 0,
-            scheduledMinutes = durationMins
+            manualOrder = manualOrder,
+            scheduledMinutes = startMins
         )
     }
 }
