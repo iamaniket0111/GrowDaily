@@ -4,7 +4,6 @@ import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -128,7 +127,7 @@ class AiChatAdapter(
 
                     val tvTitle = cardView.findViewById<TextView>(R.id.tvTaskTitle)
                     val tvSubtitle = cardView.findViewById<TextView>(R.id.tvTaskSubtitle)
-                    val btnAdd = cardView.findViewById<Button>(R.id.btnAddSuggestedTask)
+                    val btnAdd = cardView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnAddSuggestedTask)
 
                     tvTitle.text = suggestedTask.title
 
@@ -153,6 +152,7 @@ class AiChatAdapter(
 
                     if (accentColor != 0 && !suggestedTask.isAdded) {
                         btnAdd.setTextColor(accentColor)
+                        btnAdd.strokeColor = ColorStateList.valueOf(accentColor)
                     }
 
                     binding.containerSuggestedTasks.addView(cardView)

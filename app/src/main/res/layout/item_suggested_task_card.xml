@@ -5,8 +5,9 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="6dp"
     app:cardCornerRadius="12dp"
-    app:cardElevation="1dp"
-    app:strokeColor="#1F000000"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="@color/task_card_surface"
+    app:strokeColor="@color/task_card_stroke"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -27,6 +28,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="14sp"
+                android:textColor="@color/task_text_primary"
                 android:textStyle="bold" />
 
             <TextView
@@ -35,7 +37,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:textSize="12sp"
-                android:textColor="?android:attr/textColorSecondary" />
+                android:textColor="@color/task_text_secondary" />
         </LinearLayout>
 
         <com.google.android.material.button.MaterialButton

@@ -30,8 +30,9 @@
             android:layout_height="wrap_content"
             app:cardCornerRadius="18dp"
             app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/task_card_surface"
             app:strokeWidth="1dp"
-            app:strokeColor="#1A000000">
+            app:strokeColor="@color/task_card_stroke">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -44,7 +45,8 @@
                     android:id="@+id/tvAiMessage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:maxWidth="280dp"
+                    android:maxWidth="340dp"
+                    android:textColor="@color/task_text_primary"
                     android:textSize="15sp" />
 
                 <!-- Loading Indicator -->
