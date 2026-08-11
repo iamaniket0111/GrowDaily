@@ -562,10 +562,14 @@ class CommonMethods {
         }
 
         fun isNetworkAvailable(context: Context): Boolean {
-            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
-            val network = connectivityManager.activeNetwork ?: return false
-            val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
-            return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            return try {
+                val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return true
+                val network = connectivityManager.activeNetwork ?: return false
+                val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+                capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            } catch (_: Exception) {
+                true
+            }
         }
     }
 }

@@ -2,12 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Network & Internet -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <!-- Notifications (runtime permission on Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- Boot / reschedule triggers -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-
 
     <application
         android:name=".MyApp"
@@ -32,13 +35,6 @@
             </intent-filter>
         </activity>
 
-        <!--
-            TaskReminderReceiver – fired by AlarmManager only.
-            Declaring the action explicitly is required on Android 14+ (API 34+)
-            for implicit broadcast intents sent by the system alarm.
-            exported="false" keeps it private; AlarmManager can still reach it
-            because it is a same-package explicit intent.
-        -->
         <receiver
             android:name=".reminder.TaskReminderReceiver"
             android:exported="false">
@@ -47,21 +43,6 @@
             </intent-filter>
         </receiver>
 
-        <!--
-            ReminderRescheduleReceiver – listens for system events that
-            invalidate scheduled alarms so we can rebuild them from the DB.
-
-            exported="false" is safe for all listed actions on API 26+:
-            protected system broadcasts are delivered even to non-exported
-            receivers.  Keeping it false reduces the attack surface.
-
-            BOOT_COMPLETED         – standard boot
-            QUICKBOOT_COMPLETED    – OEM fast-boot (Xiaomi, OnePlus, etc.)
-            locked_boot_completed  – Direct Boot: fires before user unlock
-            MY_PACKAGE_REPLACED    – app update re-registers alarms
-            TIME_SET               – user manually changed clock
-            TIMEZONE_CHANGED       – user changed timezone
-        -->
         <receiver
             android:name=".reminder.ReminderRescheduleReceiver"
             android:exported="false">
