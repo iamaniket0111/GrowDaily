@@ -1,5 +1,6 @@
 package com.anitech.growdaily.data_class
 
+import com.anitech.growdaily.CommonMethods
 import com.anitech.growdaily.enum_class.RepeatType
 import com.anitech.growdaily.enum_class.TaskColor
 import com.anitech.growdaily.enum_class.TaskIcon
@@ -26,6 +27,10 @@ data class SuggestedTask(
         val parsedColor = runCatching { TaskColor.valueOf(safeTaskColor) }.getOrDefault(TaskColor.DARK_BLUE)
         val taskId = UUID.randomUUID().toString()
 
+        val startMins = scheduleTime?.let { CommonMethods.timeToMinutes(it) }
+        val calculatedEndTime = startMins?.let { CommonMethods.minutesToTime((it + 60) % 1440) }
+        val durationMins = if (startMins != null) 60 else null
+
         return TaskEntity(
             id = taskId,
             seriesId = taskId,
@@ -33,7 +38,7 @@ data class SuggestedTask(
             note = note,
             weight = TaskWeight.VERY_LOW,
             scheduledTime = scheduleTime,
-            endTime = null,
+            endTime = calculatedEndTime,
             reminderTime = null,
             reminderEnabled = false,
             isScheduled = scheduleTime != null,
@@ -48,7 +53,7 @@ data class SuggestedTask(
             repeatDays = null,
             dailyTargetCount = 1,
             manualOrder = 0,
-            scheduledMinutes = null
+            scheduledMinutes = durationMins
         )
     }
 }
