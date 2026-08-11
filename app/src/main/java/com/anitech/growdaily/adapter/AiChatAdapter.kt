@@ -4,6 +4,7 @@ import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -13,11 +14,16 @@ import androidx.recyclerview.widget.RecyclerView
 import com.anitech.growdaily.R
 import com.anitech.growdaily.data_class.AiChatMessage
 import com.anitech.growdaily.data_class.ChatSender
+import com.anitech.growdaily.data_class.SuggestedTask
 import com.anitech.growdaily.databinding.ItemChatMessageAiBinding
 import com.anitech.growdaily.databinding.ItemChatMessageUserBinding
+import com.google.android.material.button.MaterialButton
 
 class AiChatAdapter(
-    private val onAddSuggestedTaskClicked: (messageId: String, taskIndex: Int) -> Unit
+    private val onAddSuggestedTaskClicked: (messageId: String, taskIndex: Int) -> Unit,
+    private val onAddAllSuggestedTasksClicked: (messageId: String) -> Unit,
+    private val onModifySuggestedTaskClicked: (suggestedTask: SuggestedTask) -> Unit,
+    private val onDismissSuggestedTaskClicked: (messageId: String, taskIndex: Int) -> Unit
 ) : ListAdapter<AiChatMessage, RecyclerView.ViewHolder>(DiffCallback) {
 
     private var accentColor: Int = 0
@@ -45,7 +51,7 @@ class AiChatAdapter(
     override fun getItemViewType(position: Int): Int {
         return when (getItem(position).sender) {
             ChatSender.USER -> VIEW_TYPE_USER
-            ChatSender.AI, ChatSender.SYSTEM -> VIEW_TYPE_AI
+            else -> VIEW_TYPE_AI
         }
     }
 
@@ -63,38 +69,25 @@ class AiChatAdapter(
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val item = getItem(position)
         if (holder is UserViewHolder) {
-            holder.bind(item, accentColor)
+            holder.bind(item)
         } else if (holder is AiViewHolder) {
-            holder.bind(item, accentColor, onAddSuggestedTaskClicked)
+            holder.bind(item)
         }
     }
 
-    class UserViewHolder(private val binding: ItemChatMessageUserBinding) :
+    inner class UserViewHolder(private val binding: ItemChatMessageUserBinding) :
         RecyclerView.ViewHolder(binding.root) {
-
-        fun bind(item: AiChatMessage, accentColor: Int) {
+        fun bind(item: AiChatMessage) {
             binding.tvUserMessage.text = item.text
-            if (accentColor != 0) {
-                binding.userBubbleCard.setCardBackgroundColor(accentColor)
-            }
         }
     }
 
-    class AiViewHolder(private val binding: ItemChatMessageAiBinding) :
+    inner class AiViewHolder(private val binding: ItemChatMessageAiBinding) :
         RecyclerView.ViewHolder(binding.root) {
-
-        fun bind(
-            item: AiChatMessage,
-            accentColor: Int,
-            onAddSuggestedTaskClicked: (messageId: String, taskIndex: Int) -> Unit
-        ) {
-            if (accentColor != 0) {
-                binding.ivAiAvatar.setColorFilter(accentColor)
-            }
-
+        fun bind(item: AiChatMessage) {
             if (item.isLoading) {
-                binding.tvAiMessage.visibility = View.GONE
                 binding.progressLoading.visibility = View.VISIBLE
+                binding.tvAiMessage.visibility = View.GONE
             } else {
                 binding.progressLoading.visibility = View.GONE
                 binding.tvAiMessage.visibility = View.VISIBLE
@@ -112,6 +105,25 @@ class AiChatAdapter(
                 binding.containerSuggestedTasks.visibility = View.VISIBLE
                 val inflater = LayoutInflater.from(itemView.context)
 
+                // Render "Add All" Header if there are 2 or more un-added tasks
+                val unaddedCount = tasks.count { !it.isAdded }
+                if (unaddedCount >= 2) {
+                    val headerView = inflater.inflate(
+                        R.layout.item_suggested_header,
+                        binding.containerSuggestedTasks,
+                        false
+                    )
+                    val btnAddAll = headerView.findViewById<MaterialButton>(R.id.btnAddAllTasks)
+                    btnAddAll.text = "⚡ Add All ($unaddedCount Tasks)"
+                    if (accentColor != 0) {
+                        btnAddAll.backgroundTintList = ColorStateList.valueOf(accentColor)
+                    }
+                    btnAddAll.setOnClickListener {
+                        onAddAllSuggestedTasksClicked(item.id)
+                    }
+                    binding.containerSuggestedTasks.addView(headerView)
+                }
+
                 tasks.forEachIndexed { index, suggestedTask ->
                     val cardView = inflater.inflate(
                         R.layout.item_suggested_task_card,
@@ -121,7 +133,9 @@ class AiChatAdapter(
 
                     val tvTitle = cardView.findViewById<TextView>(R.id.tvTaskTitle)
                     val tvSubtitle = cardView.findViewById<TextView>(R.id.tvTaskSubtitle)
-                    val btnAdd = cardView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnAddSuggestedTask)
+                    val btnAdd = cardView.findViewById<MaterialButton>(R.id.btnAddSuggestedTask)
+                    val btnModify = cardView.findViewById<MaterialButton>(R.id.btnModifySuggestedTask)
+                    val btnDismiss = cardView.findViewById<ImageButton>(R.id.btnDismissTask)
 
                     tvTitle.text = suggestedTask.title
 
@@ -159,17 +173,28 @@ class AiChatAdapter(
                     if (suggestedTask.isAdded) {
                         btnAdd.text = "Added ✓"
                         btnAdd.isEnabled = false
+                        btnModify.visibility = View.GONE
                     } else {
                         btnAdd.text = "+ Add"
                         btnAdd.isEnabled = true
+                        btnModify.visibility = View.VISIBLE
                         btnAdd.setOnClickListener {
                             onAddSuggestedTaskClicked(item.id, index)
                         }
+                        btnModify.setOnClickListener {
+                            onModifySuggestedTaskClicked(suggestedTask)
+                        }
+                    }
+
+                    btnDismiss.setOnClickListener {
+                        onDismissSuggestedTaskClicked(item.id, index)
                     }
 
                     if (accentColor != 0 && !suggestedTask.isAdded) {
                         btnAdd.setTextColor(accentColor)
                         btnAdd.strokeColor = ColorStateList.valueOf(accentColor)
+                        btnModify.setTextColor(accentColor)
+                        btnModify.strokeColor = ColorStateList.valueOf(accentColor)
                     }
 
                     binding.containerSuggestedTasks.addView(cardView)

@@ -9,8 +9,10 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.anitech.growdaily.MainActivity
 import com.anitech.growdaily.MyApp
@@ -50,10 +52,24 @@ class AiChatFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        chatAdapter = AiChatAdapter { messageId, taskIndex ->
-            viewModel.addSuggestedTask(messageId, taskIndex)
-            Toast.makeText(requireContext(), "Task added to GrowDaily!", Toast.LENGTH_SHORT).show()
-        }
+        chatAdapter = AiChatAdapter(
+            onAddSuggestedTaskClicked = { messageId, taskIndex ->
+                viewModel.addSuggestedTask(messageId, taskIndex)
+                Toast.makeText(requireContext(), "Task added to GrowDaily!", Toast.LENGTH_SHORT).show()
+            },
+            onAddAllSuggestedTasksClicked = { messageId ->
+                viewModel.addAllSuggestedTasks(messageId)
+                Toast.makeText(requireContext(), "All tasks added to GrowDaily!", Toast.LENGTH_SHORT).show()
+            },
+            onModifySuggestedTaskClicked = { suggestedTask ->
+                val taskEntity = suggestedTask.toTaskEntity(com.anitech.growdaily.CommonMethods.getTodayDate())
+                val action = AiChatFragmentDirections.actionAiChatFragmentToNavAddTask(taskEntity)
+                findNavController().navigate(action)
+            },
+            onDismissSuggestedTaskClicked = { messageId, taskIndex ->
+                viewModel.removeSuggestedTask(messageId, taskIndex)
+            }
+        )
 
         binding.rvChatMessages.apply {
             adapter = chatAdapter

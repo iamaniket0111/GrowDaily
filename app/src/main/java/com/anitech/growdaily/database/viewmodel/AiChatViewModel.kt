@@ -12,49 +12,41 @@ import com.anitech.growdaily.database.repository.AiChatRepository
 import com.anitech.growdaily.database.repository.AppRepository
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class AiChatViewModel(
-    private val appRepository: AppRepository,
-    private val aiChatRepository: AiChatRepository = AiChatRepository()
+    private val aiChatRepository: AiChatRepository,
+    private val appRepository: AppRepository
 ) : ViewModel() {
 
     private val _messages = MutableLiveData<List<AiChatMessage>>(emptyList())
     val messages: LiveData<List<AiChatMessage>> get() = _messages
 
-    private val _isLoading = MutableLiveData(false)
+    private val _isLoading = MutableLiveData<Boolean>(false)
     val isLoading: LiveData<Boolean> get() = _isLoading
 
     private val _apiKey = MutableLiveData<String>("")
     val apiKey: LiveData<String> get() = _apiKey
 
-    private var cooldownUntilMillis: Long = 0
-
-    init {
-        // Initial Welcome Message from GrowDaily AI
-        val welcomeMessage = AiChatMessage(
-            sender = ChatSender.AI,
-            text = "Hi there! I'm your GrowDaily AI Assistant. 🌿\n\nI can help you build positive habits, break down big goals into daily tasks, or suggest personalized routines. How can I support your daily growth today?"
-        )
-        _messages.value = listOf(welcomeMessage)
-    }
+    private var cooldownUntilMillis: Long = 0L
 
     fun setApiKey(key: String) {
         _apiKey.value = key
     }
 
-    fun sendMessage(userText: String, userApiKey: String? = null) {
-        val trimmedPrompt = userText.trim()
+    fun sendMessage(userPrompt: String, userApiKey: String? = null) {
+        val trimmedPrompt = userPrompt.trim()
         if (trimmedPrompt.isBlank()) return
 
-        val now = System.currentTimeMillis()
-        if (now < cooldownUntilMillis) {
-            val remainingSecs = kotlin.math.ceil((cooldownUntilMillis - now) / 1000.0).toInt()
-            val waitStr = if (remainingSecs <= 1) "1 second" else "$remainingSecs seconds"
-            val cooldownNotice = "Rate limit cooldown active. Please wait $waitStr before trying again. ⏳"
-
+        // 0. Check client-side rate limit cooldown
+        if (System.currentTimeMillis() < cooldownUntilMillis) {
+            val remainingSec = kotlin.math.ceil((cooldownUntilMillis - System.currentTimeMillis()) / 1000.0).toInt()
+            val cooldownText = "Rate limit reached. Please wait ${if (remainingSec <= 1) "1 second" else "$remainingSec seconds"} before trying again. ⏳"
             val currentList = _messages.value.orEmpty().toMutableList()
             currentList.add(AiChatMessage(sender = ChatSender.USER, text = trimmedPrompt))
-            currentList.add(AiChatMessage(sender = ChatSender.AI, text = cooldownNotice, isError = true))
+            currentList.add(AiChatMessage(sender = ChatSender.AI, text = cooldownText, isError = true))
             _messages.value = currentList
             return
         }
@@ -72,9 +64,13 @@ class AiChatViewModel(
         _isLoading.value = true
 
         viewModelScope.launch {
-            // Build context summary from current tasks in DB
+            // Build context summary with current time, date, and task stats
+            val nowFormatted = SimpleDateFormat("EEEE, MMMM d, yyyy 'at' hh:mm a", Locale.getDefault()).format(Date())
             val tasks = appRepository.getAllTasksFlow().firstOrNull().orEmpty()
-            val contextSummary = "User currently has ${tasks.size} active tasks scheduled in GrowDaily."
+            val contextSummary = """
+                Current Device Time & Date: $nowFormatted
+                Total Active Tasks Scheduled: ${tasks.size}
+            """.trimIndent()
 
             val effectiveKey = userApiKey ?: _apiKey.value
             val previousHistory = _messages.value.orEmpty()
@@ -134,5 +130,49 @@ class AiChatViewModel(
 
             _messages.value = currentList
         }
+    }
+
+    fun addAllSuggestedTasks(messageId: String, selectedDate: String = CommonMethods.getTodayDate()) {
+        viewModelScope.launch {
+            val currentList = _messages.value.orEmpty().toMutableList()
+            val msgIndex = currentList.indexOfFirst { it.id == messageId }
+            if (msgIndex == -1) return@launch
+
+            val targetMsg = currentList[msgIndex]
+            val tasks = targetMsg.suggestedTasks?.toMutableList() ?: return@launch
+
+            var currentOrder = (appRepository.getMaxManualOrder() ?: 0)
+            var addedCount = 0
+
+            for (i in tasks.indices) {
+                val task = tasks[i]
+                if (!task.isAdded) {
+                    currentOrder++
+                    val taskEntity = task.toTaskEntity(selectedDate, manualOrder = currentOrder)
+                    appRepository.insertTask(taskEntity)
+                    tasks[i] = task.copy(isAdded = true)
+                    addedCount++
+                }
+            }
+
+            if (addedCount > 0) {
+                currentList[msgIndex] = targetMsg.copy(suggestedTasks = tasks)
+                _messages.value = currentList
+            }
+        }
+    }
+
+    fun removeSuggestedTask(messageId: String, taskIndex: Int) {
+        val currentList = _messages.value.orEmpty().toMutableList()
+        val msgIndex = currentList.indexOfFirst { it.id == messageId }
+        if (msgIndex == -1) return
+
+        val targetMsg = currentList[msgIndex]
+        val tasks = targetMsg.suggestedTasks?.toMutableList() ?: return
+        if (taskIndex !in tasks.indices) return
+
+        tasks.removeAt(taskIndex)
+        currentList[msgIndex] = targetMsg.copy(suggestedTasks = if (tasks.isEmpty()) null else tasks)
+        _messages.value = currentList
     }
 }

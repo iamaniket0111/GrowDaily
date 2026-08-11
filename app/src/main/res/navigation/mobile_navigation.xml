@@ -122,6 +122,10 @@
         android:id="@+id/aiChatFragment"
         android:name="com.anitech.growdaily.fragment.AiChatFragment"
         android:label="GrowDaily AI Assistant"
-        tools:layout="@layout/fragment_ai_chat" />
+        tools:layout="@layout/fragment_ai_chat">
+        <action
+            android:id="@+id/action_aiChatFragment_to_nav_add_task"
+            app:destination="@id/nav_add_task" />
+    </fragment>
 
 </navigation>

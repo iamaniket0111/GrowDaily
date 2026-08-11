@@ -2,9 +2,12 @@ package com.anitech.growdaily.database.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.anitech.growdaily.database.repository.AiChatRepository
 import com.anitech.growdaily.database.repository.AppRepository
 
-class DailyTaskViewModelFactory(private val repository: AppRepository) : ViewModelProvider.Factory {
+class DailyTaskViewModelFactory(
+    private val repository: AppRepository
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AppViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
@@ -12,7 +15,7 @@ class DailyTaskViewModelFactory(private val repository: AppRepository) : ViewMod
         }
         if (modelClass.isAssignableFrom(AiChatViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return AiChatViewModel(repository) as T
+            return AiChatViewModel(AiChatRepository(), repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
