@@ -26,6 +26,7 @@ class AiChatFragment : Fragment() {
 
     private lateinit var viewModel: AiChatViewModel
     private lateinit var chatAdapter: AiChatAdapter
+    private var previousMessageCount = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -111,8 +112,11 @@ class AiChatFragment : Fragment() {
 
     private fun observeViewModel() {
         viewModel.messages.observe(viewLifecycleOwner) { messageList ->
+            val isNewMessageAdded = messageList.size > previousMessageCount
+            previousMessageCount = messageList.size
+
             chatAdapter.submitList(messageList) {
-                if (messageList.isNotEmpty()) {
+                if (isNewMessageAdded && messageList.isNotEmpty()) {
                     binding.rvChatMessages.smoothScrollToPosition(messageList.size - 1)
                 }
             }
