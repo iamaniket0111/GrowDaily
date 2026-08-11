@@ -2,6 +2,7 @@ package com.anitech.growdaily.data_class
 
 import com.anitech.growdaily.enum_class.RepeatType
 import com.anitech.growdaily.enum_class.TaskColor
+import com.anitech.growdaily.enum_class.TaskIcon
 import com.anitech.growdaily.enum_class.TaskType
 import com.anitech.growdaily.enum_class.TaskWeight
 import java.util.UUID
@@ -22,6 +23,7 @@ data class SuggestedTask(
     fun toTaskEntity(selectedDate: String): TaskEntity {
         val parsedTaskType = runCatching { TaskType.valueOf(safeTaskType) }.getOrDefault(TaskType.DAILY)
         val parsedRepeatType = runCatching { RepeatType.valueOf(safeRepeatType) }.getOrDefault(RepeatType.DAILY)
+        val parsedColor = runCatching { TaskColor.valueOf(safeTaskColor) }.getOrDefault(TaskColor.DARK_BLUE)
         val taskId = UUID.randomUUID().toString()
 
         return TaskEntity(
@@ -29,17 +31,17 @@ data class SuggestedTask(
             seriesId = taskId,
             title = title.ifBlank { "New Habit" },
             note = note,
-            weight = TaskWeight.LOW,
+            weight = TaskWeight.VERY_LOW,
             scheduledTime = scheduleTime,
             endTime = null,
             reminderTime = null,
             reminderEnabled = false,
-            isScheduled = true,
+            isScheduled = scheduleTime != null,
             taskAddedDate = selectedDate,
             taskRemovedDate = null,
             inactiveReason = null,
-            iconResId = "ic_task",
-            colorCode = TaskColor.DARK_BLUE.name,
+            iconResId = TaskIcon.TROPHY.name,
+            colorCode = parsedColor.name,
             taskType = parsedTaskType,
             showUntilCompleted = false,
             repeatType = parsedRepeatType,
