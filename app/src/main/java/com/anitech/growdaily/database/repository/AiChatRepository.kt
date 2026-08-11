@@ -85,6 +85,10 @@ class AiChatRepository(
                 }
             } catch (t: Throwable) {
                 lastException = t
+                val msg = t.localizedMessage.orEmpty()
+                if (msg.contains("quota", ignoreCase = true) || msg.contains("429") || msg.contains("rate limit", ignoreCase = true) || msg.contains("RESOURCE_EXHAUSTED", ignoreCase = true)) {
+                    break
+                }
             }
         }
 
