@@ -14,12 +14,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.anitech.growdaily.MainActivity
 import com.anitech.growdaily.MyApp
-import com.anitech.growdaily.R
 import com.anitech.growdaily.adapter.AiChatAdapter
 import com.anitech.growdaily.database.viewmodel.AiChatViewModel
 import com.anitech.growdaily.database.viewmodel.DailyTaskViewModelFactory
 import com.anitech.growdaily.databinding.FragmentAiChatBinding
-import java.util.Calendar
 
 class AiChatFragment : Fragment() {
 
@@ -46,7 +44,6 @@ class AiChatFragment : Fragment() {
 
         setupRecyclerView()
         setupListeners()
-        setupTimeAwareChips()
         observeViewModel()
         observeAccentColor()
     }
@@ -78,78 +75,19 @@ class AiChatFragment : Fragment() {
                 false
             }
         }
-    }
 
-    private fun setupTimeAwareChips() = with(binding) {
-        val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-
-        when (currentHour) {
-            in 5..11 -> {
-                // Morning
-                chipMorningRoutine.text = "🌿 Morning Habits"
-                chipMorningRoutine.setOnClickListener {
-                    sendQuickPrompt("Suggest 3 positive morning habits for productivity and health.")
-                }
-
-                chipBreakDownGoal.text = "🎯 Set Daily Priorities"
-                chipBreakDownGoal.setOnClickListener {
-                    sendQuickPrompt("Help me set 3 core priorities for today.")
-                }
-
-                chipEveningUnwind.text = "⚡ Morning Energy"
-                chipEveningUnwind.setOnClickListener {
-                    sendQuickPrompt("Suggest 3 quick habits to boost my morning energy.")
-                }
-
-                chipFocusTips.text = "💧 Daily Health Habits"
-                chipFocusTips.setOnClickListener {
-                    sendQuickPrompt("Suggest simple daily health habits like hydration and stretching.")
-                }
-            }
-            in 12..16 -> {
-                // Afternoon
-                chipMorningRoutine.text = "☀️ Mid-day Focus Reset"
-                chipMorningRoutine.setOnClickListener {
-                    sendQuickPrompt("Suggest a 5-minute mid-day mental reset routine.")
-                }
-
-                chipBreakDownGoal.text = "🎯 Break Down a Goal"
-                chipBreakDownGoal.setOnClickListener {
-                    sendQuickPrompt("Help me break down a goal into simple daily actionable steps.")
-                }
-
-                chipEveningUnwind.text = "☕ Afternoon Energy Boost"
-                chipEveningUnwind.setOnClickListener {
-                    sendQuickPrompt("Give me quick tips to beat the afternoon slump.")
-                }
-
-                chipFocusTips.text = "📋 Review Progress"
-                chipFocusTips.setOnClickListener {
-                    sendQuickPrompt("Give me actionable advice to review and complete today's remaining tasks.")
-                }
-            }
-            else -> {
-                // Evening / Night
-                chipMorningRoutine.text = "🌙 Evening Unwind"
-                chipMorningRoutine.setOnClickListener {
-                    sendQuickPrompt("Recommend an evening routine to help me unwind and get good sleep.")
-                }
-
-                chipBreakDownGoal.text = "✨ Review Today's Wins"
-                chipBreakDownGoal.setOnClickListener {
-                    sendQuickPrompt("Help me reflect on today's progress and achievements.")
-                }
-
-                chipEveningUnwind.text = "🧘 De-stress Routine"
-                chipEveningUnwind.setOnClickListener {
-                    sendQuickPrompt("Suggest 3 relaxing habits for late evening.")
-                }
-
-                chipFocusTips.text = "🌅 Prepare for Tomorrow"
-                chipFocusTips.setOnClickListener {
-                    sendQuickPrompt("Suggest 3 habits to prepare smoothly for tomorrow morning.")
-                }
-            }
+        // Quick Suggestion Chips
+        chipMorningRoutine.setOnClickListener {
+            sendQuickPrompt("Suggest 3 positive morning habits for productivity and health.")
+        }
+        chipBreakDownGoal.setOnClickListener {
+            sendQuickPrompt("Help me break down a goal into simple daily actionable steps.")
+        }
+        chipEveningUnwind.setOnClickListener {
+            sendQuickPrompt("Recommend an evening routine to help me unwind and get good sleep.")
+        }
+        chipFocusTips.setOnClickListener {
+            sendQuickPrompt("Give me quick actionable tips to boost my focus during daily work.")
         }
     }
 
