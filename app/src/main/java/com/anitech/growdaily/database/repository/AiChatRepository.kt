@@ -58,26 +58,33 @@ class AiChatRepository {
             This JSON will automatically generate 1-tap "Add to Tasks" cards for the user in GrowDaily!
         """.trimIndent()
 
-        try {
-            // Attempt with gemini-2.5-flash / gemini-1.5-flash
-            val generativeModel = GenerativeModel(
-                modelName = "gemini-1.5-flash",
-                apiKey = effectiveKey
-            )
+        val modelNames = listOf("gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash-exp")
+        var responseText: String? = null
+        var lastException: Exception? = null
 
-            val fullPrompt = "$systemInstruction\n\nUser Question: $userPrompt"
-            val response = generativeModel.generateContent(fullPrompt)
-            val responseText = response.text ?: "I couldn't process that request right now. Please try again!"
+        for (modelName in modelNames) {
+            try {
+                val generativeModel = GenerativeModel(
+                    modelName = modelName,
+                    apiKey = effectiveKey
+                )
+                val fullPrompt = "$systemInstruction\n\nUser Question: $userPrompt"
+                val response = generativeModel.generateContent(fullPrompt)
+                if (!response.text.isNullOrBlank()) {
+                    responseText = response.text
+                    break
+                }
+            } catch (e: Exception) {
+                lastException = e
+            }
+        }
 
+        if (responseText != null) {
             val (cleanText, tasks) = parseSuggestedTasksFromText(responseText)
             Pair(cleanText, tasks)
-        } catch (e: Exception) {
-            val errorMsg = when {
-                e.message?.contains("404") == true -> "Model version updated. Please check your Gemini API connection."
-                e.message?.contains("API_KEY_INVALID") == true -> "Invalid API Key. Please check your Gemini API key in Settings."
-                else -> "Unable to connect to AI Assistant: ${e.localizedMessage ?: "Unknown error"}"
-            }
-            Pair(errorMsg, null)
+        } else {
+            val errorMsg = lastException?.localizedMessage ?: "Unable to connect to AI Assistant. Please check your API key."
+            Pair("Unable to connect to AI Assistant: $errorMsg", null)
         }
     }
 
