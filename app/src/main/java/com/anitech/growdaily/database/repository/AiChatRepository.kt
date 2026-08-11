@@ -58,9 +58,9 @@ class AiChatRepository {
             This JSON will automatically generate 1-tap "Add to Tasks" cards for the user in GrowDaily!
         """.trimIndent()
 
-        val modelNames = listOf("gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash-exp")
+        val modelNames = listOf("gemini-flash-latest", "gemini-2.5-flash", "gemini-3.6-flash")
         var responseText: String? = null
-        var lastException: Exception? = null
+        var lastException: Throwable? = null
 
         for (modelName in modelNames) {
             try {
@@ -70,12 +70,13 @@ class AiChatRepository {
                 )
                 val fullPrompt = "$systemInstruction\n\nUser Question: $userPrompt"
                 val response = generativeModel.generateContent(fullPrompt)
-                if (!response.text.isNullOrBlank()) {
-                    responseText = response.text
+                val text = response.text
+                if (!text.isNullOrBlank()) {
+                    responseText = text
                     break
                 }
-            } catch (e: Exception) {
-                lastException = e
+            } catch (t: Throwable) {
+                lastException = t
             }
         }
 
