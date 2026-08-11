@@ -108,7 +108,7 @@ class AiChatRepository(
                 lastException is java.net.UnknownHostException || lastException is java.io.IOException ->
                     "No internet connection. Please check your network connection and try again."
                 isDailyQuota ->
-                    "Daily free AI limit reached (20 requests/day). Please try again tomorrow or enter your personal API Key. 🔑"
+                    "Daily free AI quota reached across all models. Please try again tomorrow or enter your personal Gemini API key using the key icon at the top! 🔑"
                 msg.contains("quota", ignoreCase = true) || msg.contains("429") || msg.contains("rate limit", ignoreCase = true) || msg.contains("RESOURCE_EXHAUSTED", ignoreCase = true) -> {
                     val retryMatch = Regex("""retry in\s+([\d.]+)\s*s""", RegexOption.IGNORE_CASE).find(msg)
                     val seconds = retryMatch?.groupValues?.get(1)?.toDoubleOrNull()?.let { kotlin.math.ceil(it).toInt() }

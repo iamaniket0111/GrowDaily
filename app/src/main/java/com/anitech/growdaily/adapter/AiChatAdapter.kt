@@ -100,15 +100,9 @@ class AiChatAdapter(
                 binding.tvAiMessage.visibility = View.VISIBLE
                 binding.tvAiMessage.text = com.anitech.growdaily.util.MarkdownHelper.toSpannable(item.text)
 
-                if (item.isError) {
-                    binding.tvAiMessage.setTextColor(
-                        ContextCompat.getColor(itemView.context, android.R.color.holo_red_dark)
-                    )
-                } else {
-                    binding.tvAiMessage.setTextColor(
-                        ContextCompat.getColor(itemView.context, R.color.task_text_primary)
-                    )
-                }
+                binding.tvAiMessage.setTextColor(
+                    ContextCompat.getColor(itemView.context, R.color.task_text_primary)
+                )
             }
 
             // Bind suggested task action cards
