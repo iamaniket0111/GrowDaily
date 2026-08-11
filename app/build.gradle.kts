@@ -68,4 +68,5 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     implementation(libs.gson)
+    implementation(libs.google.ai.generativeai)
 }

@@ -10,6 +10,10 @@ class DailyTaskViewModelFactory(private val repository: AppRepository) : ViewMod
             @Suppress("UNCHECKED_CAST")
             return AppViewModel(repository) as T
         }
+        if (modelClass.isAssignableFrom(AiChatViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return AiChatViewModel(repository) as T
+        }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

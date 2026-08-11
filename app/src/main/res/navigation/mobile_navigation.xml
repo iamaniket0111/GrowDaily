@@ -118,4 +118,10 @@
         android:label="@string/manage_repeat_tasks_title"
         tools:layout="@layout/fragment_manage_tasks" />
 
+    <fragment
+        android:id="@+id/aiChatFragment"
+        android:name="com.anitech.growdaily.fragment.AiChatFragment"
+        android:label="GrowDaily AI Assistant"
+        tools:layout="@layout/fragment_ai_chat" />
+
 </navigation>

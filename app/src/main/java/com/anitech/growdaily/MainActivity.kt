@@ -198,6 +198,7 @@ class MainActivity : AppCompatActivity() {
         val settingsItem = menu?.findItem(R.id.menu_settings)
         val reorderItem  = menu?.findItem(R.id.menu_reorder_task)
         val manageTasksItem = menu?.findItem(R.id.menu_manage_repeat_tasks)
+        val aiChatItem = menu?.findItem(R.id.menu_ai_chat)
 
         // Find the MainFragment if we are on the Home destination
         val navHostFragment = supportFragmentManager
@@ -208,6 +209,11 @@ class MainActivity : AppCompatActivity() {
         val state = todayButtonState.value ?: TodayButtonState(isVisible = false)
 
         if (showMenu) {
+            aiChatItem?.isVisible = true
+            accentColor.value?.let { color ->
+                aiChatItem?.icon?.setTint(color)
+            }
+
             if (isTaskPage) {
                 // TaskFragment mode: Show Dropdown, handle Today button
                 supportActionBar?.setDisplayShowTitleEnabled(false)
@@ -261,6 +267,7 @@ class MainActivity : AppCompatActivity() {
             }
         } else {
             todayItem?.isVisible = false
+            aiChatItem?.isVisible = false
             removeToolbarDateDropdown()
             
             settingsItem?.isVisible = false
@@ -280,6 +287,11 @@ class MainActivity : AppCompatActivity() {
                 val mainFragment = navHostFragment?.childFragmentManager?.fragments?.get(0) as? com.anitech.growdaily.fragment.MainFragment
                 val taskFragment = mainFragment?.getCurrentFragment() as? com.anitech.growdaily.fragment.TaskFragment
                 taskFragment?.scrollToToday()
+                true
+            }
+
+            R.id.menu_ai_chat -> {
+                navController.navigate(R.id.aiChatFragment)
                 true
             }
 
