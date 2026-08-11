@@ -125,10 +125,15 @@ class AiChatAdapter(
 
                     tvTitle.text = suggestedTask.title
 
+                    val typeLabel = when (suggestedTask.safeTaskType) {
+                        "DAY", "UNTIL_COMPLETE" -> "📅 Day Task"
+                        else -> "🔄 Daily"
+                    }
+
                     val subtitleDetails = buildList {
                         suggestedTask.note?.takeIf { it.isNotBlank() }?.let { add(it) }
                         suggestedTask.scheduleTime?.takeIf { it.isNotBlank() }?.let { add("⏰ $it") }
-                        suggestedTask.safeRepeatType.takeIf { it.isNotBlank() }?.let { add("🔄 $it") }
+                        add(typeLabel)
                     }.joinToString(" • ")
 
                     tvSubtitle.text = if (subtitleDetails.isNotBlank()) subtitleDetails else "Suggested Habit"

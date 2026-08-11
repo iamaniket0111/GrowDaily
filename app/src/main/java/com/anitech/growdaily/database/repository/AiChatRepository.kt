@@ -41,7 +41,8 @@ class AiChatRepository(
             3. Preserve Original Language in Titles: Keep task titles in the user's original language (English, Hinglish, Hindi, etc.). Do NOT translate task titles unless specifically asked by the user. Keep titles clean and concise.
             4. Smart Note Field (No Redundant Notes): Only populate the "note" field if there are explicit additional sub-instructions or details for that item. If no extra detail exists, set "note": null. Never repeat the title or dump redundant text into the note field.
             5. Time Formatting (Strict Rule): ONLY set "scheduleTime" if the user explicitly mentioned a start time or schedule in their prompt (e.g. "at 5:00 PM" or "6:00 AM Workout"). Extract start times into standard "hh:mm AM" or "hh:mm PM" format. If no start time was mentioned by the user, set "scheduleTime": null.
-            6. JSON Output Format: Whenever you suggest or parse tasks, ALWAYS put a JSON block at the VERY END of your response formatted exactly as:
+            6. Task Types & Day Tasks: Use "taskType": "DAY" for single-day tasks (e.g., "complete homework today"). Day tasks default to showUntilCompleted: true. Set "showUntilCompleted": false only if the user explicitly asks not to show it after today. Use "taskType": "DAILY" for repeating daily habits.
+            7. JSON Output Format: Whenever you suggest or parse tasks, ALWAYS put a JSON block at the VERY END of your response formatted exactly as:
             ```json
             [
               {

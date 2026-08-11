@@ -15,6 +15,7 @@ data class SuggestedTask(
     val repeatType: String? = RepeatType.DAILY.name,
     val taskColor: String? = TaskColor.DARK_BLUE.name,
     val scheduleTime: String? = null,
+    val showUntilCompleted: Boolean? = null,
     val isAdded: Boolean = false
 ) {
     val safeTaskType: String get() = taskType ?: TaskType.DAILY.name
@@ -29,6 +30,9 @@ data class SuggestedTask(
 
         val startMins = scheduleTime?.let { CommonMethods.timeToMinutes(it) }
         val calculatedEndTime = startMins?.let { CommonMethods.minutesToTime((it + 15) % 1440) }
+
+        // Day tasks have showUntilCompleted = true by default (matching AddTaskFragment)
+        val isShowUntilCompleted = showUntilCompleted ?: (parsedTaskType == TaskType.DAY)
 
         return TaskEntity(
             id = taskId,
@@ -47,7 +51,7 @@ data class SuggestedTask(
             iconResId = TaskIcon.TROPHY.name,
             colorCode = parsedColor.name,
             taskType = parsedTaskType,
-            showUntilCompleted = false,
+            showUntilCompleted = isShowUntilCompleted,
             repeatType = parsedRepeatType,
             repeatDays = null,
             dailyTargetCount = 1,
