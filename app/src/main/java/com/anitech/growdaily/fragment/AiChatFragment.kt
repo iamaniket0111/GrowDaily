@@ -63,7 +63,7 @@ class AiChatFragment : Fragment() {
             },
             onModifySuggestedTaskClicked = { suggestedTask ->
                 val taskEntity = suggestedTask.toTaskEntity(com.anitech.growdaily.CommonMethods.getTodayDate())
-                val action = AiChatFragmentDirections.actionAiChatFragmentToNavAddTask(taskEntity)
+                val action = AiChatFragmentDirections.actionAiChatFragmentToNavAddTask(task = taskEntity, isDraft = true)
                 findNavController().navigate(action)
             },
             onDismissSuggestedTaskClicked = { messageId, taskIndex ->

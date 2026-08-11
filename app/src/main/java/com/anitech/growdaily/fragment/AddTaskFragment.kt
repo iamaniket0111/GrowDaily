@@ -70,7 +70,7 @@ class AddTaskFragment : Fragment(), AddTaskSectionHost {
     override var accentColor: Int = Color.BLUE
     override var taskType: TaskType = TaskType.DAILY
     override var originalStartDate: String = ""
-    override val editingTask: TaskEntity? get() = args.task
+    override val editingTask: TaskEntity? get() = if (args.isDraft) null else args.task
 
     private lateinit var accentCoordinator: AddTaskAccentCoordinator
     private lateinit var datePickerCoordinator: AddTaskDatePickerCoordinator
@@ -234,10 +234,7 @@ class AddTaskFragment : Fragment(), AddTaskSectionHost {
 
     private fun setupTaskType() {
         taskType = when {
-            editingTask != null -> editingTask!!.taskType
-            !args.taskType.isNullOrBlank() -> {
-                runCatching { TaskType.valueOf(args.taskType!!) }.getOrDefault(TaskType.DAILY)
-            }
+            args.task != null -> args.task!!.taskType
             else -> TaskType.DAILY
         }
     }
@@ -342,7 +339,7 @@ class AddTaskFragment : Fragment(), AddTaskSectionHost {
     // ── Data loading ──────────────────────────────────────────────────────────
 
     private fun loadTaskDataIfEditing() {
-        val task = editingTask
+        val task = args.task
         if (task == null) {
             viewModel.ensureAddFormInitialized()
             if (taskType == TaskType.DAY) {
@@ -350,11 +347,15 @@ class AddTaskFragment : Fragment(), AddTaskSectionHost {
             }
             return
         }
-        originalStartDate = task.taskAddedDate
-        viewModel.ensureEditTaskLoaded(task)
-        viewModel.ensureListIdsLoaded(task.id) {
-            if (!isHostViewSafe()) return@ensureListIdsLoaded
-            metadataCoordinator.updateListSummary()
+        if (args.isDraft) {
+            viewModel.ensureEditTaskLoaded(task)
+        } else {
+            originalStartDate = task.taskAddedDate
+            viewModel.ensureEditTaskLoaded(task)
+            viewModel.ensureListIdsLoaded(task.id) {
+                if (!isHostViewSafe()) return@ensureListIdsLoaded
+                metadataCoordinator.updateListSummary()
+            }
         }
     }
 
