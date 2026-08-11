@@ -11,6 +11,7 @@ data class AddTaskUiState(
     val startDate: String = CommonMethods.getTodayDate(),
     val endDate: String? = null,
     val scheduleTime: String? = null,
+    val endTime: String? = null,
     val reminderTime: String? = null,
     val isScheduled: Boolean = false,
     val isReminderEnabled: Boolean = false,

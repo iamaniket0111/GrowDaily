@@ -51,11 +51,26 @@
         android:layout_marginStart="8dp"
         app:layout_goneMarginStart="10dp"
         android:paddingStart="6dp"
+        android:textSize="12sp"
         android:textColor="@color/task_text_secondary"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/overlapTxt"
         app:layout_constraintStart_toEndOf="@id/shContainer"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="08:00 AM" />
+        tools:text="08:00 AM - 09:30 AM" />
+
+    <TextView
+        android:id="@+id/overlapTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:textSize="12sp"
+        android:textColor="@color/task_text_secondary"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/timeTxt"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/timeTxt"
+        tools:text="Overlap (30m)"
+        tools:visibility="visible" />
 
     <include
         android:id="@+id/body"
@@ -65,7 +80,7 @@
         android:layout_marginStart="8dp"
         app:layout_goneMarginStart="10dp"
         android:layout_marginTop="4dp"
-        android:layout_marginBottom="4dp"
+        android:layout_marginBottom="8dp"
         android:layout_marginEnd="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

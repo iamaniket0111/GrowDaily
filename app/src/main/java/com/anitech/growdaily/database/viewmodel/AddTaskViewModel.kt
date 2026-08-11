@@ -104,6 +104,10 @@ class AddTaskViewModel(
         _uiState.update { it.copy(scheduleTime = time, isScheduled = isScheduled) }
     }
 
+    fun updateEndTime(time: String?) {
+        _uiState.update { it.copy(endTime = time) }
+    }
+
     fun updateReminder(time: String?, isReminderEnabled: Boolean) {
         _uiState.update { it.copy(reminderTime = time, isReminderEnabled = isReminderEnabled) }
     }
@@ -211,6 +215,7 @@ class AddTaskViewModel(
                 null
             },
             scheduleTime = task.scheduledTime,
+            endTime = task.endTime,
             reminderTime = task.reminderTime,
             isScheduled = task.isScheduled,
             isReminderEnabled = task.reminderEnabled,
@@ -305,6 +310,7 @@ class AddTaskViewModel(
                     note = normalized.note.ifBlank { null },
                     weight = normalized.weight,
                     scheduledTime = normalized.scheduleTime,
+                    endTime = normalized.endTime,
                     reminderTime = normalized.reminderTime,
                     reminderEnabled = normalized.isReminderEnabled,
                     isScheduled = normalized.isScheduled,
@@ -383,6 +389,7 @@ class AddTaskViewModel(
                     note = normalized.note.ifBlank { null },
                     weight = normalized.weight,
                     scheduledTime = normalized.scheduleTime,
+                    endTime = normalized.endTime,
                     reminderTime = normalized.reminderTime,
                     reminderEnabled = normalized.isReminderEnabled,
                     isScheduled = normalized.isScheduled,

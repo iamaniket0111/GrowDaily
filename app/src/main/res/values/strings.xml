@@ -78,8 +78,10 @@ today.</string>
     <string name="empty_repeat_tasks_title">No repeat tasks yet</string>
     <string name="empty_tasks_for_list_subtitle">Create some tasks first, then 
 you\'ll be able to group them into lists.</string>
-    <string name="enable_reminder_label">Enable Reminder</string>
-    <string name="enable_schedule_label">Enable Schedule</string>
+    <string name="enable_reminder_label">Reminder</string>
+    <string name="enable_schedule_label">Schedule</string>
+    <string name="reminder_label">Reminder</string>
+    <string name="schedule_label">Schedule</string>
     <string name="end_date_label">End Date</string>
     <string name="ended_on_format">Ended on %1$s</string>
     <string name="ended_repeat_tasks_empty_subtitle">Tasks that have reached their end date will appear here.</string>
@@ -242,7 +244,7 @@ task?</string>
     <string name="task_updated_toast">Task updated</string>
     <string name="task_weight_prefix">%1$d/4</string>
     <string name="tasks_in_list_header">Tasks in this list</string>
-    <string name="time_placeholder">--:--</string>
+    <string name="time_placeholder">Select</string>
     <string name="timer_hint">Drag the ring or adjust by 1 minute</string>
     <string name="timer_value_format">%1$dm %2$02ds / %3$dm</string>
     <string name="today">Today</string>

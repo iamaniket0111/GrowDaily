@@ -19,5 +19,7 @@ data class TaskUiItem(
     val isListFiltered: Boolean,
     val completionDate: String,
     val pendingFromDate: String? = null,
-    val sourceTask: TaskEntity? = null
+    val sourceTask: TaskEntity? = null,
+    val isCarryOverFromYesterday: Boolean = false,
+    val overlapDurationMins: Int? = null
 )

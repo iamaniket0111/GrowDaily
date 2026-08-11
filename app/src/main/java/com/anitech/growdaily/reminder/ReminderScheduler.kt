@@ -47,7 +47,10 @@ object ReminderScheduler {
     private const val PREFS_REMINDER_STATE = "reminder_state"
     private const val KEY_LAST_DELIVERED_PREFIX = "last_delivered_"
 
-    private val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
+    private val timeFormatter = java.time.format.DateTimeFormatterBuilder()
+        .parseCaseInsensitive()
+        .appendPattern("hh:mm a")
+        .toFormatter(Locale.ENGLISH)
 
     /**
      * Mutex + backing set kept in sync under that mutex.
@@ -139,7 +142,7 @@ object ReminderScheduler {
         )
 
         scheduleInexact(alarmManager, nextTrigger.triggerAtMillis, pendingIntent)
-        Log.d(TAG, "Inexact alarm set for task=${task.id}")
+        Log.d(TAG, "Alarm set for task=${task.id}")
     }
 
     private fun scheduleInexact(
@@ -147,7 +150,17 @@ object ReminderScheduler {
         triggerAtMillis: Long,
         pendingIntent: PendingIntent
     ) {
-        alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (alarmManager.canScheduleExactAlarms()) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent)
+            } else {
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent)
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent)
+        } else {
+            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent)
+        }
     }
 
     // -------------------------------------------------------------------------

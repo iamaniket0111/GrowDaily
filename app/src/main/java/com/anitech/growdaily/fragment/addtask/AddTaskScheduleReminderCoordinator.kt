@@ -2,10 +2,13 @@ package com.anitech.growdaily.fragment.addtask
 
 import android.app.Dialog
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.os.Build
 import android.provider.Settings
+import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import com.anitech.growdaily.CommonMethods
 import com.anitech.growdaily.R
 import com.anitech.growdaily.data_class.AddTaskUiState
 import com.anitech.growdaily.dialog.TaskActionDialog
@@ -28,34 +31,95 @@ internal class AddTaskScheduleReminderCoordinator(
     }
 
     fun bindListeners() {
-        val binding = host.binding
-        binding.scheduleLayout.switchSchedule.setOnCheckedChangeListener { _, isChecked ->
+        val binding = host.binding.combinedScheduleLayout
+        binding.switchSchedule.setOnCheckedChangeListener { _, isChecked ->
             if (ignoreScheduleToggle) return@setOnCheckedChangeListener
-            if (isChecked) handleScheduleEnabled() else host.viewModel.updateSchedule(null, false)
+            val currentTime = host.viewModel.uiState.value.scheduleTime
+            if (isChecked) handleScheduleEnabled() else host.viewModel.updateSchedule(currentTime, false)
         }
 
-        binding.reminderLayoutMain.switchReminder.setOnCheckedChangeListener { _, isChecked ->
+        binding.blockStartTime.setOnClickListener {
+            val currentState = host.viewModel.uiState.value
+            val oldStartTime = currentState.scheduleTime
+            val oldReminderTime = currentState.reminderTime
+            val oldEndTime = currentState.endTime
+
+            datePickerCoordinator.openTimePicker(tag = "schedule", initialTime = oldStartTime) { newTime ->
+                host.viewModel.updateSchedule(newTime, currentState.isScheduled)
+
+                if (!oldStartTime.isNullOrBlank() && !oldEndTime.isNullOrBlank()) {
+                    val oldStartMins = CommonMethods.timeToMinutes(oldStartTime)
+                    val oldEndMins = CommonMethods.timeToMinutes(oldEndTime)
+                    val newStartMins = CommonMethods.timeToMinutes(newTime)
+                    if (oldStartMins != null && oldEndMins != null && newStartMins != null) {
+                        var durationMins = oldEndMins - oldStartMins
+                        if (durationMins < 0) durationMins += 1440
+                        val newEndMins = (newStartMins + durationMins) % 1440
+                        host.viewModel.updateEndTime(CommonMethods.minutesToTime(newEndMins))
+                    }
+                } else if (oldEndTime.isNullOrBlank()) {
+                    val newStartMins = CommonMethods.timeToMinutes(newTime)
+                    if (newStartMins != null) {
+                        val defaultEndMins = (newStartMins + 15) % 1440
+                        host.viewModel.updateEndTime(CommonMethods.minutesToTime(defaultEndMins))
+                    }
+                }
+
+                if (currentState.isReminderEnabled && !oldReminderTime.isNullOrBlank()) {
+                    val oldStartMins = CommonMethods.timeToMinutes(oldStartTime)
+                    val oldRemMins = CommonMethods.timeToMinutes(oldReminderTime)
+                    val newStartMins = CommonMethods.timeToMinutes(newTime)
+
+                    if (newStartMins != null) {
+                        if (oldStartMins != null && oldRemMins != null) {
+                            val offsetMins = (oldStartMins - oldRemMins + 1440) % 1440
+                            val newRemMins = (newStartMins - offsetMins + 1440) % 1440
+                            host.viewModel.updateReminder(CommonMethods.minutesToTime(newRemMins), true)
+                        } else {
+                            host.viewModel.updateReminder(newTime, true)
+                        }
+                    }
+                }
+            }
+        }
+
+        binding.blockEndTime.setOnClickListener {
+            val currentState = host.viewModel.uiState.value
+            val startTime = currentState.scheduleTime
+
+            if (startTime.isNullOrBlank()) {
+                android.widget.Toast.makeText(host.hostContext(), "Please set a Start Time first", android.widget.Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val fragmentManager = (host.hostContext() as? androidx.fragment.app.FragmentActivity)?.supportFragmentManager
+            if (fragmentManager != null) {
+                val dialog = com.anitech.growdaily.dialog.TaskDurationDialog.newInstance(startTime, currentState.endTime)
+                dialog.onEndTimeSelected = { selectedEndTime ->
+                    host.viewModel.updateEndTime(selectedEndTime)
+                }
+                dialog.show(fragmentManager, "TaskDurationDialog")
+            }
+        }
+
+        binding.switchReminder.setOnCheckedChangeListener { _, isChecked ->
             if (ignoreReminderToggle) return@setOnCheckedChangeListener
-            if (isChecked) ensureReminderPermissionThenEnable() else host.viewModel.updateReminder(null, false)
-        }
-
-        binding.scheduleLayout.scheduleRow.setOnClickListener {
-            if (binding.scheduleLayout.switchSchedule.isChecked) {
-                datePickerCoordinator.openTimePicker(tag = "schedule") { time ->
-                    host.viewModel.updateSchedule(time, true)
-                }
+            if (isChecked) {
+                openReminderDialogOrEnable()
+            } else {
+                host.viewModel.updateReminder(null, false)
             }
         }
 
-        binding.reminderLayoutMain.reminderBody.setOnClickListener {
-            if (binding.reminderLayoutMain.switchReminder.isChecked) {
-                datePickerCoordinator.openTimePicker(tag = "reminder") { time ->
-                    host.viewModel.updateReminder(time, true)
-                }
+        binding.reminderRowCombined.setOnClickListener {
+            if (binding.switchReminder.isChecked) {
+                openReminderDialogOrEnable()
+            } else {
+                binding.switchReminder.isChecked = true
             }
         }
 
-        binding.reminderLayoutMain.ivBatteryWarning.setOnClickListener {
+        binding.ivBatteryWarning.setOnClickListener {
             when (ReminderPermissionHelper.primaryReliabilityIssue(host.hostContext())) {
                 ReminderPermissionHelper.ReliabilityIssue.NOTIFICATIONS_DISABLED ->
                     showNotificationsDisabledDialog()
@@ -65,42 +129,118 @@ internal class AddTaskScheduleReminderCoordinator(
         }
     }
 
+    private fun openReminderDialogOrEnable() {
+        val currentState = host.viewModel.uiState.value
+        val startTime = currentState.scheduleTime
+        if (startTime.isNullOrBlank()) {
+            android.widget.Toast.makeText(host.hostContext(), "Please set a Start Time first", android.widget.Toast.LENGTH_SHORT).show()
+            disableReminderToggle()
+            return
+        }
+
+        val fragmentManager = (host.hostContext() as? androidx.fragment.app.FragmentActivity)?.supportFragmentManager
+        if (fragmentManager != null) {
+            val wasAlreadyEnabled = currentState.isReminderEnabled
+            val dialog = com.anitech.growdaily.dialog.TaskReminderDialog.newInstance(
+                startTime = startTime,
+                existingReminderTime = currentState.reminderTime,
+                isReminderEnabled = currentState.isReminderEnabled
+            )
+            dialog.onReminderSelected = { remTime, isEnabled ->
+                if (isEnabled && remTime != null) {
+                    host.viewModel.updateReminder(remTime, true)
+                } else {
+                    disableReminderToggle()
+                }
+            }
+            dialog.onCancelled = {
+                if (!wasAlreadyEnabled) {
+                    disableReminderToggle()
+                }
+            }
+            dialog.show(fragmentManager, "TaskReminderDialog")
+        }
+    }
+
+    private fun calculateDurationText(startTime: String?, endTime: String?): String {
+        if (startTime.isNullOrBlank() || endTime.isNullOrBlank()) return ""
+        val startMins = CommonMethods.timeToMinutes(startTime) ?: return ""
+        val endMins = CommonMethods.timeToMinutes(endTime) ?: return ""
+
+        var diffMins = endMins - startMins
+        val isNextDay = diffMins < 0
+        if (isNextDay) {
+            diffMins += 1440
+        }
+        if (diffMins == 0) return ""
+
+        val hours = diffMins / 60
+        val mins = diffMins % 60
+
+        val durationStr = when {
+            hours > 0 && mins > 0 -> "${hours}h ${mins}m"
+            hours > 0 -> "${hours}h"
+            else -> "${mins}m"
+        }
+
+        return if (isNextDay) "$durationStr (+1d)" else durationStr
+    }
+
     fun render(state: AddTaskUiState) {
-        val binding = host.binding
-        if (binding.scheduleLayout.switchSchedule.isChecked != state.isScheduled) {
+        val binding = host.binding.combinedScheduleLayout
+        if (binding.switchSchedule.isChecked != state.isScheduled) {
             ignoreScheduleToggle = true
-            binding.scheduleLayout.switchSchedule.isChecked = state.isScheduled
+            binding.switchSchedule.isChecked = state.isScheduled
             ignoreScheduleToggle = false
         }
-        if (binding.reminderLayoutMain.switchReminder.isChecked != state.isReminderEnabled) {
+        if (binding.switchReminder.isChecked != state.isReminderEnabled) {
             ignoreReminderToggle = true
-            binding.reminderLayoutMain.switchReminder.isChecked = state.isReminderEnabled
+            binding.switchReminder.isChecked = state.isReminderEnabled
             ignoreReminderToggle = false
         }
 
         val placeholder = host.getHostString(R.string.time_placeholder)
         val placeholderColor = ContextCompat.getColor(host.hostContext(), R.color.add_form_text_secondary)
-        binding.scheduleLayout.txtScheduleTime.bindAddTaskTimeValue(
+        
+        binding.txtStartTimeValue.bindAddTaskTimeValue(
             time = state.scheduleTime,
             placeholder = placeholder,
             accentColor = host.accentColor,
             placeholderColor = placeholderColor,
         )
-        binding.reminderLayoutMain.txtReminderTime.bindAddTaskTimeValue(
-            time = state.reminderTime,
-            placeholder = placeholder,
-            accentColor = host.accentColor,
-            placeholderColor = placeholderColor,
-        )
-        binding.scheduleLayout.layoutScheduleTime.isVisible = state.isScheduled
-        binding.reminderLayoutMain.layoutReminder.isVisible = state.isReminderEnabled
+
+        if (!state.endTime.isNullOrBlank()) {
+            val durationText = calculateDurationText(state.scheduleTime, state.endTime)
+            binding.txtEndTimeValue.text = if (durationText.isNotEmpty()) {
+                "${state.endTime} ($durationText)"
+            } else {
+                state.endTime
+            }
+            binding.txtEndTimeValue.setTextColor(host.accentColor)
+        } else {
+            binding.txtEndTimeValue.text = placeholder
+            binding.txtEndTimeValue.setTextColor(placeholderColor)
+        }
+
+        if (state.isReminderEnabled && !state.reminderTime.isNullOrBlank()) {
+            binding.txtReminderValue.text = state.reminderTime
+            binding.txtReminderValue.setTextColor(host.accentColor)
+            binding.txtReminderValue.visibility = View.VISIBLE
+        } else {
+            binding.txtReminderValue.visibility = View.GONE
+        }
+
+        updateWarningVisibility()
     }
+
+
 
     fun updateWarningVisibility() {
         if (!host.isHostViewSafe()) return
-        host.binding.reminderLayoutMain.ivBatteryWarning.isVisible =
-            ReminderPermissionHelper.primaryReliabilityIssue(host.hostContext()) !=
-                ReminderPermissionHelper.ReliabilityIssue.NONE
+        val hasIssue = ReminderPermissionHelper.primaryReliabilityIssue(host.hostContext()) !=
+            ReminderPermissionHelper.ReliabilityIssue.NONE
+        host.binding.combinedScheduleLayout.ivBatteryWarning.isVisible =
+            hasIssue && host.viewModel.uiState.value.isReminderEnabled
     }
 
     fun onNotificationPermissionResult(granted: Boolean) {
@@ -112,74 +252,25 @@ internal class AddTaskScheduleReminderCoordinator(
         }
     }
 
-    fun showSyncReminderTimeDialog(newTime: String) {
-        showOverlayDialog(
-            TaskActionDialog(
-                context = host.hostContext(),
-                title = host.getHostString(R.string.reminder_time_dialog_title),
-                message = host.getHostString(R.string.sync_reminder_time_message, newTime),
-                primaryLabel = host.getHostString(R.string.update_both_button),
-                secondaryLabel = host.getHostString(R.string.update_only_this_button),
-                iconRes = R.drawable.ic_notification,
-                accentColor = host.accentColor,
-                iconBubbleColor = host.hostAccentBubbleColor(),
-                onPrimaryAction = { host.viewModel.updateReminder(newTime, true) }
-            )
-        )
-    }
-
-    fun showSyncScheduleTimeDialog(newTime: String) {
-        showOverlayDialog(
-            TaskActionDialog(
-                context = host.hostContext(),
-                title = host.getHostString(R.string.schedule_time_dialog_title),
-                message = host.getHostString(R.string.sync_schedule_time_message, newTime),
-                primaryLabel = host.getHostString(R.string.update_both_button),
-                secondaryLabel = host.getHostString(R.string.update_only_this_button),
-                iconRes = R.drawable.ic_notification,
-                accentColor = host.accentColor,
-                iconBubbleColor = host.hostAccentBubbleColor(),
-                onPrimaryAction = { host.viewModel.updateSchedule(newTime, true) }
-            )
-        )
-    }
-
-    fun handleSyncedTimeSelection(tag: String?, newTime: String) {
-        when (tag) {
-            "schedule" -> showSyncReminderTimeDialog(newTime)
-            "reminder" -> showSyncScheduleTimeDialog(newTime)
-        }
-    }
-
     private fun handleScheduleEnabled() {
         val currentState = host.viewModel.uiState.value
-        val reminderTime = currentState.reminderTime
-        if (currentState.isReminderEnabled && reminderTime != null) {
-            showLinkedTimeChoiceDialog(
-                title = host.getHostString(R.string.schedule_time_dialog_title),
-                message = host.getHostString(R.string.use_same_time_reminder_message, reminderTime),
-                positiveLabel = host.getHostString(R.string.use_same_time_button, reminderTime),
-                onUseLinkedTime = { host.viewModel.updateSchedule(reminderTime, true) },
-                onPickDifferentTime = ::openTimePickerOrRevertSchedule
-            )
-        } else {
+        if (currentState.scheduleTime.isNullOrBlank()) {
             openTimePickerOrRevertSchedule()
+        } else {
+            host.viewModel.updateSchedule(currentState.scheduleTime, true)
         }
     }
 
     private fun handleReminderEnabled() {
         val currentState = host.viewModel.uiState.value
-        val scheduleTime = currentState.scheduleTime
-        if (currentState.isScheduled && scheduleTime != null) {
-            showLinkedTimeChoiceDialog(
-                title = host.getHostString(R.string.reminder_time_dialog_title),
-                message = host.getHostString(R.string.use_same_time_schedule_message, scheduleTime),
-                positiveLabel = host.getHostString(R.string.use_same_time_button, scheduleTime),
-                onUseLinkedTime = { host.viewModel.updateReminder(scheduleTime, true) },
-                onPickDifferentTime = ::openTimePickerOrRevertReminder
-            )
+        if (currentState.reminderTime.isNullOrBlank()) {
+            if (!currentState.scheduleTime.isNullOrBlank()) {
+                host.viewModel.updateReminder(currentState.scheduleTime, true)
+            } else {
+                openTimePickerOrRevertReminder()
+            }
         } else {
-            openTimePickerOrRevertReminder()
+            host.viewModel.updateReminder(currentState.reminderTime, true)
         }
     }
 
@@ -293,11 +384,20 @@ internal class AddTaskScheduleReminderCoordinator(
     }
 
     private fun openTimePickerOrRevertSchedule() {
+        val currentState = host.viewModel.uiState.value
+        val oldEndTime = currentState.endTime
         datePickerCoordinator.openTimePicker(
             tag = "schedule",
             onCancel = { disableScheduleToggle() }
         ) { time ->
             host.viewModel.updateSchedule(time, true)
+            if (oldEndTime.isNullOrBlank()) {
+                val startMins = CommonMethods.timeToMinutes(time)
+                if (startMins != null) {
+                    val defaultEndMins = (startMins + 15) % 1440
+                    host.viewModel.updateEndTime(CommonMethods.minutesToTime(defaultEndMins))
+                }
+            }
         }
     }
 
@@ -312,14 +412,15 @@ internal class AddTaskScheduleReminderCoordinator(
 
     private fun disableScheduleToggle() {
         ignoreScheduleToggle = true
-        host.binding.scheduleLayout.switchSchedule.isChecked = false
+        host.binding.combinedScheduleLayout.switchSchedule.isChecked = false
         ignoreScheduleToggle = false
-        host.viewModel.updateSchedule(null, false)
+        val currentTime = host.viewModel.uiState.value.scheduleTime
+        host.viewModel.updateSchedule(currentTime, false)
     }
 
     private fun disableReminderToggle() {
         ignoreReminderToggle = true
-        host.binding.reminderLayoutMain.switchReminder.isChecked = false
+        host.binding.combinedScheduleLayout.switchReminder.isChecked = false
         ignoreReminderToggle = false
         host.viewModel.updateReminder(null, false)
     }

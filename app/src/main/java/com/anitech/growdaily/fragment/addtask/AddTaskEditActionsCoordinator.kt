@@ -61,6 +61,7 @@ internal class AddTaskEditActionsCoordinator(
                 host.hostContext(),
                 task,
                 onDeleteConfirmed = { taskToDelete ->
+                    com.anitech.growdaily.reminder.ReminderScheduler.cancelTaskReminder(host.hostContext(), taskToDelete.id)
                     host.viewModel.deleteTask(taskToDelete) { success ->
                         if (!host.isHostViewSafe()) return@deleteTask
                         if (success) {

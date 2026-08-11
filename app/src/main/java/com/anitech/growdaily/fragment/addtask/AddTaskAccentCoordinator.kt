@@ -90,14 +90,8 @@ internal class AddTaskAccentCoordinator(
         val placeholderColor =
             ContextCompat.getColor(host.hostContext(), R.color.add_form_text_secondary)
         val binding = host.binding
-        binding.scheduleLayout.txtScheduleTime.bindAddTaskTimeValue(
+        binding.combinedScheduleLayout.txtStartTimeValue.bindAddTaskTimeValue(
             time = state.scheduleTime,
-            placeholder = placeholder,
-            accentColor = accentColor,
-            placeholderColor = placeholderColor,
-        )
-        binding.reminderLayoutMain.txtReminderTime.bindAddTaskTimeValue(
-            time = state.reminderTime,
             placeholder = placeholder,
             accentColor = accentColor,
             placeholderColor = placeholderColor,
@@ -143,8 +137,8 @@ internal class AddTaskAccentCoordinator(
             )
         )
         val binding = host.binding
-        tintSwitch(binding.scheduleLayout.switchSchedule, thumbTint, trackTint)
-        tintSwitch(binding.reminderLayoutMain.switchReminder, thumbTint, trackTint)
+        tintSwitch(binding.combinedScheduleLayout.switchSchedule, thumbTint, trackTint)
+        tintSwitch(binding.combinedScheduleLayout.switchReminder, thumbTint, trackTint)
         tintSwitch(binding.untilCompleteLayout.switchUntilComplete, thumbTint, trackTint)
     }
 

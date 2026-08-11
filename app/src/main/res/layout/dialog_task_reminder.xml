@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/GrowDailyDialogContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- Title at start -->
+    <TextView
+        android:id="@+id/txtTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Set Reminder"
+        android:textColor="@color/dialog_text_primary"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <!-- Left-aligned Vertical Time Information -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/txtStartTimeSubtext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/task_text_secondary"
+            android:textSize="13sp"
+            tools:text="Start Time: 08:00 PM" />
+
+        <TextView
+            android:id="@+id/txtReminderPreview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:textColor="@color/brand_blue"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="Reminder: 07:45 PM (15m before)" />
+
+    </LinearLayout>
+
+    <!-- Preset Chips Header -->
+    <TextView
+        style="@style/TitleLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Quick Presets"
+        android:textSize="12sp" />
+
+    <!-- Horizontal Scroll Chips -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/chipReminderStartTime"
+                style="@style/ReorderFilterChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="7dp"
+                android:text="At Start Time" />
+
+            <TextView
+                android:id="@+id/chipReminder5m"
+                style="@style/ReorderFilterChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="7dp"
+                android:text="5m before" />
+
+            <TextView
+                android:id="@+id/chipReminder10m"
+                style="@style/ReorderFilterChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="7dp"
+                android:text="10m before" />
+
+            <TextView
+                android:id="@+id/chipReminder15m"
+                style="@style/ReorderFilterChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="7dp"
+                android:text="15m before" />
+
+            <TextView
+                android:id="@+id/chipReminder30m"
+                style="@style/ReorderFilterChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="7dp"
+                android:text="30m before" />
+
+            <TextView
+                android:id="@+id/chipReminder1h"
+                style="@style/ReorderFilterChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="7dp"
+                android:text="1h before" />
+
+            <TextView
+                android:id="@+id/chipReminderOff"
+                style="@style/ReorderFilterChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="7dp"
+                android:text="Off / None" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Wheel Time Picker Section -->
+    <TextView
+        style="@style/TitleLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Custom Reminder Time"
+        android:textSize="12sp" />
+
+    <LinearLayout
+        android:id="@+id/wheelTimeContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/circular_corners"
+        android:backgroundTint="@color/add_form_muted_surface"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp">
+
+        <!-- Hours Picker (1-12) -->
+        <NumberPicker
+            android:id="@+id/pickerHours"
+            android:layout_width="0dp"
+            android:layout_height="130dp"
+            android:layout_weight="1"
+            android:descendantFocusability="blocksDescendants" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=":"
+            android:textColor="@color/dialog_text_primary"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <!-- Minutes Picker (00-59) -->
+        <NumberPicker
+            android:id="@+id/pickerMinutes"
+            android:layout_width="0dp"
+            android:layout_height="130dp"
+            android:layout_weight="1"
+            android:descendantFocusability="blocksDescendants" />
+
+        <Space
+            android:layout_width="6dp"
+            android:layout_height="0dp"/>
+
+        <!-- AM/PM Picker (AM/PM) -->
+        <NumberPicker
+            android:id="@+id/pickerAmPm"
+            android:layout_width="0dp"
+            android:layout_height="130dp"
+            android:layout_weight="1"
+            android:descendantFocusability="blocksDescendants" />
+
+    </LinearLayout>
+
+    <!-- Buttons Container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:orientation="horizontal">
+
+        <android.widget.Button
+            android:id="@+id/btnCancel"
+            style="@style/DialogSecondaryButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="Cancel" />
+
+        <Space
+            android:layout_width="12dp"
+            android:layout_height="wrap_content" />
+
+        <android.widget.Button
+            android:id="@+id/btnDone"
+            style="@style/DialogPrimaryButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:backgroundTint="@color/brand_blue"
+            android:text="Done" />
+
+    </LinearLayout>
+
+</LinearLayout>

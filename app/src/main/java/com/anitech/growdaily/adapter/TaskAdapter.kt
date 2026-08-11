@@ -11,6 +11,7 @@ import com.anitech.growdaily.setSolidBackgroundColorCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.anitech.growdaily.CommonMethods
 import com.anitech.growdaily.CommonMethods.Companion.getTodayDate
 import com.anitech.growdaily.R
 import com.anitech.growdaily.adjustAlpha
@@ -65,13 +66,13 @@ class TaskAdapter(
             item: TaskUiItem, currentDate: String
         ) = with(binding) {
             val task = item.task
-            val isActive = item.isActive
+            val isActive = item.isActive || (item.dateMode == DateMode.TODAY && item.timeState == TimeState.CURRENT)
 
             // Basic data setup
             setTaskData(item)
             setTaskNote(task, item.pendingFromDate)
             setTaskType(task)
-            handleScheduledTime(task)
+            handleScheduledTime(item)
 
             // Accessibility
             root.contentDescription = root.context.getString(R.string.task_content_description, task.title, task.taskType.name)
@@ -80,18 +81,16 @@ class TaskAdapter(
             val isPastLike = item.isListFiltered || item.dateMode == DateMode.PAST
             val isToday = !item.isListFiltered && item.dateMode == DateMode.TODAY
             val isFuture = item.dateMode == DateMode.FUTURE
-            val showTime = isToday && task.isScheduled
 
-            shContainer.visibility = if (isToday) View.VISIBLE else View.GONE
-            timeTxt.visibility = if (showTime) View.VISIBLE else View.GONE
+            shContainer.visibility = View.VISIBLE
 
-            if (isFuture) {
+            if (isFuture && !item.isCarryOverFromYesterday) {
                 body.doneView.visibility = View.VISIBLE
                 body.notAllowedImg.visibility = View.VISIBLE
                 body.done.visibility = View.GONE
                 body.doneContainer.alpha = 0.38f
             } else {
-                body.doneView.visibility = if (isPastLike || isToday) View.VISIBLE else View.GONE
+                body.doneView.visibility = View.VISIBLE
                 body.notAllowedImg.visibility = View.GONE
                 body.done.visibility = View.VISIBLE
                 body.doneContainer.alpha = 1f
@@ -174,15 +173,39 @@ class TaskAdapter(
             }
         }
 
-        private fun handleScheduledTime(task: TaskEntity) = with(binding) {
-            if (task.scheduledTime != null) {
-                timeTxt.text = task.scheduledTime
+        private fun handleScheduledTime(item: TaskUiItem) = with(binding) {
+            val task = item.task
+            if (task.isScheduled && !task.scheduledTime.isNullOrBlank()) {
+                val timeRange = when {
+                    !task.endTime.isNullOrBlank() -> {
+                        val sMins = CommonMethods.timeToMinutes(task.scheduledTime)
+                        val eMins = CommonMethods.timeToMinutes(task.endTime)
+                        if (sMins != null && eMins != null && eMins < sMins) {
+                            "${task.scheduledTime} - ${task.endTime} (+1d)"
+                        } else {
+                            "${task.scheduledTime} - ${task.endTime}"
+                        }
+                    }
+                    else -> {
+                        task.scheduledTime
+                    }
+                }
+                timeTxt.text = timeRange
                 timeTxt.visibility = View.VISIBLE
-                shView.visibility = if (task.isScheduled) View.VISIBLE else View.GONE
+                shView.visibility = View.VISIBLE
+
+                if (item.overlapDurationMins != null && item.overlapDurationMins > 0) {
+                    val durationStr = CommonMethods.formatDuration(item.overlapDurationMins)
+                    overlapTxt.text = "Overlap ($durationStr)"
+                    overlapTxt.visibility = View.VISIBLE
+                } else {
+                    overlapTxt.visibility = View.GONE
+                }
             } else {
                 timeTxt.text = ""
                 timeTxt.visibility = View.GONE
                 shView.visibility = View.GONE
+                overlapTxt.visibility = View.GONE
             }
         }
 
@@ -249,6 +272,7 @@ class TaskAdapter(
                 body.weightContainer.backgroundTintList = getCachedColorStateList(color)
                 body.streakContainer.backgroundTintList = getCachedColorStateList(color)
                 body.reminderContainer.backgroundTintList = getCachedColorStateList(color)
+                body.dividerMetadata.backgroundTintList = getCachedColorStateList(white.adjustAlpha(0.25f))
 
             } else {
 
@@ -282,23 +306,26 @@ class TaskAdapter(
                 val isNight = (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
                 val alphaFactor = if (isNight) 0.12f else 0.07f
                 
+                val strokeColor = ContextCompat.getColor(context, R.color.task_card_stroke)
                 body.root.backgroundTintList = getCachedColorStateList(cardSurface)
                 body.weightContainer.backgroundTintList = getCachedColorStateList(color.adjustAlpha(alphaFactor))
                 body.streakContainer.backgroundTintList = getCachedColorStateList(color.adjustAlpha(alphaFactor))
                 body.reminderContainer.backgroundTintList = getCachedColorStateList(color.adjustAlpha(alphaFactor))
+                body.dividerMetadata.backgroundTintList = getCachedColorStateList(strokeColor)
             }
 
-            // shView update
-            if (dateMode == DateMode.TODAY && task.isScheduled && timeState != TimeState.NONE) {
-                shView.setImageResource(
-                    when {
-                        isActive -> R.drawable.sh_view3
-                        timeState == TimeState.PAST -> R.drawable.sh_view1
-                        timeState == TimeState.CURRENT -> R.drawable.sh_view1
-                        timeState == TimeState.FUTURE -> R.drawable.sh_view2
-                        else -> 0
-                    }
-                )
+            // shView update based on dateMode, isActive, and timeState
+            if (task.isScheduled) {
+                val resId = when {
+                    isActive -> R.drawable.sh_view3
+                    dateMode == DateMode.PAST -> R.drawable.sh_view1
+                    dateMode == DateMode.FUTURE -> R.drawable.sh_view2
+                    timeState == TimeState.PAST -> R.drawable.sh_view1
+                    timeState == TimeState.CURRENT -> R.drawable.sh_view3
+                    timeState == TimeState.FUTURE -> R.drawable.sh_view2
+                    else -> R.drawable.sh_view2
+                }
+                shView.setImageResource(resId)
             }
         }
 
@@ -315,6 +342,14 @@ class TaskAdapter(
             // Common tints
             shView.setColorFilter(color)
             shDivider.backgroundTintList = getCachedColorStateList(color)
+
+            if (isActive) {
+                timeTxt.setTextColor(color)
+                timeTxt.setTypeface(null, android.graphics.Typeface.BOLD)
+            } else {
+                timeTxt.setTextColor(ContextCompat.getColor(root.context, R.color.task_text_secondary))
+                timeTxt.setTypeface(null, android.graphics.Typeface.NORMAL)
+            }
         }
 
         private fun styleDoneProgress(
@@ -340,7 +375,7 @@ class TaskAdapter(
                 true
             }
 
-            if (item.dateMode == DateMode.FUTURE) {
+            if (item.dateMode == DateMode.FUTURE && !item.isCarryOverFromYesterday) {
                 body.doneContainer.setOnClickListener(null)
                 body.doneContainer.setOnLongClickListener(null)
                 body.doneContainer.isClickable = false

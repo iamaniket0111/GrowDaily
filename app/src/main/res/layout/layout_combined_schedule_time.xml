@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/combinedScheduleCard"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- 1. Start Time Block (56dp height card row) -->
+    <LinearLayout
+        android:id="@+id/blockStartTime"
+        style="@style/AddFormRow"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            style="@style/TitleLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Start Time" />
+
+        <TextView
+            android:id="@+id/txtStartTimeValue"
+            style="@style/ValueText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/add_form_text_secondary"
+            tools:text="Select" />
+
+        <ImageView
+            style="@style/ChevronImageView" />
+    </LinearLayout>
+
+    <!-- 2. End Time Block (56dp height card row) -->
+    <LinearLayout
+        android:id="@+id/blockEndTime"
+        style="@style/AddFormRow"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            style="@style/TitleLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="End Time" />
+
+        <TextView
+            android:id="@+id/txtEndTimeValue"
+            style="@style/ValueText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/add_form_text_secondary"
+            tools:text="Select" />
+
+        <ImageView
+            style="@style/ChevronImageView" />
+    </LinearLayout>
+
+    <!-- 3. Schedule Switch Row (56dp height card row) -->
+    <LinearLayout
+        android:id="@+id/scheduleRowCombined"
+        style="@style/AddFormRow"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            style="@style/TitleLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/schedule_label" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchSchedule"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <!-- 4. Reminder Switch Row (56dp height card row) -->
+    <LinearLayout
+        android:id="@+id/reminderRowCombined"
+        style="@style/AddFormRow">
+
+        <TextView
+            style="@style/TitleLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/reminder_label" />
+
+        <ImageView
+            android:id="@+id/ivBatteryWarning"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="@string/battery_optimization_content_description"
+            android:src="@drawable/ic_warning"
+            android:visibility="gone"
+            app:tint="@color/add_form_text_secondary" />
+
+        <TextView
+            android:id="@+id/txtReminderValue"
+            style="@style/ValueText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:textColor="@color/brand_blue"
+            android:visibility="gone"
+            tools:text="07:45 PM" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchReminder"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+</LinearLayout>

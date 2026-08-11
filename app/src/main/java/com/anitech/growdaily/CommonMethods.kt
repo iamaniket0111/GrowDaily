@@ -24,6 +24,16 @@ class CommonMethods {
         const val DATE_FORMATE: String = "yyyy-MM-dd"
         val sdf = DateTimeFormatter.ofPattern(DATE_FORMATE)
 
+        fun formatDuration(minutes: Int): String {
+            val hrs = minutes / 60
+            val mins = minutes % 60
+            return when {
+                hrs == 0 -> "${mins}m"
+                mins == 0 -> "${hrs}h"
+                else -> "${hrs}h ${mins}m"
+            }
+        }
+
 
         fun isTodayDate(currentDate: String): Boolean {
             val date = LocalDate.parse(currentDate, sdf)
@@ -523,6 +533,14 @@ class CommonMethods {
             } catch (e: Exception) {
                 null
             }
+        }
+
+        fun minutesToTime(minutes: Int): String {
+            val cal = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, (minutes / 60) % 24)
+                set(Calendar.MINUTE, minutes % 60)
+            }
+            return timeFormatter.format(cal.time)
         }
 
         fun currentMinutes(): Int {

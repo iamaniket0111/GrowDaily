@@ -25,6 +25,8 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.anitech.growdaily.MainActivity
@@ -203,7 +205,7 @@ class AddTaskFragment : Fragment(), AddTaskSectionHost {
         datePickerCoordinator = AddTaskDatePickerCoordinator(
             host = this,
             accentCoordinator = accentCoordinator,
-            onSyncTimeChoice = { tag, newTime -> schedule.handleSyncedTimeSelection(tag, newTime) }
+            onSyncTimeChoice = { _, _ -> }
         )
         scheduleCoordinator = AddTaskScheduleReminderCoordinator(
             host = this,
@@ -407,6 +409,9 @@ class AddTaskFragment : Fragment(), AddTaskSectionHost {
                 )
             }
             is AddTaskUiEvent.Saved -> {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    com.anitech.growdaily.reminder.ReminderScheduler.syncFromDatabase(requireContext().applicationContext)
+                }
                 showHostToast(
                     if (event.isEdit) getString(R.string.task_updated_toast)
                     else getString(R.string.task_saved_toast)

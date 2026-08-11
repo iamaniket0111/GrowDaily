@@ -125,17 +125,11 @@
                 layout="@layout/layout_restart_progress"
                 android:layout_height="56dp" />
 
-            <!-- Schedule (Variable Height) -->
+            <!-- Combined Schedule & Timing Section -->
             <include
-                android:id="@+id/scheduleLayout"
+                android:id="@+id/combinedScheduleLayout"
                 style="@style/AddCardInclude"
-                layout="@layout/layout_schedule" />
-
-            <!-- Reminder (Variable Height) -->
-            <include
-                android:id="@+id/reminderLayoutMain"
-                style="@style/AddCardInclude"
-                layout="@layout/layout_reminder" />
+                layout="@layout/layout_combined_schedule_time" />
 
             <!-- Delete/Pause (Fixed 56dp) -->
             <include

@@ -219,6 +219,24 @@ class TaskViewModel(
                                 versionOwnerId = childParentMap[task.id] ?: task.id
                             )
                         }
+                    val prevDate = runCatching {
+                        java.time.LocalDate.parse(d, CommonMethods.sdf).minusDays(1).format(CommonMethods.sdf)
+                    }.getOrNull()
+
+                    val prevDayOvernightTasks = if (prevDate != null) {
+                        CommonMethods.filterTasks(
+                            allVisibleTasks.filter { it.taskType != TaskType.UNTIL_COMPLETE },
+                            prevDate,
+                            extraDateMap
+                        ).filter { task ->
+                            if (task.isScheduled && !task.scheduledTime.isNullOrBlank() && !task.endTime.isNullOrBlank()) {
+                                val sMins = CommonMethods.timeToMinutes(task.scheduledTime)
+                                val eMins = CommonMethods.timeToMinutes(task.endTime)
+                                sMins != null && eMins != null && eMins < sMins
+                            } else false
+                        }
+                    } else emptyList()
+
                     val scheduledTasksForSelectedDate = CommonMethods.filterTasks(
                         allVisibleTasks.filter { it.taskType != TaskType.UNTIL_COMPLETE },
                         d,
@@ -234,7 +252,7 @@ class TaskViewModel(
                     val scheduledNonUntilComplete = scheduledTasksForSelectedDate.filter {
                         it.taskType != TaskType.UNTIL_COMPLETE
                     }
-                    val sessionRows = buildTaskSessionRows(
+                    val mainSessionRows = buildTaskSessionRows(
                         selectedDate = d,
                         scheduledTasks = scheduledNonUntilComplete,
                         untilCompleteTasks = untilCompleteVisible,
@@ -244,32 +262,19 @@ class TaskViewModel(
                         completionEntityMap = completionEntityMap,
                         trackingVersionsMap = trackingVersionsMap
                     )
-                    val orderedSessionRows = CommonMethods.applySmartTimeOrder(
-                        sessionRows.map { it.task }.distinctBy { it.id }
-                    ).flatMap { orderedTask ->
-                        sessionRows
-                            .filter { it.task.id == orderedTask.id }
-                            .sortedBy { it.completionDate }
-                    }
+
+                    val sessionRows = mainSessionRows.distinctBy { "${it.task.id}|${it.completionDate}" }
+
+                    val orderedSessionRows = sessionRows.sortedWith(
+                        compareBy<TaskSessionRow> { session ->
+                            if (session.task.isScheduled && session.task.scheduledMinutes != null) session.task.scheduledMinutes
+                            else 1440
+                        }.thenBy { it.task.title }
+                    )
 
                     val dateMode = CommonMethods.getDateMode(d)
-                    val currentMinutes = if (dateMode == DateMode.TODAY)
-                        CommonMethods.currentMinutes()
-                    else null
-
-                    val activeMinutes =
-                        if (dateMode == DateMode.TODAY && currentMinutes != null) {
-                            orderedSessionRows
-                                .map { it.task }
-                                .distinctBy { it.id }
-                                .filter { it.isScheduled && it.scheduledMinutes != null }
-                                .filter {
-                                    val scheduled = it.scheduledMinutes!!
-                                    scheduled <= currentMinutes && (currentMinutes - scheduled) <= 60
-                                }
-                                .maxByOrNull { it.scheduledMinutes!! }
-                                ?.scheduledMinutes
-                        } else null
+                    val currentMinutes = CommonMethods.currentMinutes()
+                    val todayDate = CommonMethods.getTodayDate()
 
                     val isListFiltered = latestSelectedListId != null
                     val visibleTasks = orderedSessionRows.map { it.task }.distinctBy { it.id }
@@ -285,9 +290,65 @@ class TaskViewModel(
                     )
 
 
+                    fun computeOverlapDurationMins(current: TaskSessionRow): Int? {
+                        val currTask = current.task
+                        if (!currTask.isScheduled || currTask.scheduledMinutes == null) return null
+
+                        val startA = currTask.scheduledMinutes
+                        val endA = if (!currTask.endTime.isNullOrBlank()) {
+                            val e = CommonMethods.timeToMinutes(currTask.endTime) ?: (startA + 60)
+                            if (e < startA) 1440 else e
+                        } else {
+                            startA + 60
+                        }
+
+                        var maxOverlap = 0
+                        // 1. Check overlaps against other tasks on date d
+                        for (otherRow in orderedSessionRows) {
+                            if (otherRow === current || otherRow.task.id == currTask.id) continue
+                            val otherTask = otherRow.task
+                            if (!otherTask.isScheduled || otherTask.scheduledMinutes == null) continue
+
+                            val startB = otherTask.scheduledMinutes
+                            val endB = if (!otherTask.endTime.isNullOrBlank()) {
+                                val e = CommonMethods.timeToMinutes(otherTask.endTime) ?: (startB + 60)
+                                if (e < startB) 1440 else e
+                            } else {
+                                startB + 60
+                            }
+
+                            val overlapStart = maxOf(startA, startB)
+                            val overlapEnd = minOf(endA, endB)
+                            if (overlapStart < overlapEnd) {
+                                val duration = overlapEnd - overlapStart
+                                if (duration > maxOverlap) {
+                                    maxOverlap = duration
+                                }
+                            }
+                        }
+
+                        // 2. Check overlaps against yesterday's overnight tasks that spill into date d morning
+                        for (prevTask in prevDayOvernightTasks) {
+                            if (prevTask.id == currTask.id) continue
+                            val prevEndMins = CommonMethods.timeToMinutes(prevTask.endTime) ?: continue
+                            val startB = 0
+                            val endB = prevEndMins
+
+                            val overlapStart = maxOf(startA, startB)
+                            val overlapEnd = minOf(endA, endB)
+                            if (overlapStart < overlapEnd) {
+                                val duration = overlapEnd - overlapStart
+                                if (duration > maxOverlap) {
+                                    maxOverlap = duration
+                                }
+                            }
+                        }
+
+                        return if (maxOverlap > 0) maxOverlap else null
+                    }
+
                     val uiItems = orderedSessionRows.map { session ->
                         val task = session.task
-                        val untilCompleteState = untilCompleteStates[task.id]
                         val completionDate = session.completionDate
                         val isUntilCompleteChild = childParentMap.containsKey(task.id)
                         val completion = if (isUntilCompleteChild) {
@@ -311,22 +372,50 @@ class TaskViewModel(
                             ?: completionPercent(task, completion, settings)
                         val isCompleted = snapshot?.isCompleted
                             ?: isCompletedDerived(task, completion, settings)
-                        val timeState = when {
-                            !task.isScheduled || task.scheduledMinutes == null -> TimeState.NONE
-                            completionDate != d -> TimeState.NONE
-                            dateMode != DateMode.TODAY || currentMinutes == null -> TimeState.NONE
-                            task.scheduledMinutes < currentMinutes -> TimeState.PAST
-                            task.scheduledMinutes == currentMinutes -> TimeState.CURRENT
-                            else -> TimeState.FUTURE
+
+                        val startMins = task.scheduledMinutes
+                        val endMins = if (!task.endTime.isNullOrBlank()) {
+                            CommonMethods.timeToMinutes(task.endTime)
+                        } else if (startMins != null) {
+                            startMins + 60
+                        } else null
+
+                        val (timeState, isActive) = when {
+                            !task.isScheduled -> TimeState.NONE to false
+                            startMins == null -> TimeState.NONE to false
+                            else -> {
+                                val nowMins = currentMinutes
+                                val isOvernight = (endMins != null && endMins < startMins)
+                                val dNext = runCatching {
+                                    java.time.LocalDate.parse(d, CommonMethods.sdf).plusDays(1).format(CommonMethods.sdf)
+                                }.getOrNull()
+
+                                val inRange = when {
+                                    endMins == null -> nowMins == startMins
+                                    isOvernight -> (todayDate == d && nowMins >= startMins) || (todayDate == dNext && nowMins < endMins)
+                                    else -> nowMins in startMins until endMins
+                                }
+                                val isPast = when {
+                                    endMins == null -> nowMins > startMins
+                                    isOvernight -> (todayDate == dNext && nowMins >= endMins) || (dNext != null && todayDate > dNext)
+                                    else -> nowMins >= endMins
+                                }
+
+                                when {
+                                    inRange -> TimeState.CURRENT to true
+                                    isPast && (dateMode == DateMode.TODAY || dateMode == DateMode.PAST) -> TimeState.PAST to false
+                                    dateMode == DateMode.PAST -> TimeState.PAST to false
+                                    else -> TimeState.FUTURE to false
+                                }
+                            }
                         }
 
                         val currentStreak = dailyTaskStreaks[task.id] ?: 0
 
                         TaskUiItem(
-                            listItemKey = "${task.id}|$completionDate",
+                            listItemKey = "${task.id}|$completionDate|main",
                             task = task,
-                            isActive = task.scheduledMinutes != null &&
-                                    task.scheduledMinutes == activeMinutes && !isListFiltered,
+                            isActive = isActive,
                             timeState = timeState,
                             dateMode = dateMode,
                             currentStreak = currentStreak,
@@ -339,10 +428,12 @@ class TaskViewModel(
                             pendingFromDate = when {
                                 task.taskType == com.anitech.growdaily.enum_class.TaskType.UNTIL_COMPLETE &&
                                     task.taskAddedDate != d &&
-                                    untilCompleteState?.isVisible == true -> task.taskAddedDate
+                                    untilCompleteStates[task.id]?.isVisible == true -> task.taskAddedDate
                                 completionDate != d -> completionDate
                                 else -> null
                             },
+                            isCarryOverFromYesterday = false,
+                            overlapDurationMins = computeOverlapDurationMins(session),
                             sourceTask = childParentMap[task.id]?.let { parentTaskMap[it] }
                         )
                     }

@@ -91,7 +91,9 @@
                 android:layout_width="14dp"
                 android:layout_height="14dp"
                 android:layout_gravity="center"
-                android:src="@drawable/ic_alarm_clock" />
+                android:src="@drawable/ic_hourglass_top"
+                android:alpha="0.5"
+                />
 
             <ImageView
                 android:id="@+id/done"
@@ -108,12 +110,13 @@
 
     <!-- Divider Line separating content and metadata -->
     <View
+        android:id="@+id/dividerMetadata"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="8dp"
-        android:background="@color/task_done_track"
-        android:alpha="0.5" />
+        android:background="@color/task_card_stroke"
+        android:alpha="0.6" />
 
     <!-- Bottom Block: Category Tag + Horizontal Badges Flow -->
     <LinearLayout

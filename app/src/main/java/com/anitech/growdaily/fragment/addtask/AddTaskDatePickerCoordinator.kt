@@ -70,12 +70,20 @@ internal class AddTaskDatePickerCoordinator(
      */
     fun openTimePicker(
         tag: String? = null,
+        initialTime: String? = null,
         onCancel: (() -> Unit)? = null,
         onSelected: (String) -> Unit
     ) {
         dismissTimePickerIfShowing()
         val wasSynced = areScheduleAndReminderSynced()
         val cal = Calendar.getInstance()
+        if (!initialTime.isNullOrBlank()) {
+            val minutes = CommonMethods.timeToMinutes(initialTime)
+            if (minutes != null) {
+                cal.set(Calendar.HOUR_OF_DAY, minutes / 60)
+                cal.set(Calendar.MINUTE, minutes % 60)
+            }
+        }
         val timePicker = MaterialTimePicker.Builder()
             .setTimeFormat(TimeFormat.CLOCK_12H)
             .setHour(cal.get(Calendar.HOUR_OF_DAY))

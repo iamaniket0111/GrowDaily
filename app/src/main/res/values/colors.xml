@@ -39,6 +39,7 @@
     <color name="task_chip_surface">#FFFFFF</color>
     <color name="task_chip_stroke">#E8EBF2</color>
     <color name="task_timeline_line">#4F79FF</color>
+    <color name="task_warning_text">#EF4444</color>
     <color name="task_done_track">#E6EBF2</color>
     <color name="task_filter_surface">#FFFFFF</color>
     <color name="task_filter_selected_bg">#E9F0FF</color>

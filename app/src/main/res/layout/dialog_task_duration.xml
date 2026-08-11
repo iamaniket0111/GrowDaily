@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/GrowDailyDialogContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/txtTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Task Duration"
+        android:textColor="@color/dialog_text_primary"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <!-- Live Preview Header -->
+    <LinearLayout
+        android:id="@+id/previewContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/circular_corners"
+        android:backgroundTint="@color/add_form_muted_surface"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <TextView
+            android:id="@+id/txtStartTimePreview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/brand_blue"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="08:00 AM" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="8dp"
+            android:text="➜"
+            android:textColor="@color/add_form_text_secondary"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/txtEndTimePreview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/brand_blue"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="09:00 AM (1h)" />
+    </LinearLayout>
+
+    <!-- Quick Duration Add Chips -->
+    <TextView
+        style="@style/TitleLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Quick Presets"
+        android:textSize="12sp" />
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/chipDuration15m"
+                style="@style/ReorderFilterChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="+15m" />
+
+            <TextView
+                android:id="@+id/chipDuration30m"
+                style="@style/ReorderFilterChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="+30m" />
+
+            <TextView
+                android:id="@+id/chipDuration45m"
+                style="@style/ReorderFilterChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="+45m" />
+
+            <TextView
+                android:id="@+id/chipDuration1h"
+                style="@style/ReorderFilterChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="+1h" />
+
+            <TextView
+                android:id="@+id/chipDuration15h"
+                style="@style/ReorderFilterChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="+1.5h" />
+
+            <TextView
+                android:id="@+id/chipDuration2h"
+                style="@style/ReorderFilterChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="+2h" />
+
+            <TextView
+                android:id="@+id/chipDuration3h"
+                style="@style/ReorderFilterChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="+3h" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Custom Duration Wheel Pickers Header -->
+    <TextView
+        style="@style/TitleLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Custom Duration (+ time)"
+        android:textSize="12sp" />
+
+    <!-- Wheel Pickers Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <!-- Hours Wheel Column -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <NumberPicker
+                android:id="@+id/pickerHours"
+                android:layout_width="84dp"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Hours"
+                android:textColor="@color/add_form_text_secondary"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Separator -->
+        <TextView
+            android:layout_width="32dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingBottom="20dp"
+            android:text=":"
+            android:textColor="@color/add_form_text_primary"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <!-- Minutes Wheel Column -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <NumberPicker
+                android:id="@+id/pickerMinutes"
+                android:layout_width="84dp"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Minutes"
+                android:textColor="@color/add_form_text_secondary"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnCancel"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel_button"
+            android:textAllCaps="false"
+            android:textColor="@color/add_form_text_secondary"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnSetDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Set Duration"
+            android:textAllCaps="false"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</LinearLayout>

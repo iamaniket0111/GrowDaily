@@ -22,6 +22,7 @@ data class TaskEntity(
     val weight: TaskWeight,
 
     val scheduledTime: String?,
+    val endTime: String? = null,
     val reminderTime: String?,
     val reminderEnabled: Boolean,
     val isScheduled: Boolean,
