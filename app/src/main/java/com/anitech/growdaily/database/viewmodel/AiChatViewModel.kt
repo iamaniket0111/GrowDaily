@@ -32,6 +32,14 @@ class AiChatViewModel(
 
     private var cooldownUntilMillis: Long = 0L
 
+    init {
+        val welcomeMessage = AiChatMessage(
+            sender = ChatSender.AI,
+            text = "Hi there! I'm your GrowDaily AI Assistant. 🌿\n\nI can help you build positive habits, break down big goals into daily tasks, or suggest personalized routines. How can I support your daily growth today?"
+        )
+        _messages.value = listOf(welcomeMessage)
+    }
+
     fun setApiKey(key: String) {
         _apiKey.value = key
     }
