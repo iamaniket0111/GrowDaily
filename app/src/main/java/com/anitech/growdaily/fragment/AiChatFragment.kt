@@ -151,6 +151,17 @@ class AiChatFragment : Fragment() {
     private fun observeAccentColor() {
         (requireActivity() as? MainActivity)?.accentColor?.observe(viewLifecycleOwner) { color ->
             binding.btnSend.backgroundTintList = ColorStateList.valueOf(color)
+
+            val defaultStrokeColor = androidx.core.content.ContextCompat.getColor(requireContext(), com.anitech.growdaily.R.color.task_card_stroke)
+            val strokeStateList = ColorStateList(
+                arrayOf(
+                    intArrayOf(android.R.attr.state_focused),
+                    intArrayOf(-android.R.attr.state_focused)
+                ),
+                intArrayOf(color, defaultStrokeColor)
+            )
+            binding.inputLayoutPrompt.setBoxStrokeColorStateList(strokeStateList)
+
             chatAdapter.updateAccentColor(color)
         }
     }

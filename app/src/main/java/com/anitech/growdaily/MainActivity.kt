@@ -136,6 +136,17 @@ class MainActivity : AppCompatActivity() {
         )[AppViewModel::class.java]
     }
 
+    private fun getMainFragment(): com.anitech.growdaily.fragment.MainFragment? {
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment_content_main) as? NavHostFragment ?: return null
+        return navHostFragment.childFragmentManager.fragments
+            .firstOrNull { it is com.anitech.growdaily.fragment.MainFragment } as? com.anitech.growdaily.fragment.MainFragment
+    }
+
+    private fun getTaskFragment(): com.anitech.growdaily.fragment.TaskFragment? {
+        return getMainFragment()?.getCurrentFragment() as? com.anitech.growdaily.fragment.TaskFragment
+    }
+
     private fun setupToolbarDateDropdown() {
         if (toolbarDateDropdown == null) {
             toolbarDateDropdown = layoutInflater.inflate(R.layout.toolbar_date_dropdown, binding.toolbar, false)
@@ -147,21 +158,13 @@ class MainActivity : AppCompatActivity() {
             binding.toolbar.addView(toolbarDateDropdown, params)
             
             toolbarDateDropdown?.setOnClickListener {
-                val navHostFragment = supportFragmentManager
-                    .findFragmentById(R.id.nav_host_fragment_content_main) as? NavHostFragment
-                val mainFragment = navHostFragment?.childFragmentManager?.fragments?.get(0) as? com.anitech.growdaily.fragment.MainFragment
-                val taskFragment = mainFragment?.getCurrentFragment() as? com.anitech.growdaily.fragment.TaskFragment
-                taskFragment?.showDatePicker()
+                getTaskFragment()?.showDatePicker()
             }
         }
         toolbarDateDropdown?.visibility = android.view.View.VISIBLE
         
         val dateTextToSet = lastDateText ?: run {
-            val navHostFragment = supportFragmentManager
-                .findFragmentById(R.id.nav_host_fragment_content_main) as? NavHostFragment
-            val mainFragment = navHostFragment?.childFragmentManager?.fragments?.get(0) as? com.anitech.growdaily.fragment.MainFragment
-            val taskFragment = mainFragment?.getCurrentFragment() as? com.anitech.growdaily.fragment.TaskFragment
-            taskFragment?.getSelectedDateFormatted()
+            getTaskFragment()?.getSelectedDateFormatted()
         } ?: run {
             val formatter = java.time.format.DateTimeFormatter.ofPattern("MMM yyyy", java.util.Locale.getDefault())
             java.time.LocalDate.now().format(formatter)
@@ -179,11 +182,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun syncToolbarDateFromFragment() {
-        val navHostFragment = supportFragmentManager
-            .findFragmentById(R.id.nav_host_fragment_content_main) as? NavHostFragment
-        val mainFragment = navHostFragment?.childFragmentManager?.fragments?.get(0) as? com.anitech.growdaily.fragment.MainFragment
-        val taskFragment = mainFragment?.getCurrentFragment() as? com.anitech.growdaily.fragment.TaskFragment
-        taskFragment?.getSelectedDateFormatted()?.let { dateText ->
+        getTaskFragment()?.getSelectedDateFormatted()?.let { dateText ->
             updateToolbarDate(dateText)
         }
     }
@@ -200,16 +199,10 @@ class MainActivity : AppCompatActivity() {
         val manageTasksItem = menu?.findItem(R.id.menu_manage_repeat_tasks)
         val aiChatItem = menu?.findItem(R.id.menu_ai_chat)
 
-        // Find the MainFragment if we are on the Home destination
-        val navHostFragment = supportFragmentManager
-            .findFragmentById(R.id.nav_host_fragment_content_main) as? NavHostFragment
-        val mainFragment = navHostFragment?.childFragmentManager?.fragments?.get(0) as? com.anitech.growdaily.fragment.MainFragment
-        
-        val isTaskPage = mainFragment?.isTaskPageActive() ?: true
+        val isTaskPage = getMainFragment()?.isTaskPageActive() ?: true
         val state = todayButtonState.value ?: TodayButtonState(isVisible = false)
 
         if (showMenu) {
-            aiChatItem?.isVisible = true
             accentColor.value?.let { color ->
                 aiChatItem?.icon?.setTint(color)
             }
@@ -220,6 +213,7 @@ class MainActivity : AppCompatActivity() {
                 setupToolbarDateDropdown()
 
                 if (state.isVisible) {
+                    aiChatItem?.isVisible = false
                     settingsItem?.isVisible = false
                     reorderItem?.isVisible = false
                     manageTasksItem?.isVisible = false
@@ -250,6 +244,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 } else {
                     todayItem?.isVisible = false
+                    aiChatItem?.isVisible = true
                     settingsItem?.isVisible = true
                     reorderItem?.isVisible = true
                     manageTasksItem?.isVisible = true
@@ -261,6 +256,7 @@ class MainActivity : AppCompatActivity() {
                 supportActionBar?.title = getString(R.string.repeat_task_title_bar)
                 
                 todayItem?.isVisible = false
+                aiChatItem?.isVisible = true
                 settingsItem?.isVisible = true
                 reorderItem?.isVisible = true
                 manageTasksItem?.isVisible = true
@@ -282,11 +278,7 @@ class MainActivity : AppCompatActivity() {
 
         return when (item.itemId) {
             R.id.action_today -> {
-                val navHostFragment = supportFragmentManager
-                    .findFragmentById(R.id.nav_host_fragment_content_main) as? NavHostFragment
-                val mainFragment = navHostFragment?.childFragmentManager?.fragments?.get(0) as? com.anitech.growdaily.fragment.MainFragment
-                val taskFragment = mainFragment?.getCurrentFragment() as? com.anitech.growdaily.fragment.TaskFragment
-                taskFragment?.scrollToToday()
+                getTaskFragment()?.scrollToToday()
                 true
             }
 

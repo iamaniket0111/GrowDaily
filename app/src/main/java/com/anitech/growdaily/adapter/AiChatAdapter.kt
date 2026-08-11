@@ -85,6 +85,11 @@ class AiChatAdapter(
     inner class AiViewHolder(private val binding: ItemChatMessageAiBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: AiChatMessage) {
+            if (accentColor != 0) {
+                binding.ivAiAvatar.imageTintList = ColorStateList.valueOf(accentColor)
+                binding.progressLoading.setIndicatorColor(accentColor)
+            }
+
             if (item.isLoading) {
                 binding.progressLoading.visibility = View.VISIBLE
                 binding.tvAiMessage.visibility = View.GONE

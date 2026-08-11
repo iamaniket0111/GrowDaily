@@ -412,16 +412,6 @@ class TaskDiffCallback : DiffUtil.ItemCallback<TaskUiItem>() {
     }
 
     override fun areContentsTheSame(oldItem: TaskUiItem, newItem: TaskUiItem): Boolean {
-        return oldItem.task == newItem.task &&
-                oldItem.isActive == newItem.isActive &&
-                oldItem.timeState == newItem.timeState &&
-                oldItem.dateMode == newItem.dateMode &&
-                oldItem.completionPercent == newItem.completionPercent &&
-                oldItem.trackingSettings == newItem.trackingSettings &&
-                oldItem.isCompleted == newItem.isCompleted &&
-                oldItem.isListFiltered == newItem.isListFiltered &&
-                oldItem.completionDate == newItem.completionDate &&
-                oldItem.pendingFromDate == newItem.pendingFromDate
-
+        return oldItem == newItem
     }
 }
