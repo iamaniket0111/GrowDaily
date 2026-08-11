@@ -28,8 +28,8 @@ data class SuggestedTask(
         val taskId = UUID.randomUUID().toString()
 
         val startMins = scheduleTime?.let { CommonMethods.timeToMinutes(it) }
-        val calculatedEndTime = startMins?.let { CommonMethods.minutesToTime((it + 60) % 1440) }
-        val durationMins = if (startMins != null) 60 else null
+        val calculatedEndTime = startMins?.let { CommonMethods.minutesToTime((it + 15) % 1440) }
+        val durationMins = if (startMins != null) 15 else null
 
         return TaskEntity(
             id = taskId,
