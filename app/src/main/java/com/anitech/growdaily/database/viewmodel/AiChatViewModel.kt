@@ -77,10 +77,12 @@ class AiChatViewModel(
             val contextSummary = "User currently has ${tasks.size} active tasks scheduled in GrowDaily."
 
             val effectiveKey = userApiKey ?: _apiKey.value
+            val previousHistory = _messages.value.orEmpty()
             val (aiResponseText, suggestedTasks) = aiChatRepository.generateResponse(
                 userPrompt = trimmedPrompt,
                 userContextSummary = contextSummary,
-                customApiKey = effectiveKey
+                customApiKey = effectiveKey,
+                chatHistory = previousHistory
             )
 
             // Parse if a rate limit cooldown was returned to enforce client-side guard

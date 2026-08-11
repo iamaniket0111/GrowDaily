@@ -15,8 +15,9 @@ class AiChatRepository(
 
     suspend fun generateResponse(
         userPrompt: String,
-        userContextSummary: String,
-        customApiKey: String? = null
+        userContextSummary: String? = null,
+        customApiKey: String? = null,
+        chatHistory: List<com.anitech.growdaily.data_class.AiChatMessage> = emptyList()
     ): Pair<String, List<SuggestedTask>?> = withContext(Dispatchers.IO) {
         val effectiveKey = customApiKey?.takeIf { it.isNotBlank() } ?: defaultApiKey
 
@@ -35,7 +36,7 @@ class AiChatRepository(
             $userContextSummary
 
             CRITICAL GUIDELINES FOR TASK GENERATION:
-            1. Response Tone: Warm, encouraging, concise, and clearly structured with bullet points.
+            1. Response Tone: Warm, encouraging, ultra-concise, and direct. Keep text introductions short (1-2 sentences max). Do NOT output verbose explanations or define concept mechanics (e.g. do NOT explain "how flexible tasks work" or write long essays). Present the response cleanly and get straight to the point!
             2. Schedule / Routine Parsing: If the user provides a full timetable or daily schedule, parse EVERY SINGLE item into a task card. Do NOT truncate or cap the list.
             3. Preserve Original Language in Titles: Keep task titles in the user's original language (English, Hinglish, Hindi, etc.). Do NOT translate task titles unless specifically asked by the user. Keep titles clean and concise.
             4. Smart Note Field (No Redundant Notes): Only populate the "note" field if there are explicit additional sub-instructions or details for that item. If no extra detail exists, set "note": null. Never repeat the title or dump redundant text into the note field.
@@ -66,6 +67,17 @@ class AiChatRepository(
             Valid taskColor values: "DARK_BLUE", "BLUE", "TEAL", "GREEN", "YELLOW", "ORANGE", "RED", "PURPLE"
         """.trimIndent()
 
+        val historyContext = if (chatHistory.isNotEmpty()) {
+            val validHistory = chatHistory.filter { !it.isLoading && !it.isError && it.text.isNotBlank() }.takeLast(6)
+            if (validHistory.isNotEmpty()) {
+                "RECENT CONVERSATION HISTORY:\n" + validHistory.joinToString("\n") { msg ->
+                    val role = if (msg.sender == com.anitech.growdaily.data_class.ChatSender.USER) "User" else "AI"
+                    val cleanText = msg.text.replace(Regex("```(?:json)?\\s*[\\s\\S]*?```"), "").trim()
+                    "$role: $cleanText"
+                } + "\n\n"
+            } else ""
+        } else ""
+
         val modelNames = listOf(
             "gemini-flash-latest",
             "gemini-3.5-flash",
@@ -82,7 +94,7 @@ class AiChatRepository(
                     modelName = modelName,
                     apiKey = effectiveKey
                 )
-                val fullPrompt = "$systemInstruction\n\nUser Question: $userPrompt"
+                val fullPrompt = "$systemInstruction\n\n${historyContext}Current User Question: $userPrompt"
                 val response = generativeModel.generateContent(fullPrompt)
                 val text = response.text
                 if (!text.isNullOrBlank()) {
