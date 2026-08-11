@@ -39,7 +39,7 @@ data class SuggestedTask(
             taskRemovedDate = null,
             inactiveReason = null,
             iconResId = "ic_task",
-            colorCode = "#708CFF",
+            colorCode = TaskColor.DARK_BLUE.name,
             taskType = parsedTaskType,
             showUntilCompleted = false,
             repeatType = parsedRepeatType,

@@ -76,7 +76,7 @@ class TaskAdapter(
 
             // Accessibility
             root.contentDescription = root.context.getString(R.string.task_content_description, task.title, task.taskType.name)
-            val color = TaskColor.valueOf(task.colorCode).toColorInt(root.context)
+            val color = (TaskColor.fromName(task.colorCode) ?: TaskColor.DARK_BLUE).toColorInt(root.context)
 
             val isPastLike = item.isListFiltered || item.dateMode == DateMode.PAST
             val isToday = !item.isListFiltered && item.dateMode == DateMode.TODAY

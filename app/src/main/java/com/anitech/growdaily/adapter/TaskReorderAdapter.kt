@@ -57,7 +57,7 @@ class TaskReorderAdapter(
             binding.body.taskPendingText.visibility = View.GONE
 
             val icon = TaskIcon.fromName(task.iconResId)
-            val colorInt = TaskColor.valueOf(task.colorCode).toColorInt(itemView.context)
+            val colorInt = (TaskColor.fromName(task.colorCode) ?: TaskColor.DARK_BLUE).toColorInt(itemView.context)
 
             binding.body.imageProfile.setImageResource(icon.resId)
             binding.body.imageProfile.setSolidBackgroundColorCompat(colorInt)
