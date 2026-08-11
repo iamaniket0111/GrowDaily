@@ -1,5 +1,8 @@
 package com.anitech.growdaily
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import com.anitech.growdaily.data_class.DailyScore
 import com.anitech.growdaily.data_class.TaskEntity
 import com.anitech.growdaily.enum_class.DateMode
@@ -552,8 +555,11 @@ class CommonMethods {
             return timeFormatter.format(Date())
         }
 
-
+        fun isNetworkAvailable(context: Context): Boolean {
+            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
+            val network = connectivityManager.activeNetwork ?: return false
+            val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+            return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        }
     }
-
-
 }

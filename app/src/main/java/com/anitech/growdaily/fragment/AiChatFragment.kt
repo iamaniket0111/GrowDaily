@@ -100,6 +100,11 @@ class AiChatFragment : Fragment() {
         val userPrompt = binding.etPrompt.text.toString().trim()
         if (userPrompt.isBlank()) return
 
+        if (!com.anitech.growdaily.CommonMethods.isNetworkAvailable(requireContext())) {
+            Toast.makeText(requireContext(), "No internet connection. Please check your network and try again.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         viewModel.sendMessage(userPrompt)
         binding.etPrompt.text?.clear()
     }

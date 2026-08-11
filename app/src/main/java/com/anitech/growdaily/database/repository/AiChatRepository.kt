@@ -92,8 +92,12 @@ class AiChatRepository(
             val (cleanText, tasks) = parseSuggestedTasksFromText(responseText)
             Pair(cleanText, tasks)
         } else {
-            val errorMsg = lastException?.localizedMessage ?: "Unable to connect to AI Assistant. Please check your API key."
-            Pair("Unable to connect to AI Assistant: $errorMsg", null)
+            val errorMsg = when {
+                lastException is java.net.UnknownHostException || lastException is java.io.IOException ->
+                    "No internet connection. Please check your network connection and try again."
+                else -> lastException?.localizedMessage ?: "Unable to connect to AI Assistant. Please check your API key."
+            }
+            Pair(errorMsg, null)
         }
     }
 
