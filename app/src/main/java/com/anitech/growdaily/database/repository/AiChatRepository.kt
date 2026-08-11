@@ -92,10 +92,13 @@ class AiChatRepository(
             val (cleanText, tasks) = parseSuggestedTasksFromText(responseText)
             Pair(cleanText, tasks)
         } else {
+            val msg = lastException?.localizedMessage.orEmpty()
             val errorMsg = when {
                 lastException is java.net.UnknownHostException || lastException is java.io.IOException ->
                     "No internet connection. Please check your network connection and try again."
-                else -> lastException?.localizedMessage ?: "Unable to connect to AI Assistant. Please check your API key."
+                msg.contains("quota", ignoreCase = true) || msg.contains("429") || msg.contains("rate limit", ignoreCase = true) || msg.contains("RESOURCE_EXHAUSTED", ignoreCase = true) ->
+                    "Rate limit reached. Please wait a minute before asking your next question. ⏳"
+                else -> "Unable to connect to AI Assistant. Please try again in a few moments."
             }
             Pair(errorMsg, null)
         }
