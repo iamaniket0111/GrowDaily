@@ -1,5 +1,6 @@
 package com.anitech.growdaily.database.repository
 
+import com.anitech.growdaily.BuildConfig
 import com.anitech.growdaily.data_class.SuggestedTask
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
@@ -12,9 +13,7 @@ class AiChatRepository {
 
     private val gson = Gson()
     
-    // Default API Key fallback / placeholder for local dev testing
-    // Users can also supply their own key in Settings if needed
-    private var apiKey: String = ""
+    private var apiKey: String = BuildConfig.GEMINI_API_KEY
 
     fun setApiKey(key: String) {
         this.apiKey = key
