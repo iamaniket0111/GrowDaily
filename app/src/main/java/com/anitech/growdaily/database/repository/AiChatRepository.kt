@@ -42,30 +42,50 @@ class AiChatRepository(
             4. Smart Note Field (No Redundant Notes): Only populate the "note" field if there are explicit additional sub-instructions or details for that item. If no extra detail exists, set "note": null. Never repeat the title or dump redundant text into the note field.
             5. Time Formatting (Strict Rule): ONLY set "scheduleTime" if the user explicitly mentioned a start time or schedule in their prompt (e.g. "at 5:00 PM" or "6:00 AM Workout"). Extract start times into standard "hh:mm AM" or "hh:mm PM" format. If no start time was mentioned by the user, set "scheduleTime": null.
             6. Task Types & Day Tasks: Use "taskType": "DAY" for single-day tasks (e.g., "complete homework today"). Day tasks default to showUntilCompleted: true. Set "showUntilCompleted": false only if the user explicitly asks not to show it after today. Use "taskType": "DAILY" for repeating daily habits.
-            7. JSON Output Format: Whenever you suggest or parse tasks, ALWAYS put a JSON block at the VERY END of your response formatted exactly as:
+            7. Smart Tracking Types (TIMER, COUNTER, CHECKLIST, BINARY):
+               - TIMER: If prompt mentions duration (e.g. "meditation for 1 h" or "read 30 mins"), set "trackingType": "TIMER", "targetDurationSeconds": 3600 (duration in seconds).
+               - COUNTER: If prompt mentions reps/count (e.g. "50 pushups" or "8 glasses of water"), set "trackingType": "COUNTER", "dailyTargetCount": 50.
+               - CHECKLIST: If prompt mentions sub-steps/items under 1 task (e.g. "Workout: Warm up, Pushups, Stretch"), set "trackingType": "CHECKLIST", "checklistItems": ["Warm up", "Pushups", "Stretch"].
+               - BINARY: For standard checkmark tasks without duration/count, set "trackingType": "BINARY".
+            8. JSON Output Format: Whenever you suggest or parse tasks, ALWAYS put a JSON block at the VERY END of your response formatted exactly as:
             ```json
             [
               {
-                "title": "Uthna, paani peena, fresh hona",
+                "title": "50 Pushups",
                 "note": null,
                 "taskType": "DAILY",
                 "repeatType": "DAILY",
                 "taskColor": "DARK_BLUE",
-                "scheduleTime": "05:00 AM"
+                "scheduleTime": null,
+                "trackingType": "COUNTER",
+                "dailyTargetCount": 50
               },
               {
-                "title": "Study Session 1",
-                "note": "Hard Subject",
+                "title": "Meditation",
+                "note": null,
                 "taskType": "DAILY",
                 "repeatType": "DAILY",
-                "taskColor": "DARK_BLUE",
-                "scheduleTime": "06:40 AM"
+                "taskColor": "PURPLE",
+                "scheduleTime": "07:00 AM",
+                "trackingType": "TIMER",
+                "targetDurationSeconds": 3600
+              },
+              {
+                "title": "Gym Workout",
+                "note": null,
+                "taskType": "DAY",
+                "repeatType": "DAILY",
+                "taskColor": "TEAL",
+                "scheduleTime": null,
+                "trackingType": "CHECKLIST",
+                "checklistItems": ["Warm up", "Main set", "Cool down stretch"]
               }
             ]
             ```
             Valid taskType values: "DAILY", "DAY", "UNTIL_COMPLETE"
             Valid repeatType values: "DAILY", "DAYS_OF_WEEK", "DAYS_OF_MONTH"
             Valid taskColor values: "DARK_BLUE", "BLUE", "TEAL", "GREEN", "YELLOW", "ORANGE", "RED", "PURPLE"
+            Valid trackingType values: "BINARY", "COUNT", "TIMER", "CHECKLIST"
         """.trimIndent()
 
         val historyContext = if (chatHistory.isNotEmpty()) {

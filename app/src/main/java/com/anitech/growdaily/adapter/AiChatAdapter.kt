@@ -130,10 +130,28 @@ class AiChatAdapter(
                         else -> "🔄 Daily"
                     }
 
+                    val trackingLabel = when (suggestedTask.safeTrackingType) {
+                        "TIMER" -> {
+                            val sec = suggestedTask.targetDurationSeconds ?: 0L
+                            val mins = sec / 60
+                            if (mins > 0) "⏱️ ${mins}m" else "⏱️ Timer"
+                        }
+                        "COUNT", "COUNTER" -> {
+                            val count = suggestedTask.dailyTargetCount ?: 1
+                            "🔢 Target: $count"
+                        }
+                        "CHECKLIST" -> {
+                            val itemsCount = suggestedTask.checklistItems?.size ?: 0
+                            if (itemsCount > 0) "📋 $itemsCount items" else "📋 Checklist"
+                        }
+                        else -> null
+                    }
+
                     val subtitleDetails = buildList {
                         suggestedTask.note?.takeIf { it.isNotBlank() }?.let { add(it) }
                         suggestedTask.scheduleTime?.takeIf { it.isNotBlank() }?.let { add("⏰ $it") }
                         add(typeLabel)
+                        trackingLabel?.let { add(it) }
                     }.joinToString(" • ")
 
                     tvSubtitle.text = if (subtitleDetails.isNotBlank()) subtitleDetails else "Suggested Habit"

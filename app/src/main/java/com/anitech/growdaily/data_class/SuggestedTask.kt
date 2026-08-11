@@ -6,6 +6,8 @@ import com.anitech.growdaily.enum_class.TaskColor
 import com.anitech.growdaily.enum_class.TaskIcon
 import com.anitech.growdaily.enum_class.TaskType
 import com.anitech.growdaily.enum_class.TaskWeight
+import com.anitech.growdaily.enum_class.TrackingType
+import com.google.gson.Gson
 import java.util.UUID
 
 data class SuggestedTask(
@@ -16,23 +18,48 @@ data class SuggestedTask(
     val taskColor: String? = TaskColor.DARK_BLUE.name,
     val scheduleTime: String? = null,
     val showUntilCompleted: Boolean? = null,
+    val trackingType: String? = TrackingType.BINARY.name,
+    val dailyTargetCount: Int? = 1,
+    val targetDurationSeconds: Long? = 0L,
+    val checklistItems: List<String>? = null,
     val isAdded: Boolean = false
 ) {
     val safeTaskType: String get() = taskType ?: TaskType.DAILY.name
     val safeRepeatType: String get() = repeatType ?: RepeatType.DAILY.name
     val safeTaskColor: String get() = taskColor ?: TaskColor.DARK_BLUE.name
+    val safeTrackingType: String get() = trackingType ?: TrackingType.BINARY.name
 
     fun toTaskEntity(selectedDate: String, manualOrder: Int = 0): TaskEntity {
         val parsedTaskType = runCatching { TaskType.valueOf(safeTaskType) }.getOrDefault(TaskType.DAILY)
         val parsedRepeatType = runCatching { RepeatType.valueOf(safeRepeatType) }.getOrDefault(RepeatType.DAILY)
         val parsedColor = runCatching { TaskColor.valueOf(safeTaskColor) }.getOrDefault(TaskColor.DARK_BLUE)
+        val parsedTrackingType = if (safeTrackingType.equals("COUNTER", ignoreCase = true)) {
+            TrackingType.COUNT
+        } else {
+            runCatching { TrackingType.valueOf(safeTrackingType) }.getOrDefault(TrackingType.BINARY)
+        }
         val taskId = UUID.randomUUID().toString()
 
         val startMins = scheduleTime?.let { CommonMethods.timeToMinutes(it) }
         val calculatedEndTime = startMins?.let { CommonMethods.minutesToTime((it + 15) % 1440) }
 
-        // Day tasks have showUntilCompleted = true by default (matching AddTaskFragment)
         val isShowUntilCompleted = showUntilCompleted ?: (parsedTaskType == TaskType.DAY)
+
+        val jsonChecklistItems = if (parsedTrackingType == TrackingType.CHECKLIST && !checklistItems.isNullOrEmpty()) {
+            runCatching { Gson().toJson(checklistItems) }.getOrNull()
+        } else null
+
+        val finalTargetCount = if (parsedTrackingType == TrackingType.COUNT && dailyTargetCount != null && dailyTargetCount > 0) {
+            dailyTargetCount
+        } else {
+            1
+        }
+
+        val finalTargetDuration = if (parsedTrackingType == TrackingType.TIMER && targetDurationSeconds != null && targetDurationSeconds > 0L) {
+            targetDurationSeconds
+        } else {
+            0L
+        }
 
         return TaskEntity(
             id = taskId,
@@ -54,9 +81,12 @@ data class SuggestedTask(
             showUntilCompleted = isShowUntilCompleted,
             repeatType = parsedRepeatType,
             repeatDays = null,
-            dailyTargetCount = 1,
+            dailyTargetCount = finalTargetCount,
             manualOrder = manualOrder,
-            scheduledMinutes = startMins
+            scheduledMinutes = startMins,
+            trackingType = parsedTrackingType,
+            checklistItems = jsonChecklistItems,
+            targetDurationSeconds = finalTargetDuration
         )
     }
 }
