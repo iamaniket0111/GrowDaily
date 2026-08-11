@@ -27,6 +27,8 @@ class AiChatViewModel(
     private val _apiKey = MutableLiveData<String>("")
     val apiKey: LiveData<String> get() = _apiKey
 
+    private var cooldownUntilMillis: Long = 0
+
     init {
         // Initial Welcome Message from GrowDaily AI
         val welcomeMessage = AiChatMessage(
@@ -43,6 +45,19 @@ class AiChatViewModel(
     fun sendMessage(userText: String, userApiKey: String? = null) {
         val trimmedPrompt = userText.trim()
         if (trimmedPrompt.isBlank()) return
+
+        val now = System.currentTimeMillis()
+        if (now < cooldownUntilMillis) {
+            val remainingSecs = kotlin.math.ceil((cooldownUntilMillis - now) / 1000.0).toInt()
+            val waitStr = if (remainingSecs <= 1) "1 second" else "$remainingSecs seconds"
+            val cooldownNotice = "Rate limit cooldown active. Please wait $waitStr before trying again. ⏳"
+
+            val currentList = _messages.value.orEmpty().toMutableList()
+            currentList.add(AiChatMessage(sender = ChatSender.USER, text = trimmedPrompt))
+            currentList.add(AiChatMessage(sender = ChatSender.AI, text = cooldownNotice, isError = true))
+            _messages.value = currentList
+            return
+        }
 
         val currentList = _messages.value.orEmpty().toMutableList()
 
@@ -68,11 +83,18 @@ class AiChatViewModel(
                 customApiKey = effectiveKey
             )
 
+            // Parse if a rate limit cooldown was returned to enforce client-side guard
+            val retryMatch = Regex("""Please wait ([\d]+) second""", RegexOption.IGNORE_CASE).find(aiResponseText)
+            if (retryMatch != null) {
+                val sec = retryMatch.groupValues[1].toLongOrNull() ?: 60L
+                cooldownUntilMillis = System.currentTimeMillis() + (sec + 2) * 1000L
+            }
+
             // 3. Replace loading message with real response
             val updatedList = _messages.value.orEmpty().toMutableList()
             updatedList.removeLastOrNull() // remove loading placeholder
 
-            val isError = aiResponseText.contains("Invalid API Key") || aiResponseText.contains("Unable to connect")
+            val isError = aiResponseText.contains("Rate limit") || aiResponseText.contains("Invalid API Key") || aiResponseText.contains("Unable to connect")
             val aiMsg = AiChatMessage(
                 sender = ChatSender.AI,
                 text = aiResponseText,
