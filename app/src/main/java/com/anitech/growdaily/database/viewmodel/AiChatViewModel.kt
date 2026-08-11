@@ -38,7 +38,6 @@ class AiChatViewModel(
 
     fun setApiKey(key: String) {
         _apiKey.value = key
-        aiChatRepository.setApiKey(key)
     }
 
     fun sendMessage(userText: String, userApiKey: String? = null) {

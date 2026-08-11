@@ -3,30 +3,24 @@ package com.anitech.growdaily.database.repository
 import com.anitech.growdaily.BuildConfig
 import com.anitech.growdaily.data_class.SuggestedTask
 import com.google.ai.client.generativeai.GenerativeModel
-import com.google.ai.client.generativeai.type.content
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class AiChatRepository {
-
+class AiChatRepository(
+    private val defaultApiKey: String = BuildConfig.GEMINI_API_KEY
+) {
     private val gson = Gson()
-    
-    private var apiKey: String = BuildConfig.GEMINI_API_KEY
-
-    fun setApiKey(key: String) {
-        this.apiKey = key
-    }
 
     suspend fun generateResponse(
         userPrompt: String,
-        userContextSummary: String = "",
+        userContextSummary: String,
         customApiKey: String? = null
     ): Pair<String, List<SuggestedTask>?> = withContext(Dispatchers.IO) {
-        val effectiveKey = customApiKey?.ifBlank { null } ?: apiKey
+        val effectiveKey = customApiKey?.takeIf { it.isNotBlank() } ?: defaultApiKey
 
-        if (effectiveKey.isBlank()) {
+        if (effectiveKey.isBlank() || effectiveKey == "YOUR_GEMINI_API_KEY_HERE") {
             return@withContext Pair(
                 "Please configure your Gemini API Key in GrowDaily Settings to start chatting with your AI Habit Assistant!",
                 null
@@ -34,28 +28,33 @@ class AiChatRepository {
         }
 
         val systemInstruction = """
-            You are GrowDaily AI, a friendly, actionable habit coach and task assistant inside the GrowDaily Android app.
-            Your goal is to help the user build positive routines, manage daily tasks, and achieve personal growth.
-            
+            You are GrowDaily AI, an expert habit coach and daily planner inside the GrowDaily Android app.
+            Your primary job is to turn the user's goals, schedules, routines, or prompts (in English, Hinglish, or Hindi) into structured, actionable daily tasks.
+
             Current App Context:
             $userContextSummary
-            
-            Guidelines:
-            1. Keep responses clear, warm, concise, and structured with bullet points.
-            2. When the user asks for habit suggestions, task breakdowns, or routines, recommend 1 to 4 actionable tasks.
-            3. Whenever you recommend specific tasks, ALSO include a JSON block at the very end of your response formatted exactly as:
+
+            CRITICAL GUIDELINES FOR TASK GENERATION:
+            1. Response Tone: Warm, encouraging, concise, and clearly structured with bullet points.
+            2. Schedule / Routine Parsing: If the user provides a full timetable, daily schedule, or list of routines (e.g. from 5:00 AM to 10:20 PM in English, Hinglish, or Hindi), parse EVERY SINGLE schedule item into a task card! Do NOT cap, restrict, or truncate the list of tasks.
+            3. Task Titles: Make titles short, clear, and clean in English (e.g., "Uthna, paani peena" -> "Wake Up & Hydrate", "Study Session 1" -> "Study Session 1 (Hard Subject)"). Put details or original Hinglish notes in the "note" field.
+            4. Time Formatting: Extract start times into standard "hh:mm AM" or "hh:mm PM" format (e.g., "05:00 AM", "06:40 AM", "06:00 PM").
+            5. JSON Output Format: Whenever you suggest or parse tasks, ALWAYS put a JSON block at the VERY END of your response formatted exactly as:
             ```json
             [
               {
-                "title": "Drink 500ml Water",
-                "note": "Hydrate first thing in the morning",
-                "taskType": "DAILY_TASK",
-                "repeatType": "EVERY_DAY",
-                "scheduleTime": "08:00 AM"
+                "title": "Wake Up & Hydrate",
+                "note": "Uthna, paani peena, fresh hona",
+                "taskType": "DAILY",
+                "repeatType": "DAILY",
+                "taskColor": "DARK_BLUE",
+                "scheduleTime": "05:00 AM"
               }
             ]
             ```
-            This JSON will automatically generate 1-tap "Add to Tasks" cards for the user in GrowDaily!
+            Valid taskType values: "DAILY", "DAY", "UNTIL_COMPLETE"
+            Valid repeatType values: "DAILY", "DAYS_OF_WEEK", "DAYS_OF_MONTH"
+            Valid taskColor values: "DARK_BLUE", "BLUE", "TEAL", "GREEN", "YELLOW", "ORANGE", "RED", "PURPLE"
         """.trimIndent()
 
         val modelNames = listOf("gemini-flash-latest", "gemini-2.5-flash", "gemini-3.6-flash")
@@ -90,7 +89,7 @@ class AiChatRepository {
     }
 
     private fun parseSuggestedTasksFromText(text: String): Pair<String, List<SuggestedTask>?> {
-        val jsonPattern = Regex("```json\\s*([\\[\\{][\\s\\S]*?[\\]\\}])\\s*```")
+        val jsonPattern = Regex("```(?:json)?\\s*([\\[\\{][\\s\\S]*?[\\]\\}])\\s*```", RegexOption.IGNORE_CASE)
         val match = jsonPattern.find(text)
 
         if (match != null) {
@@ -100,8 +99,7 @@ class AiChatRepository {
                 val listType = object : TypeToken<List<SuggestedTask>>() {}.type
                 val tasks: List<SuggestedTask> = gson.fromJson(jsonString, listType)
                 return Pair(cleanText, tasks)
-            } catch (e: Exception) {
-                // If single object returned instead of array
+            } catch (_: Exception) {
                 try {
                     val singleTask: SuggestedTask = gson.fromJson(jsonString, SuggestedTask::class.java)
                     return Pair(cleanText, listOf(singleTask))
