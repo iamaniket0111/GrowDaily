@@ -79,6 +79,13 @@ class AiChatAdapter(
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: AiChatMessage) {
             binding.tvUserMessage.text = item.text
+            if (accentColor != 0) {
+                binding.userBubbleCard.setCardBackgroundColor(accentColor)
+            } else {
+                binding.userBubbleCard.setCardBackgroundColor(
+                    ContextCompat.getColor(itemView.context, R.color.brand_blue)
+                )
+            }
         }
     }
 
