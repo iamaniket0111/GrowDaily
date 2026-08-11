@@ -97,9 +97,15 @@ class AiChatRepository(
             Pair(cleanText, tasks)
         } else {
             val msg = lastException?.localizedMessage.orEmpty()
+            val isDailyQuota = msg.contains("PerDay", ignoreCase = true) ||
+                    msg.contains("limit: 20", ignoreCase = true) ||
+                    msg.contains("GenerateRequestsPerDay", ignoreCase = true)
+
             val errorMsg = when {
                 lastException is java.net.UnknownHostException || lastException is java.io.IOException ->
                     "No internet connection. Please check your network connection and try again."
+                isDailyQuota ->
+                    "Daily free AI limit reached (20 requests/day). Please try again tomorrow or enter your personal API Key. 🔑"
                 msg.contains("quota", ignoreCase = true) || msg.contains("429") || msg.contains("rate limit", ignoreCase = true) || msg.contains("RESOURCE_EXHAUSTED", ignoreCase = true) -> {
                     val retryMatch = Regex("""retry in\s+([\d.]+)\s*s""", RegexOption.IGNORE_CASE).find(msg)
                     val seconds = retryMatch?.groupValues?.get(1)?.toDoubleOrNull()?.let { kotlin.math.ceil(it).toInt() }
