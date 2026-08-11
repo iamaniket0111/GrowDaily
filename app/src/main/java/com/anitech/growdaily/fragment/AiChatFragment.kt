@@ -40,7 +40,7 @@ class AiChatFragment : Fragment() {
 
         val repository = (requireActivity().application as MyApp).repository
         val factory = DailyTaskViewModelFactory(repository)
-        viewModel = ViewModelProvider(this, factory)[AiChatViewModel::class.java]
+        viewModel = ViewModelProvider(requireActivity(), factory)[AiChatViewModel::class.java]
 
         setupRecyclerView()
         setupListeners()
