@@ -521,21 +521,27 @@ class CommonMethods {
         }
 
         private val timeFormatter = SimpleDateFormat("hh:mm a", Locale.ENGLISH)
+        private val timeFormatters = listOf(
+            timeFormatter,
+            SimpleDateFormat("h:mm a", Locale.ENGLISH),
+            SimpleDateFormat("HH:mm", Locale.ENGLISH),
+            SimpleDateFormat("H:mm", Locale.ENGLISH)
+        )
 
-         fun timeToMinutes(time: String?): Int? {
+        fun timeToMinutes(time: String?): Int? {
             if (time.isNullOrBlank()) return null
+            val sanitized = time.trim()
 
-            return try {
-                val date = timeFormatter.parse(time) ?: return null
-
-                val cal = Calendar.getInstance().apply { this.time = date }
-
-                cal.get(Calendar.HOUR_OF_DAY) * 60 +
-                        cal.get(Calendar.MINUTE)
-
-            } catch (e: Exception) {
-                null
+            for (formatter in timeFormatters) {
+                try {
+                    val date = formatter.parse(sanitized) ?: continue
+                    val cal = Calendar.getInstance().apply { this.time = date }
+                    return cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
+                } catch (_: Exception) {
+                    // Try next format
+                }
             }
+            return null
         }
 
         fun minutesToTime(minutes: Int): String {
