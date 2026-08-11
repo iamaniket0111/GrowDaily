@@ -98,7 +98,7 @@ class AiChatAdapter(
             } else {
                 binding.progressLoading.visibility = View.GONE
                 binding.tvAiMessage.visibility = View.VISIBLE
-                binding.tvAiMessage.text = item.text
+                binding.tvAiMessage.text = com.anitech.growdaily.util.MarkdownHelper.toSpannable(item.text)
 
                 if (item.isError) {
                     binding.tvAiMessage.setTextColor(
