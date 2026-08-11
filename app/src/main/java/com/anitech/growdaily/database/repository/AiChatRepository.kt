@@ -66,7 +66,13 @@ class AiChatRepository(
             Valid taskColor values: "DARK_BLUE", "BLUE", "TEAL", "GREEN", "YELLOW", "ORANGE", "RED", "PURPLE"
         """.trimIndent()
 
-        val modelNames = listOf("gemini-flash-latest", "gemini-2.5-flash", "gemini-3.6-flash")
+        val modelNames = listOf(
+            "gemini-flash-latest",
+            "gemini-3.5-flash",
+            "gemini-3.5-flash-lite",
+            "gemini-2.5-flash",
+            "gemini-3.6-flash"
+        )
         var responseText: String? = null
         var lastException: Throwable? = null
 
@@ -85,10 +91,7 @@ class AiChatRepository(
                 }
             } catch (t: Throwable) {
                 lastException = t
-                val msg = t.localizedMessage.orEmpty()
-                if (msg.contains("quota", ignoreCase = true) || msg.contains("429") || msg.contains("rate limit", ignoreCase = true) || msg.contains("RESOURCE_EXHAUSTED", ignoreCase = true)) {
-                    break
-                }
+                // Continue to next model name because Google free tier quotas are per-model name!
             }
         }
 
