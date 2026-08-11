@@ -26,28 +26,28 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipMorningRoutine"
-                style="@style/Widget.Material3.Chip.Suggestion"
+                style="@style/Widget.MaterialComponents.Chip.Action"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="🌿 Suggest Morning Habits" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipBreakDownGoal"
-                style="@style/Widget.Material3.Chip.Suggestion"
+                style="@style/Widget.MaterialComponents.Chip.Action"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="🎯 Break Down a Goal" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipEveningUnwind"
-                style="@style/Widget.Material3.Chip.Suggestion"
+                style="@style/Widget.MaterialComponents.Chip.Action"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="🌙 Evening Unwind Routine" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipFocusTips"
-                style="@style/Widget.Material3.Chip.Suggestion"
+                style="@style/Widget.MaterialComponents.Chip.Action"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="⚡ Boost Daily Focus" />
@@ -83,7 +83,7 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/inputLayoutPrompt"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
