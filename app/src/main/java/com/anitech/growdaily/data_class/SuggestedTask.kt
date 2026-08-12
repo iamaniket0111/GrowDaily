@@ -16,6 +16,7 @@ data class SuggestedTask(
     val taskType: String? = TaskType.DAILY.name,
     val repeatType: String? = RepeatType.DAILY.name,
     val taskColor: String? = TaskColor.DARK_BLUE.name,
+    val taskIcon: String? = TaskIcon.BELL.name,
     val scheduleTime: String? = null,
     val showUntilCompleted: Boolean? = null,
     val trackingType: String? = TrackingType.BINARY.name,
@@ -27,12 +28,14 @@ data class SuggestedTask(
     val safeTaskType: String get() = taskType ?: TaskType.DAILY.name
     val safeRepeatType: String get() = repeatType ?: RepeatType.DAILY.name
     val safeTaskColor: String get() = taskColor ?: TaskColor.DARK_BLUE.name
+    val safeTaskIcon: String get() = taskIcon ?: TaskIcon.BELL.name
     val safeTrackingType: String get() = trackingType ?: TrackingType.BINARY.name
 
     fun toTaskEntity(selectedDate: String, manualOrder: Int = 0): TaskEntity {
         val parsedTaskType = runCatching { TaskType.valueOf(safeTaskType) }.getOrDefault(TaskType.DAILY)
         val parsedRepeatType = runCatching { RepeatType.valueOf(safeRepeatType) }.getOrDefault(RepeatType.DAILY)
         val parsedColor = runCatching { TaskColor.valueOf(safeTaskColor) }.getOrDefault(TaskColor.DARK_BLUE)
+        val parsedIcon = runCatching { TaskIcon.valueOf(safeTaskIcon) }.getOrDefault(TaskIcon.BELL)
         val parsedTrackingType = if (safeTrackingType.equals("COUNTER", ignoreCase = true)) {
             TrackingType.COUNT
         } else {
@@ -81,7 +84,7 @@ data class SuggestedTask(
             taskAddedDate = selectedDate,
             taskRemovedDate = null,
             inactiveReason = null,
-            iconResId = TaskIcon.TROPHY.name,
+            iconResId = parsedIcon.name,
             colorCode = parsedColor.name,
             taskType = parsedTaskType,
             showUntilCompleted = isShowUntilCompleted,

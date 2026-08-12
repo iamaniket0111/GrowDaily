@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -143,11 +144,20 @@ class AiChatAdapter(
                         false
                     )
 
+                    val ivIcon = cardView.findViewById<ImageView>(R.id.ivSuggestedTaskIcon)
                     val tvTitle = cardView.findViewById<TextView>(R.id.tvTaskTitle)
                     val tvSubtitle = cardView.findViewById<TextView>(R.id.tvTaskSubtitle)
                     val btnAdd = cardView.findViewById<MaterialButton>(R.id.btnAddSuggestedTask)
                     val btnModify = cardView.findViewById<MaterialButton>(R.id.btnModifySuggestedTask)
                     val btnDismiss = cardView.findViewById<ImageButton>(R.id.btnDismissTask)
+
+                    val taskIcon = com.anitech.growdaily.enum_class.TaskIcon.fromName(suggestedTask.safeTaskIcon)
+                    ivIcon.setImageResource(taskIcon.resId)
+                    if (accentColor != 0) {
+                        ivIcon.imageTintList = ColorStateList.valueOf(accentColor)
+                    } else {
+                        ivIcon.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(itemView.context, R.color.brand_blue))
+                    }
 
                     tvTitle.text = suggestedTask.title
 

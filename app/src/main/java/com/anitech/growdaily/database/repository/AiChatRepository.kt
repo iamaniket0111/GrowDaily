@@ -50,7 +50,17 @@ class AiChatRepository(
                - TIMER: ONLY set "trackingType": "TIMER" if the user explicitly asks for a stopwatch/countdown timer in their prompt (e.g., "track a 30m timer for meditation", "timed workout", "stopwatch for reading"). NEVER set "trackingType": "TIMER" just because a task has a start and end time window in a schedule!
                - COUNTER: If prompt mentions reps/count (e.g. "50 pushups" or "8 glasses of water"), set "trackingType": "COUNTER", "dailyTargetCount": 50.
                - CHECKLIST: If prompt mentions sub-steps/items under 1 task (e.g. "Workout: Warm up, Pushups, Stretch"), set "trackingType": "CHECKLIST", "checklistItems": ["Warm up", "Pushups", "Stretch"].
-            8. JSON Output Format: Whenever you suggest or parse tasks, ALWAYS put a JSON block at the VERY END of your response formatted exactly as:
+            8. Smart Icon Selection ("taskIcon"): Select the best matching icon enum string for each task:
+               - WATER_DROP (water, paani, drink)
+               - COFFEE / STEAMING_BOWL / RESTAURANT (tea, coffee, breakfast, lunch, dinner, khana, chai)
+               - BOOK / GRADUATION_CAP (study, library, reading, homework, revision)
+               - WALK / SPRINT / DUMBBELL (walk, exercise, stretching, gym, workout)
+               - NIGHT / SELF_CARE (sona, sleep, wind down, relax, fresh hona)
+               - SHOPPING_CART (store, market, shopping)
+               - LAPTOP / CODE (work, coding, laptop)
+               - MEDITATION (meditation, yoga)
+               - BELL / TARGET / TROPHY / LIGHTNING_BOLT (general default)
+            9. JSON Output Format: Whenever you suggest or parse tasks, ALWAYS put a JSON block at the VERY END of your response formatted exactly as:
             ```json
             [
               {
@@ -59,6 +69,7 @@ class AiChatRepository(
                 "taskType": "DAILY",
                 "repeatType": "DAILY",
                 "taskColor": "DARK_BLUE",
+                "taskIcon": "BOOK",
                 "scheduleTime": "06:00 PM",
                 "targetDurationSeconds": 12600,
                 "trackingType": "BINARY"
@@ -69,6 +80,7 @@ class AiChatRepository(
                 "taskType": "DAILY",
                 "repeatType": "DAILY",
                 "taskColor": "GREEN",
+                "taskIcon": "DUMBBELL",
                 "scheduleTime": null,
                 "trackingType": "COUNTER",
                 "dailyTargetCount": 50
@@ -79,6 +91,7 @@ class AiChatRepository(
                 "taskType": "DAILY",
                 "repeatType": "DAILY",
                 "taskColor": "PURPLE",
+                "taskIcon": "MEDITATION",
                 "scheduleTime": "07:00 AM",
                 "trackingType": "TIMER",
                 "targetDurationSeconds": 1800
@@ -88,6 +101,7 @@ class AiChatRepository(
             Valid taskType values: "DAILY", "DAY", "UNTIL_COMPLETE"
             Valid repeatType values: "DAILY", "DAYS_OF_WEEK", "DAYS_OF_MONTH"
             Valid taskColor values: "DARK_BLUE", "BLUE", "TEAL", "GREEN", "YELLOW", "ORANGE", "RED", "PURPLE"
+            Valid taskIcon values: "BELL", "BOOK", "WATER_DROP", "COFFEE", "STEAMING_BOWL", "RESTAURANT", "WALK", "SPRINT", "DUMBBELL", "NIGHT", "SELF_CARE", "SHOPPING_CART", "LAPTOP", "CODE", "MEDITATION", "TARGET", "TROPHY", "LIGHTNING_BOLT"
             Valid trackingType values: "BINARY", "COUNT", "TIMER", "CHECKLIST"
         """.trimIndent()
 
