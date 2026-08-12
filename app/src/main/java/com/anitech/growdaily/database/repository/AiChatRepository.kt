@@ -36,49 +36,52 @@ class AiChatRepository(
             $userContextSummary
 
             CRITICAL GUIDELINES FOR TASK GENERATION:
-            1. Response Tone: Warm, encouraging, ultra-concise, and direct. Keep text introductions short (1-2 sentences max). Do NOT output verbose explanations or define concept mechanics (e.g. do NOT explain "how flexible tasks work" or write long essays). Present the response cleanly and get straight to the point!
+            1. Response Tone: Warm, encouraging, ultra-concise, and direct. Keep text introductions short (1-2 sentences max). Do NOT output verbose explanations or define concept mechanics. Present the response cleanly and get straight to the point!
             2. Schedule / Routine Parsing: If the user provides a full timetable or daily schedule, parse EVERY SINGLE item into a task card. Do NOT truncate or cap the list.
             3. Preserve Original Language in Titles: Keep task titles in the user's original language (English, Hinglish, Hindi, etc.). Do NOT translate task titles unless specifically asked by the user. Keep titles clean and concise.
             4. Smart Note Field (No Redundant Notes): Only populate the "note" field if there are explicit additional sub-instructions or details for that item. If no extra detail exists, set "note": null. Never repeat the title or dump redundant text into the note field.
-            5. Time Formatting (Strict Rule): ONLY set "scheduleTime" if the user explicitly mentioned a start time or schedule in their prompt (e.g. "at 5:00 PM" or "6:00 AM Workout"). Extract start times into standard "hh:mm AM" or "hh:mm PM" format. If no start time was mentioned by the user, set "scheduleTime": null.
+            5. Time Formatting & Schedule Duration Window (STRICT RULE):
+               - Extract start times into "scheduleTime": "hh:mm AM" or "hh:mm PM". If no start time was mentioned, set "scheduleTime": null.
+               - If a time range is provided (e.g. "6:00 – 9:30 PM Study Session 4" or "7:45 – 8:05 AM Exercise"), calculate the duration in seconds between start time and end time into "targetDurationSeconds" (e.g. 12600 seconds for 3.5h, 1200 seconds for 20 mins). This sets the schedule block range on the app timeline ("06:00 PM - 09:30 PM").
+               - If only a start time is given (e.g. "12:00 AM Sona"), set "scheduleTime": "12:00 AM", "targetDurationSeconds": null.
             6. Task Types & Day Tasks: Use "taskType": "DAY" for single-day tasks (e.g., "complete homework today"). Day tasks default to showUntilCompleted: true. Set "showUntilCompleted": false only if the user explicitly asks not to show it after today. Use "taskType": "DAILY" for repeating daily habits.
-            7. Smart Tracking Types (TIMER, COUNTER, CHECKLIST, BINARY):
-               - TIMER: If prompt mentions duration (e.g. "meditation for 1 h" or "read 30 mins"), set "trackingType": "TIMER", "targetDurationSeconds": 3600 (duration in seconds).
+            7. Smart Tracking Types (BINARY vs TIMER vs COUNTER vs CHECKLIST):
+               - BINARY (DEFAULT FOR ALL SCHEDULED TIMETABLE TASKS): ALWAYS default to "trackingType": "BINARY" for timetable items, study sessions, breaks, meals, routines, and daily activities — EVEN WHEN THEY HAVE A TIME RANGE (scheduleTime and targetDurationSeconds)! In GrowDaily, binary tasks display their schedule window on the timeline (e.g. "06:00 PM - 09:30 PM") and complete with a simple checkmark tap.
+               - TIMER: ONLY set "trackingType": "TIMER" if the user explicitly asks for a stopwatch/countdown timer in their prompt (e.g., "track a 30m timer for meditation", "timed workout", "stopwatch for reading"). NEVER set "trackingType": "TIMER" just because a task has a start and end time window in a schedule!
                - COUNTER: If prompt mentions reps/count (e.g. "50 pushups" or "8 glasses of water"), set "trackingType": "COUNTER", "dailyTargetCount": 50.
                - CHECKLIST: If prompt mentions sub-steps/items under 1 task (e.g. "Workout: Warm up, Pushups, Stretch"), set "trackingType": "CHECKLIST", "checklistItems": ["Warm up", "Pushups", "Stretch"].
-               - BINARY: For standard checkmark tasks without duration/count, set "trackingType": "BINARY".
             8. JSON Output Format: Whenever you suggest or parse tasks, ALWAYS put a JSON block at the VERY END of your response formatted exactly as:
             ```json
             [
+              {
+                "title": "Study Session 4",
+                "note": null,
+                "taskType": "DAILY",
+                "repeatType": "DAILY",
+                "taskColor": "DARK_BLUE",
+                "scheduleTime": "06:00 PM",
+                "targetDurationSeconds": 12600,
+                "trackingType": "BINARY"
+              },
               {
                 "title": "50 Pushups",
                 "note": null,
                 "taskType": "DAILY",
                 "repeatType": "DAILY",
-                "taskColor": "DARK_BLUE",
+                "taskColor": "GREEN",
                 "scheduleTime": null,
                 "trackingType": "COUNTER",
                 "dailyTargetCount": 50
               },
               {
-                "title": "Meditation",
+                "title": "Meditation Timer",
                 "note": null,
                 "taskType": "DAILY",
                 "repeatType": "DAILY",
                 "taskColor": "PURPLE",
                 "scheduleTime": "07:00 AM",
                 "trackingType": "TIMER",
-                "targetDurationSeconds": 3600
-              },
-              {
-                "title": "Gym Workout",
-                "note": null,
-                "taskType": "DAY",
-                "repeatType": "DAILY",
-                "taskColor": "TEAL",
-                "scheduleTime": null,
-                "trackingType": "CHECKLIST",
-                "checklistItems": ["Warm up", "Main set", "Cool down stretch"]
+                "targetDurationSeconds": 1800
               }
             ]
             ```
