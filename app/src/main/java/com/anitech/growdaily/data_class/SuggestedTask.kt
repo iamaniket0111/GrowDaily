@@ -40,8 +40,20 @@ data class SuggestedTask(
         }
         val taskId = UUID.randomUUID().toString()
 
+        val finalTargetDuration = if (targetDurationSeconds != null && targetDurationSeconds > 0L) {
+            targetDurationSeconds
+        } else {
+            0L
+        }
+
+        val durationMinutes = if (finalTargetDuration > 0L) {
+            (finalTargetDuration / 60L).toInt()
+        } else {
+            15
+        }
+
         val startMins = scheduleTime?.let { CommonMethods.timeToMinutes(it) }
-        val calculatedEndTime = startMins?.let { CommonMethods.minutesToTime((it + 15) % 1440) }
+        val calculatedEndTime = startMins?.let { CommonMethods.minutesToTime((it + durationMinutes) % 1440) }
 
         val isShowUntilCompleted = showUntilCompleted ?: (parsedTaskType == TaskType.DAY)
 
@@ -53,12 +65,6 @@ data class SuggestedTask(
             dailyTargetCount
         } else {
             1
-        }
-
-        val finalTargetDuration = if (parsedTrackingType == TrackingType.TIMER && targetDurationSeconds != null && targetDurationSeconds > 0L) {
-            targetDurationSeconds
-        } else {
-            0L
         }
 
         return TaskEntity(
