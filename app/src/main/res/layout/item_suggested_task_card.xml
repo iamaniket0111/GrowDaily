@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardSuggestedRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="6dp"
-    app:cardCornerRadius="12dp"
+    app:cardCornerRadius="14dp"
     app:cardElevation="0dp"
     app:cardBackgroundColor="@color/task_card_surface"
     app:strokeColor="@color/task_card_stroke"
@@ -34,14 +35,22 @@
             android:orientation="horizontal"
             android:gravity="top">
 
-            <ImageView
-                android:id="@+id/ivSuggestedTaskIcon"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:layout_marginTop="2dp"
-                android:layout_marginEnd="8dp"
-                android:src="@drawable/ic_trophy"
-                app:tint="@color/brand_blue" />
+            <!-- Rounded Icon Container Bubble -->
+            <FrameLayout
+                android:id="@+id/iconBubbleContainer"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/circle_background"
+                android:padding="8dp">
+
+                <ImageView
+                    android:id="@+id/ivSuggestedTaskIcon"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_trophy"
+                    app:tint="@color/white" />
+            </FrameLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -49,34 +58,84 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
+                <!-- Task Title -->
                 <TextView
                     android:id="@+id/tvTaskTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="14sp"
+                    android:textSize="15sp"
                     android:textColor="@color/task_text_primary"
                     android:textStyle="bold" />
 
+                <!-- Task Note / Sub-details -->
                 <TextView
-                    android:id="@+id/tvTaskSubtitle"
+                    android:id="@+id/tvTaskNote"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:textSize="12sp"
-                    android:textColor="@color/task_text_secondary" />
+                    android:textColor="@color/task_text_secondary"
+                    android:visibility="gone" />
 
+                <!-- Badges Row (Time Range & Goal Target) -->
+                <LinearLayout
+                    android:id="@+id/containerBadges"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/tvTimeBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="12sp"
+                        android:textColor="@color/task_text_secondary"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvTargetBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:textSize="12sp"
+                        android:textColor="@color/task_text_secondary"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <!-- Sub-Checklist Preview -->
+                <LinearLayout
+                    android:id="@+id/containerChecklistPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/tvChecklistItems"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="12sp"
+                        android:lineSpacingExtra="2dp"
+                        android:textColor="@color/task_text_secondary" />
+                </LinearLayout>
+
+                <!-- Action Buttons (+ Add & Modify) -->
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="10dp"
                     android:orientation="horizontal">
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnAddSuggestedTask"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        style="@style/Widget.MaterialComponents.Button"
                         android:layout_width="wrap_content"
                         android:layout_height="36dp"
-                        android:paddingHorizontal="12dp"
+                        android:paddingHorizontal="14dp"
                         android:text="+ Add"
                         android:textSize="12sp"
                         app:cornerRadius="8dp" />
@@ -87,7 +146,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="36dp"
                         android:layout_marginStart="8dp"
-                        android:paddingHorizontal="12dp"
+                        android:paddingHorizontal="14dp"
                         android:text="Modify ✏️"
                         android:textSize="12sp"
                         app:cornerRadius="8dp" />
