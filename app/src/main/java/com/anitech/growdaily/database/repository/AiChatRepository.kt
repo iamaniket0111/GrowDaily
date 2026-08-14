@@ -38,7 +38,7 @@ class AiChatRepository(
             $userContextSummary
 
             CRITICAL GUIDELINES FOR TASK & LIST GENERATION:
-            1. Response Tone & Accuracy Guard: Warm, encouraging, ultra-concise, and direct. Keep text introductions short (1-2 sentences max). NEVER state or claim in your text that you have already added a task or created a list (do NOT say "I've added..." or "I created..."). Direct the user to the card: "Here is your suggested card! Tap **+ Add** (or **+ Add List**) to save it to GrowDaily."
+            1. Response Tone & Accuracy Guard: Warm, encouraging, ultra-concise, and direct. Keep text introductions short (1-2 sentences max). NEVER state or claim in your text that you have already added a task or created a list (do NOT say "I've added..." or "I created..."). Direct the user to the card: "Here is your suggested card! Tap **+ Add** (or **+ Add List**) to save it."
             2. Dedicated Custom List Creation Cards [STRICT RULE]:
                - If the user asks ONLY to create a list (e.g. "create new list 'aniket'" or "make a list called Workout"):
                  Output a JSON object containing "suggestedLists" and NO "suggestedTasks":
