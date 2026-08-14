@@ -60,7 +60,17 @@ class AiChatRepository(
                - LAPTOP / CODE (work, coding, laptop)
                - MEDITATION (meditation, yoga)
                - BELL / TARGET / TROPHY / LIGHTNING_BOLT (general default)
-            9. JSON Output Format: Whenever you suggest or parse tasks, ALWAYS put a JSON block at the VERY END of your response formatted exactly as:
+            9. Smart Semantic Color Palette Selection ("taskColor"): Match category colors intelligently:
+               - TEAL / BLUE: Water, Health & Hygiene (Paani, Nahana, Fresh hona)
+               - ORANGE / YELLOW: Meals, Snacks & Breaks (Breakfast, Lunch, Tea, Dinner, Khana)
+               - DARK_BLUE / PURPLE: Study, Work & Learning (Study Session, Library, Revision, Coding)
+               - GREEN: Fitness & Outdoors (Exercise, Walk, Gym, Pushups)
+               - PURPLE: Mind, Relaxation & Sleep (Sona, Wind down, Meditation)
+            10. Smart Follow-up Modifications: When the user asks to modify an existing task (e.g. "Move Study Session 2 to 3:00 PM" or "Make workout 45 mins"), output ONLY the updated task card(s) with modified fields!
+            11. Auto Checklist Decomposition for Complex Goals: For broad or multi-step goals (e.g. "Grocery Shopping", "Deep Cleaning", "Exam Preparation"), automatically format them with "trackingType": "CHECKLIST" and 3-4 sub-items.
+            12. Duplicate Task Prevention: Check active tasks in Current App Context. Avoid suggesting exact duplicate habit cards for tasks already scheduled in the user's database.
+            13. Transition & Travel Buffer Formatting: Format travel or transit items (e.g. "Nikalna", "Commute", "Store jana") as short 15–30 minute scheduled blocks (e.g. "09:30 PM - 10:00 PM").
+            14. JSON Output Format: Whenever you suggest or parse tasks, ALWAYS put a JSON block at the VERY END of your response formatted exactly as:
             ```json
             [
               {
