@@ -75,7 +75,7 @@ class AiChatViewModel(
             // Build context summary with current time, date, task stats, and custom lists
             val nowFormatted = SimpleDateFormat("EEEE, MMMM d, yyyy 'at' hh:mm a", Locale.getDefault()).format(Date())
             val tasks = appRepository.getAllTasksFlow().firstOrNull().orEmpty()
-            val existingLists = appRepository.getAllLists().value.orEmpty()
+            val existingLists = appRepository.getAllListsSync()
             val listSummary = if (existingLists.isNotEmpty()) {
                 "Available Custom Lists: " + existingLists.joinToString(", ") { "${it.listTitle} (ID: ${it.id})" }
             } else {
@@ -122,7 +122,7 @@ class AiChatViewModel(
     }
 
     private suspend fun linkTaskToTargetList(task: SuggestedTask, taskId: String, allowCreateNewList: Boolean = true) {
-        val existingLists = appRepository.getAllLists().value.orEmpty()
+        val existingLists = appRepository.getAllListsSync()
 
         val targetListId = when {
             !task.targetListId.isNullOrBlank() -> task.targetListId

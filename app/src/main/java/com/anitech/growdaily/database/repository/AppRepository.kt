@@ -351,6 +351,14 @@ class AppRepository(
         return listDao.getAllLists()
     }
 
+    fun getAllListsFlow(): Flow<List<ListEntity>> {
+        return listDao.getAllListsFlow()
+    }
+
+    suspend fun getAllListsSync(): List<ListEntity> {
+        return listDao.getAllListsSync()
+    }
+
     fun getTaskIdsForListFlow(listId: String): Flow<List<String>> {
         return listDao.getTaskIdsForListFlow(listId)
     }
