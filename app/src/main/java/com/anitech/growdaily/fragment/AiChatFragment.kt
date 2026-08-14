@@ -84,8 +84,16 @@ class AiChatFragment : Fragment() {
             onModifySuggestedListClicked = { messageId, listIndex, currentListName ->
                 activeEditingMessageId = messageId
                 activeEditingListIndex = listIndex
+
+                val currentSuggestedList = viewModel.getSuggestedList(messageId, listIndex)
+                val draftTaskIds = currentSuggestedList?.selectedTaskIds?.toTypedArray()
+
                 viewModel.getOrCreateListEntityForNavigation(currentListName) { listEntity ->
-                    val action = AiChatFragmentDirections.actionAiChatFragmentToAddList(ConditionEntity = listEntity, isDraft = true)
+                    val action = AiChatFragmentDirections.actionAiChatFragmentToAddList(
+                        ConditionEntity = listEntity,
+                        isDraft = true,
+                        draftTaskIds = draftTaskIds
+                    )
                     findNavController().navigate(action)
                 }
             },

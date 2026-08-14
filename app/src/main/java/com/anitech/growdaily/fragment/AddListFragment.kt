@@ -90,14 +90,24 @@ class AddListFragment : Fragment() {
                 getString(R.string.list_message, condition.listTitle)
 
             // load existing selected tasks
-            viewModel.getTaskIdsForList(listId) { ids ->
+            val draftTaskIds = args.draftTaskIds
+            if (!draftTaskIds.isNullOrEmpty()) {
                 tempSelectedTaskIds.clear()
-                tempSelectedTaskIds.addAll(ids)
-                initialSelectedTaskIdsSnapshot = ids.toSet()
+                tempSelectedTaskIds.addAll(draftTaskIds)
+                initialSelectedTaskIdsSnapshot = draftTaskIds.toSet()
                 updateSelectedCount()
-                // Initial load, so notifyDataSetChanged is acceptable here to refresh all selection states
                 @Suppress("NotifyDataSetChanged")
                 adapter.notifyDataSetChanged()
+            } else {
+                viewModel.getTaskIdsForList(listId) { ids ->
+                    tempSelectedTaskIds.clear()
+                    tempSelectedTaskIds.addAll(ids)
+                    initialSelectedTaskIdsSnapshot = ids.toSet()
+                    updateSelectedCount()
+                    // Initial load, so notifyDataSetChanged is acceptable here to refresh all selection states
+                    @Suppress("NotifyDataSetChanged")
+                    adapter.notifyDataSetChanged()
+                }
             }
         }
 

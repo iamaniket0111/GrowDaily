@@ -328,6 +328,12 @@ class AiChatViewModel(
         _messages.value = currentList
     }
 
+    fun getSuggestedList(messageId: String, listIndex: Int): com.anitech.growdaily.data_class.SuggestedList? {
+        val msg = _messages.value?.firstOrNull { it.id == messageId }
+        val lists = msg?.suggestedLists
+        return if (lists != null && listIndex in lists.indices) lists[listIndex] else null
+    }
+
     fun updateSuggestedListName(messageId: String, listIndex: Int, newListName: String) {
         val currentList = _messages.value.orEmpty().toMutableList()
         val msgIndex = currentList.indexOfFirst { it.id == messageId }
