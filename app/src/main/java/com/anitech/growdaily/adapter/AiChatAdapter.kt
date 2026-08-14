@@ -121,6 +121,7 @@ class AiChatAdapter(
             if (hasContent) {
                 binding.containerSuggestedTasks.visibility = View.VISIBLE
                 val inflater = LayoutInflater.from(itemView.context)
+                val effectiveColor = if (accentColor != 0) accentColor else ContextCompat.getColor(itemView.context, R.color.brand_blue)
 
                 // 1. Render Dedicated Suggested List Cards (NO ICON, task count below list name, 2 action buttons)
                 lists?.forEachIndexed { index, suggestedList ->
@@ -183,10 +184,9 @@ class AiChatAdapter(
                         false
                     )
                     val btnAddAll = headerView.findViewById<MaterialButton>(R.id.btnAddAllTasks)
-                    btnAddAll.text = "⚡ Add All ($unaddedCount Tasks)"
-                    if (accentColor != 0) {
-                        btnAddAll.backgroundTintList = ColorStateList.valueOf(accentColor)
-                    }
+                    btnAddAll.text = "Add All ($unaddedCount Tasks)"
+                    btnAddAll.setTextColor(effectiveColor)
+                    btnAddAll.strokeColor = ColorStateList.valueOf(effectiveColor)
                     btnAddAll.setOnClickListener {
                         onAddAllSuggestedTasksClicked(item.id)
                     }

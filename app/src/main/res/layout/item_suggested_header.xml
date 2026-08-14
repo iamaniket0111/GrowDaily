@@ -19,13 +19,12 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnAddAllTasks"
-        style="@style/Widget.MaterialComponents.Button"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
         android:layout_width="wrap_content"
         android:layout_height="36dp"
         android:paddingHorizontal="14dp"
-        android:text="⚡ Add All"
+        android:text="Add All"
         android:textSize="12sp"
-        android:textStyle="bold"
-        app:cornerRadius="10dp" />
+        app:cornerRadius="8dp" />
 
 </LinearLayout>
