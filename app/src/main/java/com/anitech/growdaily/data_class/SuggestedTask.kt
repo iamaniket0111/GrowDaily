@@ -23,6 +23,7 @@ data class SuggestedTask(
     val listName: String? = null,
     val createNewList: String? = null,
     val scheduleTime: String? = null,
+    val endTime: String? = null,
     val reminderTime: String? = null,
     val reminderEnabled: Boolean? = false,
     val showUntilCompleted: Boolean? = null,
@@ -68,11 +69,20 @@ data class SuggestedTask(
         val durationMinutes = if (finalTargetDuration > 0L) {
             (finalTargetDuration / 60L).toInt()
         } else {
-            15
+            0
         }
 
         val startMins = scheduleTime?.let { CommonMethods.timeToMinutes(it) }
-        val calculatedEndTime = startMins?.let { CommonMethods.minutesToTime((it + durationMinutes) % 1440) }
+        val calculatedEndTime = if (durationMinutes > 0 && startMins != null) {
+            CommonMethods.minutesToTime((startMins + durationMinutes) % 1440)
+        } else null
+
+        val finalEndTime = when {
+            !endTime.isNullOrBlank() -> endTime
+            calculatedEndTime != null -> calculatedEndTime
+            scheduleTime != null -> com.anitech.growdaily.dialog.TaskDurationDialog.UNTIL_NEXT
+            else -> null
+        }
 
         val isShowUntilCompleted = showUntilCompleted ?: (parsedTaskType == TaskType.DAY)
 
@@ -95,7 +105,7 @@ data class SuggestedTask(
             note = note,
             weight = parsedWeight,
             scheduledTime = scheduleTime,
-            endTime = calculatedEndTime,
+            endTime = finalEndTime,
             reminderTime = reminderTime,
             reminderEnabled = isReminderOn,
             isScheduled = scheduleTime != null,
@@ -130,6 +140,7 @@ fun SuggestedTask.updateFromEntity(entity: TaskEntity): SuggestedTask {
         title = entity.title,
         note = entity.note,
         scheduleTime = entity.scheduledTime,
+        endTime = entity.endTime,
         reminderTime = entity.reminderTime,
         reminderEnabled = entity.reminderEnabled,
         taskColor = entity.colorCode,

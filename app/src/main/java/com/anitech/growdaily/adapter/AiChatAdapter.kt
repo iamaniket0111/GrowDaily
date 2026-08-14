@@ -234,19 +234,40 @@ class AiChatAdapter(
                     }
 
                     if (!suggestedTask.scheduleTime.isNullOrBlank()) {
-                        val startMins = com.anitech.growdaily.CommonMethods.timeToMinutes(suggestedTask.scheduleTime)
-                        val durationSec = suggestedTask.targetDurationSeconds ?: 0L
-                        val durationMins = if (durationSec > 0L) (durationSec / 60L).toInt() else 0
+                        val endTime = suggestedTask.endTime
+                        val isUntilNext = endTime == com.anitech.growdaily.dialog.TaskDurationDialog.UNTIL_NEXT ||
+                                (endTime.isNullOrBlank() && (suggestedTask.targetDurationSeconds == null || suggestedTask.targetDurationSeconds == 0L))
 
-                        if (startMins != null && durationMins > 0) {
-                            val endMins = (startMins + durationMins) % 1440
-                            val endTimeStr = com.anitech.growdaily.CommonMethods.minutesToTime(endMins)
-                            val durationStr = com.anitech.growdaily.CommonMethods.formatDuration(durationMins)
-                            tvTimeBadge.text = "⏰ ${suggestedTask.scheduleTime} – $endTimeStr ($durationStr)"
+                        if (isUntilNext) {
+                            tvTimeBadge.text = "⏰ ${suggestedTask.scheduleTime} (Until next task)"
+                            tvTimeBadge.visibility = View.VISIBLE
+                        } else if (!endTime.isNullOrBlank()) {
+                            val startMins = com.anitech.growdaily.CommonMethods.timeToMinutes(suggestedTask.scheduleTime)
+                            val endMins = com.anitech.growdaily.CommonMethods.timeToMinutes(endTime)
+                            if (startMins != null && endMins != null) {
+                                var diff = endMins - startMins
+                                if (diff < 0) diff += 1440
+                                val durationStr = com.anitech.growdaily.CommonMethods.formatDuration(diff)
+                                tvTimeBadge.text = "⏰ ${suggestedTask.scheduleTime} – $endTime ($durationStr)"
+                            } else {
+                                tvTimeBadge.text = "⏰ ${suggestedTask.scheduleTime} – $endTime"
+                            }
+                            tvTimeBadge.visibility = View.VISIBLE
                         } else {
-                            tvTimeBadge.text = "⏰ ${suggestedTask.scheduleTime}"
+                            val startMins = com.anitech.growdaily.CommonMethods.timeToMinutes(suggestedTask.scheduleTime)
+                            val durationSec = suggestedTask.targetDurationSeconds ?: 0L
+                            val durationMins = if (durationSec > 0L) (durationSec / 60L).toInt() else 0
+
+                            if (startMins != null && durationMins > 0) {
+                                val endMins = (startMins + durationMins) % 1440
+                                val endTimeStr = com.anitech.growdaily.CommonMethods.minutesToTime(endMins)
+                                val durationStr = com.anitech.growdaily.CommonMethods.formatDuration(durationMins)
+                                tvTimeBadge.text = "⏰ ${suggestedTask.scheduleTime} – $endTimeStr ($durationStr)"
+                            } else {
+                                tvTimeBadge.text = "⏰ ${suggestedTask.scheduleTime}"
+                            }
+                            tvTimeBadge.visibility = View.VISIBLE
                         }
-                        tvTimeBadge.visibility = View.VISIBLE
                     } else {
                         tvTimeBadge.visibility = View.GONE
                     }
