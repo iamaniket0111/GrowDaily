@@ -131,6 +131,9 @@
         <action
             android:id="@+id/action_aiChatFragment_to_nav_add_task"
             app:destination="@id/nav_add_task" />
+        <action
+            android:id="@+id/action_aiChatFragment_to_addList"
+            app:destination="@id/addList" />
     </fragment>
 
 </navigation>

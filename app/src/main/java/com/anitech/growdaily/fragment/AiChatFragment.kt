@@ -75,15 +75,13 @@ class AiChatFragment : Fragment() {
                 Toast.makeText(requireContext(), "List created in GrowDaily!", Toast.LENGTH_SHORT).show()
             },
             onModifySuggestedListClicked = { messageId, listIndex, currentListName ->
-                val dialog = com.anitech.growdaily.dialog.ModifySuggestedListDialog(
-                    currentListName = currentListName,
-                    existingLists = emptyList(),
-                    accentColor = currentAccentColor,
-                    onSaveListName = { newName ->
-                        viewModel.updateSuggestedListName(messageId, listIndex, newName)
-                    }
+                val listEntity = com.anitech.growdaily.data_class.ListEntity(
+                    id = java.util.UUID.randomUUID().toString(),
+                    listTitle = currentListName,
+                    sortOrder = 0
                 )
-                dialog.show(childFragmentManager, "ModifySuggestedListDialog")
+                val action = AiChatFragmentDirections.actionAiChatFragmentToAddList(ConditionEntity = listEntity)
+                findNavController().navigate(action)
             },
             onDismissSuggestedListClicked = { messageId, listIndex ->
                 viewModel.removeSuggestedList(messageId, listIndex)
