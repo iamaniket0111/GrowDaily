@@ -211,9 +211,13 @@ class AiChatAdapter(
                         }
                     }
 
-                    val displayListName = suggestedTask.listName ?: suggestedTask.createNewList
-                    if (!displayListName.isNullOrBlank()) {
-                        tvListBadge.text = "🏷️ $displayListName"
+                    val displayListName = when {
+                        !suggestedTask.createNewList.isNullOrBlank() -> "✨ New List: ${suggestedTask.createNewList}"
+                        !suggestedTask.listName.isNullOrBlank() -> "🏷️ ${suggestedTask.listName}"
+                        else -> null
+                    }
+                    if (displayListName != null) {
+                        tvListBadge.text = displayListName
                         tvListBadge.visibility = View.VISIBLE
                     } else {
                         tvListBadge.visibility = View.GONE
