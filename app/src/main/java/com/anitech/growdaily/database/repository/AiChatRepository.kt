@@ -70,7 +70,17 @@ class AiChatRepository(
             11. Auto Checklist Decomposition for Complex Goals: For broad or multi-step goals (e.g. "Grocery Shopping", "Deep Cleaning", "Exam Preparation"), automatically format them with "trackingType": "CHECKLIST" and 3-4 sub-items.
             12. Duplicate Task Prevention: Check active tasks in Current App Context. Avoid suggesting exact duplicate habit cards for tasks already scheduled in the user's database.
             13. Transition & Travel Buffer Formatting: Format travel or transit items (e.g. "Nikalna", "Commute", "Store jana") as short 15–30 minute scheduled blocks (e.g. "09:30 PM - 10:00 PM").
-            14. JSON Output Format: Whenever you suggest or parse tasks, ALWAYS put a JSON block at the VERY END of your response formatted exactly as:
+            14. Specific Weekly & Monthly Recurrence ("repeatDays"):
+                - For "DAYS_OF_WEEK": Set "repeatDays": "1,3,5" for Mon, Wed, Fri (1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat, 7=Sun).
+                - For "DAYS_OF_MONTH": Set "repeatDays": "1,15" for 1st & 15th of the month.
+            15. Automatic Reminder & Alarm Parsing ("reminderTime" & "reminderEnabled"):
+                - If the prompt mentions a reminder or alarm (e.g. "Remind me 10 mins before 7:00 AM workout"): Set "reminderEnabled": true, "reminderTime": "06:50 AM".
+            16. Task Weight & Priority ("weight"):
+                - High priority/urgent deadlines (e.g. "Urgent exam", "Doctor appointment") ➔ "HIGH" or "VERY_HIGH".
+                - Standard/casual habits ➔ "VERY_LOW" or "LOW".
+            17. Safety, Health & Positivity Guard: If a prompt involves self-harm, illegal acts, or dangerous activities, respond politely encouraging positive health habits without generating task cards.
+            18. Privacy & Security Guard: Never ask for or store sensitive personal information (passwords, bank accounts, credit card numbers, or full street addresses).
+            19. JSON Output Format: Whenever you suggest or parse tasks, ALWAYS put a JSON block at the VERY END of your response formatted exactly as:
             ```json
             [
               {
@@ -80,6 +90,7 @@ class AiChatRepository(
                 "repeatType": "DAILY",
                 "taskColor": "DARK_BLUE",
                 "taskIcon": "BOOK",
+                "weight": "HIGH",
                 "scheduleTime": "06:00 PM",
                 "targetDurationSeconds": 12600,
                 "trackingType": "BINARY"
@@ -88,23 +99,27 @@ class AiChatRepository(
                 "title": "50 Pushups",
                 "note": null,
                 "taskType": "DAILY",
-                "repeatType": "DAILY",
+                "repeatType": "DAYS_OF_WEEK",
+                "repeatDays": "1,3,5",
                 "taskColor": "GREEN",
                 "taskIcon": "DUMBBELL",
+                "weight": "LOW",
                 "scheduleTime": null,
                 "trackingType": "COUNTER",
                 "dailyTargetCount": 50
               },
               {
-                "title": "Meditation Timer",
+                "title": "Morning Workout Alarm",
                 "note": null,
                 "taskType": "DAILY",
                 "repeatType": "DAILY",
-                "taskColor": "PURPLE",
-                "taskIcon": "MEDITATION",
+                "taskColor": "TEAL",
+                "taskIcon": "ALARM_CLOCK",
+                "weight": "MEDIUM",
                 "scheduleTime": "07:00 AM",
-                "trackingType": "TIMER",
-                "targetDurationSeconds": 1800
+                "reminderEnabled": true,
+                "reminderTime": "06:50 AM",
+                "trackingType": "BINARY"
               }
             ]
             ```
@@ -112,6 +127,7 @@ class AiChatRepository(
             Valid repeatType values: "DAILY", "DAYS_OF_WEEK", "DAYS_OF_MONTH"
             Valid taskColor values: "DARK_BLUE", "BLUE", "TEAL", "GREEN", "YELLOW", "ORANGE", "RED", "PURPLE"
             Valid taskIcon values: "BELL", "BOOK", "WATER_DROP", "COFFEE", "STEAMING_BOWL", "RESTAURANT", "WALK", "SPRINT", "DUMBBELL", "NIGHT", "SELF_CARE", "SHOPPING_CART", "LAPTOP", "CODE", "MEDITATION", "TARGET", "TROPHY", "LIGHTNING_BOLT"
+            Valid weight values: "VERY_LOW", "LOW", "MEDIUM", "HIGH", "VERY_HIGH"
             Valid trackingType values: "BINARY", "COUNT", "TIMER", "CHECKLIST"
         """.trimIndent()
 

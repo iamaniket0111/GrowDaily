@@ -15,9 +15,13 @@ data class SuggestedTask(
     val note: String? = null,
     val taskType: String? = TaskType.DAILY.name,
     val repeatType: String? = RepeatType.DAILY.name,
+    val repeatDays: String? = null,
     val taskColor: String? = TaskColor.DARK_BLUE.name,
     val taskIcon: String? = TaskIcon.BELL.name,
+    val weight: String? = TaskWeight.VERY_LOW.name,
     val scheduleTime: String? = null,
+    val reminderTime: String? = null,
+    val reminderEnabled: Boolean? = false,
     val showUntilCompleted: Boolean? = null,
     val trackingType: String? = TrackingType.BINARY.name,
     val dailyTargetCount: Int? = 1,
@@ -29,6 +33,7 @@ data class SuggestedTask(
     val safeRepeatType: String get() = repeatType ?: RepeatType.DAILY.name
     val safeTaskColor: String get() = taskColor ?: TaskColor.DARK_BLUE.name
     val safeTaskIcon: String get() = taskIcon ?: TaskIcon.BELL.name
+    val safeWeight: String get() = weight ?: TaskWeight.VERY_LOW.name
     val safeTrackingType: String get() = trackingType ?: TrackingType.BINARY.name
 
     fun toTaskEntity(selectedDate: String, manualOrder: Int = 0): TaskEntity {
@@ -36,6 +41,7 @@ data class SuggestedTask(
         val parsedRepeatType = runCatching { RepeatType.valueOf(safeRepeatType) }.getOrDefault(RepeatType.DAILY)
         val parsedColor = runCatching { TaskColor.valueOf(safeTaskColor) }.getOrDefault(TaskColor.DARK_BLUE)
         val parsedIcon = runCatching { TaskIcon.valueOf(safeTaskIcon) }.getOrDefault(TaskIcon.BELL)
+        val parsedWeight = runCatching { TaskWeight.valueOf(safeWeight) }.getOrDefault(TaskWeight.VERY_LOW)
         val parsedTrackingType = if (safeTrackingType.equals("COUNTER", ignoreCase = true)) {
             TrackingType.COUNT
         } else {
@@ -70,16 +76,18 @@ data class SuggestedTask(
             1
         }
 
+        val isReminderOn = reminderEnabled == true || !reminderTime.isNullOrBlank()
+
         return TaskEntity(
             id = taskId,
             seriesId = taskId,
             title = title.ifBlank { "New Habit" },
             note = note,
-            weight = TaskWeight.VERY_LOW,
+            weight = parsedWeight,
             scheduledTime = scheduleTime,
             endTime = calculatedEndTime,
-            reminderTime = null,
-            reminderEnabled = false,
+            reminderTime = reminderTime,
+            reminderEnabled = isReminderOn,
             isScheduled = scheduleTime != null,
             taskAddedDate = selectedDate,
             taskRemovedDate = null,
@@ -89,7 +97,7 @@ data class SuggestedTask(
             taskType = parsedTaskType,
             showUntilCompleted = isShowUntilCompleted,
             repeatType = parsedRepeatType,
-            repeatDays = null,
+            repeatDays = repeatDays,
             dailyTargetCount = finalTargetCount,
             manualOrder = manualOrder,
             scheduledMinutes = startMins,
