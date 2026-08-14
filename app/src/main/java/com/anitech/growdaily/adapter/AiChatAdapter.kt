@@ -157,6 +157,7 @@ class AiChatAdapter(
                         btnModifyList.visibility = View.VISIBLE
                         btnModifyList.setTextColor(effectiveColor)
                         btnModifyList.strokeColor = ColorStateList.valueOf(effectiveColor)
+                        btnModifyList.iconTint = ColorStateList.valueOf(effectiveColor)
 
                         btnAddList.setOnClickListener {
                             onAddSuggestedListClicked(item.id, index)
@@ -298,6 +299,7 @@ class AiChatAdapter(
                         btnModify.visibility = View.VISIBLE
                         btnModify.setTextColor(effectiveColor)
                         btnModify.strokeColor = ColorStateList.valueOf(effectiveColor)
+                        btnModify.iconTint = ColorStateList.valueOf(effectiveColor)
 
                         if (!suggestedTask.createNewList.isNullOrBlank()) {
                             btnCreateList.visibility = View.VISIBLE

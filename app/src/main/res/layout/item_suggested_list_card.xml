@@ -76,9 +76,13 @@
                     android:layout_height="36dp"
                     android:layout_marginStart="8dp"
                     android:paddingHorizontal="14dp"
-                    android:text="Modify ✏️"
+                    android:text="Modify"
                     android:textSize="12sp"
-                    app:cornerRadius="8dp" />
+                    app:cornerRadius="8dp"
+                    app:icon="@drawable/ic_right_arrow"
+                    app:iconGravity="textEnd"
+                    app:iconPadding="4dp"
+                    app:iconSize="16dp" />
 
             </LinearLayout>
 
