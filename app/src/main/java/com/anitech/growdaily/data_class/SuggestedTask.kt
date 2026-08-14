@@ -30,7 +30,8 @@ data class SuggestedTask(
     val dailyTargetCount: Int? = 1,
     val targetDurationSeconds: Long? = 0L,
     val checklistItems: List<String>? = null,
-    val isAdded: Boolean = false
+    val isAdded: Boolean = false,
+    val draftTaskEntity: TaskEntity? = null
 ) {
     val safeTaskType: String get() = taskType ?: TaskType.DAILY.name
     val safeRepeatType: String get() = repeatType ?: RepeatType.DAILY.name
@@ -40,6 +41,12 @@ data class SuggestedTask(
     val safeTrackingType: String get() = trackingType ?: TrackingType.BINARY.name
 
     fun toTaskEntity(selectedDate: String, manualOrder: Int = 0): TaskEntity {
+        if (draftTaskEntity != null) {
+            return draftTaskEntity.copy(
+                taskAddedDate = selectedDate,
+                manualOrder = if (manualOrder > 0) manualOrder else draftTaskEntity.manualOrder
+            )
+        }
         val parsedTaskType = runCatching { TaskType.valueOf(safeTaskType) }.getOrDefault(TaskType.DAILY)
         val parsedRepeatType = runCatching { RepeatType.valueOf(safeRepeatType) }.getOrDefault(RepeatType.DAILY)
         val parsedColor = runCatching { TaskColor.valueOf(safeTaskColor) }.getOrDefault(TaskColor.DARK_BLUE)
@@ -109,4 +116,30 @@ data class SuggestedTask(
             targetDurationSeconds = finalTargetDuration
         )
     }
+}
+
+fun SuggestedTask.updateFromEntity(entity: TaskEntity): SuggestedTask {
+    val parsedChecklist = if (entity.trackingType == TrackingType.CHECKLIST && !entity.checklistItems.isNullOrEmpty()) {
+        runCatching {
+            val type = object : com.google.gson.reflect.TypeToken<List<String>>() {}.type
+            com.google.gson.Gson().fromJson<List<String>>(entity.checklistItems, type)
+        }.getOrNull() ?: checklistItems
+    } else checklistItems
+
+    return copy(
+        title = entity.title,
+        note = entity.note,
+        scheduleTime = entity.scheduledTime,
+        reminderTime = entity.reminderTime,
+        reminderEnabled = entity.reminderEnabled,
+        taskColor = entity.colorCode,
+        taskIcon = entity.iconResId,
+        weight = entity.weight.name,
+        taskType = entity.taskType.name,
+        trackingType = entity.trackingType.name,
+        dailyTargetCount = entity.dailyTargetCount,
+        targetDurationSeconds = entity.targetDurationSeconds,
+        checklistItems = parsedChecklist,
+        draftTaskEntity = entity
+    )
 }

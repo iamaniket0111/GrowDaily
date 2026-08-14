@@ -8,6 +8,7 @@ import com.anitech.growdaily.CommonMethods
 import com.anitech.growdaily.data_class.AiChatMessage
 import com.anitech.growdaily.data_class.ChatSender
 import com.anitech.growdaily.data_class.SuggestedTask
+import com.anitech.growdaily.data_class.updateFromEntity
 import com.anitech.growdaily.database.repository.AiChatRepository
 import com.anitech.growdaily.database.repository.AppRepository
 import kotlinx.coroutines.flow.firstOrNull
@@ -325,6 +326,26 @@ class AiChatViewModel(
         )
 
         currentList[msgIndex] = targetMsg.copy(suggestedLists = lists)
+        _messages.value = currentList
+    }
+
+    fun updateSuggestedTaskDraft(
+        messageId: String,
+        taskIndex: Int,
+        updatedTask: com.anitech.growdaily.data_class.TaskEntity
+    ) {
+        val currentList = _messages.value.orEmpty().toMutableList()
+        val msgIndex = currentList.indexOfFirst { it.id == messageId }
+        if (msgIndex == -1) return
+
+        val targetMsg = currentList[msgIndex]
+        val tasks = targetMsg.suggestedTasks?.toMutableList() ?: return
+        if (taskIndex !in tasks.indices) return
+
+        val oldTask = tasks[taskIndex]
+        tasks[taskIndex] = oldTask.updateFromEntity(updatedTask)
+
+        currentList[msgIndex] = targetMsg.copy(suggestedTasks = tasks)
         _messages.value = currentList
     }
 

@@ -271,6 +271,47 @@ class AddTaskViewModel(
 
     // ── Save ──────────────────────────────────────────────────────────────────
 
+    fun buildDraftTaskEntity(existingId: String?, taskType: TaskType): TaskEntity {
+        val normalized = AddTaskStateNormalizer.forPersistence(_uiState.value)
+        val today = CommonMethods.getTodayDate()
+        val taskId = existingId ?: java.util.UUID.randomUUID().toString()
+        val checklistJson = if (normalized.trackingType == TrackingType.CHECKLIST && normalized.checklistItems.isNotEmpty()) {
+            com.google.gson.Gson().toJson(normalized.checklistItems)
+        } else null
+
+        val startMins = normalized.scheduleTime?.let { CommonMethods.timeToMinutes(it) }
+        val durationMins = if (normalized.targetDurationSeconds > 0L) (normalized.targetDurationSeconds / 60L).toInt() else 15
+        val calcEndTime = normalized.endTime ?: startMins?.let { CommonMethods.minutesToTime((it + durationMins) % 1440) }
+
+        return TaskEntity(
+            id = taskId,
+            seriesId = taskId,
+            title = normalized.title.ifBlank { "New Habit" },
+            note = normalized.note.ifBlank { null },
+            weight = normalized.weight,
+            scheduledTime = normalized.scheduleTime,
+            endTime = calcEndTime,
+            reminderTime = normalized.reminderTime,
+            reminderEnabled = normalized.isReminderEnabled,
+            isScheduled = normalized.isScheduled,
+            taskAddedDate = today,
+            taskRemovedDate = null,
+            inactiveReason = null,
+            iconResId = normalized.icon,
+            colorCode = normalized.color,
+            taskType = taskType,
+            showUntilCompleted = taskType == TaskType.DAY && normalized.showUntilCompleted,
+            repeatType = if (taskType == TaskType.DAILY) normalized.repeatType else null,
+            repeatDays = if (taskType == TaskType.DAILY) CommonMethods.serializeRepeatDays(normalized.repeatDays) else null,
+            dailyTargetCount = if (normalized.trackingType == TrackingType.COUNT) normalized.dailyTargetCount else 0,
+            manualOrder = 0,
+            scheduledMinutes = startMins,
+            trackingType = normalized.trackingType,
+            checklistItems = checklistJson,
+            targetDurationSeconds = if (normalized.trackingType == TrackingType.TIMER) normalized.targetDurationSeconds else 0L
+        )
+    }
+
     fun saveTask(
         isEdit: Boolean,
         existingId: String?,

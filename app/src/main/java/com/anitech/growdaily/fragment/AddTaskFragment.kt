@@ -428,6 +428,14 @@ class AddTaskFragment : Fragment(), AddTaskSectionHost {
             showHostSnackbar(messageForValidationError(error))
             return
         }
+        if (args.isDraft) {
+            val draftTask = viewModel.buildDraftTaskEntity(args.task?.id, taskType)
+            val bundle = androidx.core.os.bundleOf("suggested_task_draft_entity" to draftTask)
+            parentFragmentManager.setFragmentResult("suggested_task_draft_result", bundle)
+            showHostToast("Draft updated!")
+            onCloseScreen()
+            return
+        }
         viewModel.saveTask(
             isEdit = editingTask != null,
             existingId = editingTask?.id,

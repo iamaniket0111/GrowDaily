@@ -32,6 +32,8 @@ class AiChatFragment : Fragment() {
     private var currentAccentColor: Int = 0
     private var activeEditingMessageId: String? = null
     private var activeEditingListIndex: Int? = null
+    private var activeEditingTaskMessageId: String? = null
+    private var activeEditingTaskIndex: Int? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -69,7 +71,9 @@ class AiChatFragment : Fragment() {
                 viewModel.addAllSuggestedTasks(messageId)
                 Toast.makeText(requireContext(), "All tasks added!", Toast.LENGTH_SHORT).show()
             },
-            onModifySuggestedTaskClicked = { suggestedTask ->
+            onModifySuggestedTaskClicked = { messageId, taskIndex, suggestedTask ->
+                activeEditingTaskMessageId = messageId
+                activeEditingTaskIndex = taskIndex
                 val taskEntity = suggestedTask.toTaskEntity(com.anitech.growdaily.CommonMethods.getTodayDate())
                 val action = AiChatFragmentDirections.actionAiChatFragmentToNavAddTask(task = taskEntity, isDraft = true)
                 findNavController().navigate(action)
@@ -122,6 +126,19 @@ class AiChatFragment : Fragment() {
                 listIndex = listIdx,
                 newTitle = newTitle,
                 selectedTaskIds = selectedTaskIds
+            )
+        }
+
+        parentFragmentManager.setFragmentResultListener("suggested_task_draft_result", viewLifecycleOwner) { _, bundle ->
+            @Suppress("DEPRECATION")
+            val updatedTask = bundle.getParcelable<com.anitech.growdaily.data_class.TaskEntity>("suggested_task_draft_entity") ?: return@setFragmentResultListener
+            val msgId = activeEditingTaskMessageId ?: return@setFragmentResultListener
+            val taskIdx = activeEditingTaskIndex ?: return@setFragmentResultListener
+
+            viewModel.updateSuggestedTaskDraft(
+                messageId = msgId,
+                taskIndex = taskIdx,
+                updatedTask = updatedTask
             )
         }
 

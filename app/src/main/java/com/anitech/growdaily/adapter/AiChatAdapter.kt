@@ -23,7 +23,7 @@ import com.google.android.material.button.MaterialButton
 class AiChatAdapter(
     private val onAddSuggestedTaskClicked: (messageId: String, taskIndex: Int, createList: Boolean) -> Unit,
     private val onAddAllSuggestedTasksClicked: (messageId: String) -> Unit,
-    private val onModifySuggestedTaskClicked: (suggestedTask: SuggestedTask) -> Unit,
+    private val onModifySuggestedTaskClicked: (messageId: String, taskIndex: Int, suggestedTask: SuggestedTask) -> Unit,
     private val onDismissSuggestedTaskClicked: (messageId: String, taskIndex: Int) -> Unit,
     private val onAddSuggestedListClicked: (messageId: String, listIndex: Int) -> Unit,
     private val onModifySuggestedListClicked: (messageId: String, listIndex: Int, currentListName: String) -> Unit,
@@ -331,7 +331,7 @@ class AiChatAdapter(
                         }
 
                         btnModify.setOnClickListener {
-                            onModifySuggestedTaskClicked(suggestedTask)
+                            onModifySuggestedTaskClicked(item.id, index, suggestedTask)
                         }
                     }
 
