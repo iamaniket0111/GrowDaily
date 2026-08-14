@@ -182,6 +182,16 @@ class AiChatFragment : Fragment() {
             )
             binding.inputLayoutPrompt.setBoxStrokeColorStateList(strokeStateList)
 
+            // Dynamic cursor & text highlight color matching theme accent color
+            val density = resources.displayMetrics.density
+            val cursorDrawable = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+                setColor(color)
+                setSize((2 * density).toInt(), 1)
+            }
+            binding.etPrompt.textCursorDrawable = cursorDrawable
+            binding.etPrompt.highlightColor = androidx.core.graphics.ColorUtils.setAlphaComponent(color, 48)
+
             chatAdapter.updateAccentColor(color)
         }
     }

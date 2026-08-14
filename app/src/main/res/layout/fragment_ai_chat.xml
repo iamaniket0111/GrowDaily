@@ -136,6 +136,8 @@
                 android:maxLines="4"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="12dp"
+                android:textColor="@color/task_text_primary"
+                android:textColorHint="@color/task_text_secondary"
                 android:textSize="15sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
