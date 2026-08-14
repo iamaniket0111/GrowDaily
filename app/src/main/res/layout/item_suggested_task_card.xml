@@ -77,7 +77,7 @@
                     android:textColor="@color/task_text_secondary"
                     android:visibility="gone" />
 
-                <!-- Badges Row (Time Range & Goal Target) -->
+                <!-- Badges Row (Time Range & Goal Target & List Badge) -->
                 <LinearLayout
                     android:id="@+id/containerBadges"
                     android:layout_width="wrap_content"
@@ -102,6 +102,16 @@
                         android:layout_marginStart="8dp"
                         android:textSize="12sp"
                         android:textColor="@color/task_text_secondary"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvListBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:textSize="12sp"
+                        android:textColor="@color/brand_blue"
+                        android:textStyle="bold"
                         android:visibility="gone" />
                 </LinearLayout>
 

@@ -150,6 +150,7 @@ class AiChatAdapter(
                     val tvNote = cardView.findViewById<TextView>(R.id.tvTaskNote)
                     val tvTimeBadge = cardView.findViewById<TextView>(R.id.tvTimeBadge)
                     val tvTargetBadge = cardView.findViewById<TextView>(R.id.tvTargetBadge)
+                    val tvListBadge = cardView.findViewById<TextView>(R.id.tvListBadge)
                     val containerChecklist = cardView.findViewById<View>(R.id.containerChecklistPreview)
                     val tvChecklist = cardView.findViewById<TextView>(R.id.tvChecklistItems)
                     val btnAdd = cardView.findViewById<MaterialButton>(R.id.btnAddSuggestedTask)
@@ -208,6 +209,14 @@ class AiChatAdapter(
                         else -> {
                             tvTargetBadge.visibility = View.GONE
                         }
+                    }
+
+                    val displayListName = suggestedTask.listName ?: suggestedTask.createNewList
+                    if (!displayListName.isNullOrBlank()) {
+                        tvListBadge.text = "🏷️ $displayListName"
+                        tvListBadge.visibility = View.VISIBLE
+                    } else {
+                        tvListBadge.visibility = View.GONE
                     }
 
                     if (suggestedTask.safeTrackingType == "CHECKLIST" && !suggestedTask.checklistItems.isNullOrEmpty()) {

@@ -80,7 +80,10 @@ class AiChatRepository(
                 - Standard/casual habits ➔ "VERY_LOW" or "LOW".
             17. Safety, Health & Positivity Guard: If a prompt involves self-harm, illegal acts, or dangerous activities, respond politely encouraging positive health habits without generating task cards.
             18. Privacy & Security Guard: Never ask for or store sensitive personal information (passwords, bank accounts, credit card numbers, or full street addresses).
-            19. JSON Output Format: Whenever you suggest or parse tasks, ALWAYS put a JSON block at the VERY END of your response formatted exactly as:
+            19. Custom User Lists Matching & Auto-Creation ("targetListId", "listName", "createNewList"):
+                - Check "Available Custom Lists" in App Context. If a task fits an existing list (e.g. Study Session fits list "Study"), set "targetListId": "<list_id>", "listName": "Study".
+                - If the prompt asks to create a new list (e.g. "Create a list called Grocery and add items"), set "createNewList": "Grocery".
+            20. JSON Output Format: Whenever you suggest or parse tasks, ALWAYS put a JSON block at the VERY END of your response formatted exactly as:
             ```json
             [
               {
@@ -91,6 +94,7 @@ class AiChatRepository(
                 "taskColor": "DARK_BLUE",
                 "taskIcon": "BOOK",
                 "weight": "HIGH",
+                "listName": "Study",
                 "scheduleTime": "06:00 PM",
                 "targetDurationSeconds": 12600,
                 "trackingType": "BINARY"
@@ -104,6 +108,7 @@ class AiChatRepository(
                 "taskColor": "GREEN",
                 "taskIcon": "DUMBBELL",
                 "weight": "LOW",
+                "listName": "Fitness",
                 "scheduleTime": null,
                 "trackingType": "COUNTER",
                 "dailyTargetCount": 50

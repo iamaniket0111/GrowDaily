@@ -72,12 +72,19 @@ class AiChatViewModel(
         _isLoading.value = true
 
         viewModelScope.launch {
-            // Build context summary with current time, date, and task stats
+            // Build context summary with current time, date, task stats, and custom lists
             val nowFormatted = SimpleDateFormat("EEEE, MMMM d, yyyy 'at' hh:mm a", Locale.getDefault()).format(Date())
             val tasks = appRepository.getAllTasksFlow().firstOrNull().orEmpty()
+            val existingLists = appRepository.getAllLists().value.orEmpty()
+            val listSummary = if (existingLists.isNotEmpty()) {
+                "Available Custom Lists: " + existingLists.joinToString(", ") { "${it.listTitle} (ID: ${it.id})" }
+            } else {
+                "Available Custom Lists: None"
+            }
             val contextSummary = """
                 Current Device Time & Date: $nowFormatted
                 Total Active Tasks Scheduled: ${tasks.size}
+                $listSummary
             """.trimIndent()
 
             val effectiveKey = userApiKey ?: _apiKey.value
@@ -114,6 +121,38 @@ class AiChatViewModel(
         }
     }
 
+    private suspend fun linkTaskToTargetList(task: SuggestedTask, taskId: String) {
+        val existingLists = appRepository.getAllLists().value.orEmpty()
+
+        val targetListId = when {
+            !task.targetListId.isNullOrBlank() -> task.targetListId
+            !task.listName.isNullOrBlank() -> {
+                existingLists.firstOrNull { it.listTitle.equals(task.listName, ignoreCase = true) }?.id
+            }
+            !task.createNewList.isNullOrBlank() -> {
+                val matchingList = existingLists.firstOrNull { it.listTitle.equals(task.createNewList, ignoreCase = true) }
+                if (matchingList != null) {
+                    matchingList.id
+                } else {
+                    val newId = java.util.UUID.randomUUID().toString()
+                    val newOrder = existingLists.size + 1
+                    val newList = com.anitech.growdaily.data_class.ListEntity(
+                        id = newId,
+                        listTitle = task.createNewList.trim(),
+                        sortOrder = newOrder
+                    )
+                    appRepository.insertList(newList)
+                    newId
+                }
+            }
+            else -> null
+        }
+
+        if (!targetListId.isNullOrBlank()) {
+            appRepository.addTaskToList(targetListId, taskId)
+        }
+    }
+
     fun addSuggestedTask(messageId: String, taskIndex: Int, selectedDate: String = CommonMethods.getTodayDate()) {
         viewModelScope.launch {
             val currentList = _messages.value.orEmpty().toMutableList()
@@ -131,6 +170,7 @@ class AiChatViewModel(
             val nextOrder = (appRepository.getMaxManualOrder() ?: 0) + 1
             val taskEntity = targetTask.toTaskEntity(selectedDate, manualOrder = nextOrder)
             appRepository.insertTask(taskEntity)
+            linkTaskToTargetList(targetTask, taskEntity.id)
 
             // Mark as added in UI
             tasks[taskIndex] = targetTask.copy(isAdded = true)
@@ -158,6 +198,7 @@ class AiChatViewModel(
                     currentOrder++
                     val taskEntity = task.toTaskEntity(selectedDate, manualOrder = currentOrder)
                     appRepository.insertTask(taskEntity)
+                    linkTaskToTargetList(task, taskEntity.id)
                     tasks[i] = task.copy(isAdded = true)
                     addedCount++
                 }
