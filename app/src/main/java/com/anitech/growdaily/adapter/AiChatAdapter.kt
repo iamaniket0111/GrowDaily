@@ -24,7 +24,10 @@ class AiChatAdapter(
     private val onAddSuggestedTaskClicked: (messageId: String, taskIndex: Int, createList: Boolean) -> Unit,
     private val onAddAllSuggestedTasksClicked: (messageId: String) -> Unit,
     private val onModifySuggestedTaskClicked: (suggestedTask: SuggestedTask) -> Unit,
-    private val onDismissSuggestedTaskClicked: (messageId: String, taskIndex: Int) -> Unit
+    private val onDismissSuggestedTaskClicked: (messageId: String, taskIndex: Int) -> Unit,
+    private val onAddSuggestedListClicked: (messageId: String, listIndex: Int) -> Unit,
+    private val onModifySuggestedListClicked: (messageId: String, listIndex: Int, currentListName: String) -> Unit,
+    private val onDismissSuggestedListClicked: (messageId: String, listIndex: Int) -> Unit
 ) : ListAdapter<AiChatMessage, RecyclerView.ViewHolder>(DiffCallback) {
 
     private var accentColor: Int = 0
@@ -111,15 +114,67 @@ class AiChatAdapter(
                 )
             }
 
-            // Bind suggested task action cards
+            // Bind suggested list cards & suggested task cards
             binding.containerSuggestedTasks.removeAllViews()
+            val lists = item.suggestedLists
             val tasks = item.suggestedTasks
-            if (!tasks.isNullOrEmpty() && !item.isLoading) {
+            val hasContent = (!lists.isNullOrEmpty() || !tasks.isNullOrEmpty()) && !item.isLoading
+
+            if (hasContent) {
                 binding.containerSuggestedTasks.visibility = View.VISIBLE
                 val inflater = LayoutInflater.from(itemView.context)
 
-                // Render "Add All" Header if there are 2 or more un-added tasks
-                val unaddedCount = tasks.count { !it.isAdded }
+                // 1. Render Dedicated Suggested List Cards (NO ICON, task count below list name, 2 action buttons)
+                lists?.forEachIndexed { index, suggestedList ->
+                    val listCardView = inflater.inflate(
+                        R.layout.item_suggested_list_card,
+                        binding.containerSuggestedTasks,
+                        false
+                    )
+                    val tvListName = listCardView.findViewById<TextView>(R.id.tvListName)
+                    val tvTaskCount = listCardView.findViewById<TextView>(R.id.tvTaskCount)
+                    val btnAddList = listCardView.findViewById<MaterialButton>(R.id.btnAddList)
+                    val btnModifyList = listCardView.findViewById<MaterialButton>(R.id.btnModifyList)
+                    val btnDismissList = listCardView.findViewById<ImageButton>(R.id.btnDismissList)
+
+                    tvListName.text = suggestedList.listTitle
+                    val count = suggestedList.taskCount
+                    tvTaskCount.text = if (count == 1) "1 Task" else "$count Tasks"
+
+                    val effectiveColor = if (accentColor != 0) accentColor else ContextCompat.getColor(itemView.context, R.color.brand_blue)
+
+                    if (suggestedList.isCreated) {
+                        btnAddList.text = "Created ✓"
+                        btnAddList.isEnabled = false
+                        btnAddList.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(itemView.context, R.color.default_text_color))
+                        btnModifyList.visibility = View.GONE
+                    } else {
+                        btnAddList.text = "+ Add List"
+                        btnAddList.isEnabled = true
+                        btnAddList.backgroundTintList = ColorStateList.valueOf(effectiveColor)
+                        btnAddList.setTextColor(ContextCompat.getColor(itemView.context, R.color.white))
+
+                        btnModifyList.visibility = View.VISIBLE
+                        btnModifyList.setTextColor(effectiveColor)
+                        btnModifyList.strokeColor = ColorStateList.valueOf(effectiveColor)
+
+                        btnAddList.setOnClickListener {
+                            onAddSuggestedListClicked(item.id, index)
+                        }
+                        btnModifyList.setOnClickListener {
+                            onModifySuggestedListClicked(item.id, index, suggestedList.listTitle)
+                        }
+                    }
+
+                    btnDismissList.setOnClickListener {
+                        onDismissSuggestedListClicked(item.id, index)
+                    }
+
+                    binding.containerSuggestedTasks.addView(listCardView)
+                }
+
+                // 2. Render Suggested Task Cards
+                val unaddedCount = tasks?.count { !it.isAdded } ?: 0
                 if (unaddedCount >= 2) {
                     val headerView = inflater.inflate(
                         R.layout.item_suggested_header,
@@ -137,7 +192,7 @@ class AiChatAdapter(
                     binding.containerSuggestedTasks.addView(headerView)
                 }
 
-                tasks.forEachIndexed { index, suggestedTask ->
+                tasks?.forEachIndexed { index, suggestedTask ->
                     val cardView = inflater.inflate(
                         R.layout.item_suggested_task_card,
                         binding.containerSuggestedTasks,

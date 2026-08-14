@@ -14,6 +14,7 @@ data class AiChatMessage(
     val text: String,
     val timestamp: Long = System.currentTimeMillis(),
     val suggestedTasks: List<SuggestedTask>? = null,
+    val suggestedLists: List<SuggestedList>? = null,
     val isLoading: Boolean = false,
     val isError: Boolean = false
 )

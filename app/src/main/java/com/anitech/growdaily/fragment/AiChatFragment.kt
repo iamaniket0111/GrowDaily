@@ -29,6 +29,7 @@ class AiChatFragment : Fragment() {
     private lateinit var viewModel: AiChatViewModel
     private lateinit var chatAdapter: AiChatAdapter
     private var previousMessageCount = 0
+    private var currentAccentColor: Int = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -68,6 +69,24 @@ class AiChatFragment : Fragment() {
             },
             onDismissSuggestedTaskClicked = { messageId, taskIndex ->
                 viewModel.removeSuggestedTask(messageId, taskIndex)
+            },
+            onAddSuggestedListClicked = { messageId, listIndex ->
+                viewModel.addSuggestedList(messageId, listIndex)
+                Toast.makeText(requireContext(), "List created in GrowDaily!", Toast.LENGTH_SHORT).show()
+            },
+            onModifySuggestedListClicked = { messageId, listIndex, currentListName ->
+                val dialog = com.anitech.growdaily.dialog.ModifySuggestedListDialog(
+                    currentListName = currentListName,
+                    existingLists = emptyList(),
+                    accentColor = currentAccentColor,
+                    onSaveListName = { newName ->
+                        viewModel.updateSuggestedListName(messageId, listIndex, newName)
+                    }
+                )
+                dialog.show(childFragmentManager, "ModifySuggestedListDialog")
+            },
+            onDismissSuggestedListClicked = { messageId, listIndex ->
+                viewModel.removeSuggestedList(messageId, listIndex)
             }
         )
 
@@ -150,6 +169,7 @@ class AiChatFragment : Fragment() {
 
     private fun observeAccentColor() {
         (requireActivity() as? MainActivity)?.accentColor?.observe(viewLifecycleOwner) { color ->
+            currentAccentColor = color
             binding.btnSend.backgroundTintList = ColorStateList.valueOf(color)
 
             val defaultStrokeColor = androidx.core.content.ContextCompat.getColor(requireContext(), com.anitech.growdaily.R.color.task_card_stroke)

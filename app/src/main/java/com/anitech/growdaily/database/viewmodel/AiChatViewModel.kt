@@ -89,7 +89,7 @@ class AiChatViewModel(
 
             val effectiveKey = userApiKey ?: _apiKey.value
             val previousHistory = _messages.value.orEmpty()
-            val (aiResponseText, suggestedTasks) = aiChatRepository.generateResponse(
+            val (aiResponseText, suggestedTasks, suggestedLists) = aiChatRepository.generateResponse(
                 userPrompt = trimmedPrompt,
                 userContextSummary = contextSummary,
                 customApiKey = effectiveKey,
@@ -112,6 +112,7 @@ class AiChatViewModel(
                 sender = ChatSender.AI,
                 text = aiResponseText,
                 suggestedTasks = suggestedTasks,
+                suggestedLists = suggestedLists,
                 isError = isError
             )
             updatedList.add(aiMsg)
@@ -227,6 +228,67 @@ class AiChatViewModel(
 
         tasks.removeAt(taskIndex)
         currentList[msgIndex] = targetMsg.copy(suggestedTasks = if (tasks.isEmpty()) null else tasks)
+        _messages.value = currentList
+    }
+
+    fun addSuggestedList(messageId: String, listIndex: Int) {
+        viewModelScope.launch {
+            val currentList = _messages.value.orEmpty().toMutableList()
+            val msgIndex = currentList.indexOfFirst { it.id == messageId }
+            if (msgIndex == -1) return@launch
+
+            val targetMsg = currentList[msgIndex]
+            val lists = targetMsg.suggestedLists?.toMutableList() ?: return@launch
+            if (listIndex !in lists.indices) return@launch
+
+            val targetSuggestedList = lists[listIndex]
+            if (targetSuggestedList.isCreated) return@launch
+
+            val existingLists = appRepository.getAllListsSync()
+            val matchingList = existingLists.firstOrNull { it.listTitle.equals(targetSuggestedList.listTitle, ignoreCase = true) }
+
+            if (matchingList == null) {
+                val newId = java.util.UUID.randomUUID().toString()
+                val newOrder = existingLists.size + 1
+                val newList = com.anitech.growdaily.data_class.ListEntity(
+                    id = newId,
+                    listTitle = targetSuggestedList.listTitle.trim(),
+                    sortOrder = newOrder
+                )
+                appRepository.insertList(newList)
+            }
+
+            lists[listIndex] = targetSuggestedList.copy(isCreated = true)
+            currentList[msgIndex] = targetMsg.copy(suggestedLists = lists)
+            _messages.value = currentList
+        }
+    }
+
+    fun updateSuggestedListName(messageId: String, listIndex: Int, newListName: String) {
+        val currentList = _messages.value.orEmpty().toMutableList()
+        val msgIndex = currentList.indexOfFirst { it.id == messageId }
+        if (msgIndex == -1) return
+
+        val targetMsg = currentList[msgIndex]
+        val lists = targetMsg.suggestedLists?.toMutableList() ?: return
+        if (listIndex !in lists.indices) return
+
+        lists[listIndex] = lists[listIndex].copy(listTitle = newListName)
+        currentList[msgIndex] = targetMsg.copy(suggestedLists = lists)
+        _messages.value = currentList
+    }
+
+    fun removeSuggestedList(messageId: String, listIndex: Int) {
+        val currentList = _messages.value.orEmpty().toMutableList()
+        val msgIndex = currentList.indexOfFirst { it.id == messageId }
+        if (msgIndex == -1) return
+
+        val targetMsg = currentList[msgIndex]
+        val lists = targetMsg.suggestedLists?.toMutableList() ?: return
+        if (listIndex !in lists.indices) return
+
+        lists.removeAt(listIndex)
+        currentList[msgIndex] = targetMsg.copy(suggestedLists = if (lists.isEmpty()) null else lists)
         _messages.value = currentList
     }
 }
