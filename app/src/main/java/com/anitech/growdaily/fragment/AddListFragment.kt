@@ -67,6 +67,8 @@ class AddListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupRecycler()
+
         val condition = args.ConditionEntity
 
         if (condition == null) {
@@ -111,7 +113,6 @@ class AddListFragment : Fragment() {
             }
         }
 
-        setupRecycler()
         observeAllTasks()
         setupSaveButton()
         setupTextWatcher()
