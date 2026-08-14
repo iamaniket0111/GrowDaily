@@ -213,7 +213,9 @@ class AiChatFragment : Fragment() {
     private fun observeAccentColor() {
         (requireActivity() as? MainActivity)?.accentColor?.observe(viewLifecycleOwner) { color ->
             currentAccentColor = color
+            val isLightAccent = androidx.core.graphics.ColorUtils.calculateLuminance(color) > 0.5
             binding.btnSend.backgroundTintList = ColorStateList.valueOf(color)
+            binding.btnSend.imageTintList = ColorStateList.valueOf(if (isLightAccent) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
 
             binding.inputLayoutPrompt.boxStrokeColor = color
             binding.inputLayoutPrompt.cursorColor = ColorStateList.valueOf(color)

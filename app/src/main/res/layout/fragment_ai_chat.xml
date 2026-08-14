@@ -110,6 +110,8 @@
         android:orientation="horizontal"
         android:padding="12dp"
         android:gravity="center_vertical"
+        android:background="@color/task_surface"
+        android:elevation="6dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -120,10 +122,12 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            app:boxBackgroundColor="@color/task_card_surface"
             app:boxCornerRadiusBottomEnd="24dp"
             app:boxCornerRadiusBottomStart="24dp"
             app:boxCornerRadiusTopEnd="24dp"
             app:boxCornerRadiusTopStart="24dp"
+            app:boxStrokeColor="@color/task_card_stroke"
             app:hintEnabled="false">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -149,7 +153,7 @@
             android:contentDescription="Send Message"
             android:src="@drawable/ic_send"
             app:fabCustomSize="48dp"
-            app:elevation="1dp"
+            app:elevation="2dp"
             app:tint="@color/white" />
 
     </LinearLayout>
