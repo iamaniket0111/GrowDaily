@@ -135,26 +135,27 @@ class AiChatViewModel(
 
     private suspend fun linkTaskToTargetList(task: SuggestedTask, taskId: String, allowCreateNewList: Boolean = true) {
         val existingLists = appRepository.getAllListsSync()
+        val listTitleCandidate = task.listName?.takeIf { it.isNotBlank() }
+            ?: task.createNewList?.takeIf { it.isNotBlank() }
 
         val targetListId = when {
             !task.targetListId.isNullOrBlank() -> task.targetListId
-            !task.listName.isNullOrBlank() -> {
-                existingLists.firstOrNull { it.listTitle.equals(task.listName, ignoreCase = true) }?.id
-            }
-            allowCreateNewList && !task.createNewList.isNullOrBlank() -> {
-                val matchingList = existingLists.firstOrNull { it.listTitle.equals(task.createNewList, ignoreCase = true) }
+            !listTitleCandidate.isNullOrBlank() -> {
+                val matchingList = existingLists.firstOrNull { it.listTitle.trim().equals(listTitleCandidate.trim(), ignoreCase = true) }
                 if (matchingList != null) {
                     matchingList.id
-                } else {
+                } else if (allowCreateNewList) {
                     val newId = java.util.UUID.randomUUID().toString()
                     val newOrder = existingLists.size + 1
                     val newList = com.anitech.growdaily.data_class.ListEntity(
                         id = newId,
-                        listTitle = task.createNewList.trim(),
+                        listTitle = listTitleCandidate.trim(),
                         sortOrder = newOrder
                     )
                     appRepository.insertList(newList)
                     newId
+                } else {
+                    null
                 }
             }
             else -> null
@@ -286,8 +287,8 @@ class AiChatViewModel(
                 var currentOrder = (appRepository.getMaxManualOrder() ?: 0)
                 for (i in tasks.indices) {
                     val task = tasks[i]
-                    val matchesList = task.listName.equals(targetSuggestedList.listTitle, ignoreCase = true) ||
-                            task.createNewList.equals(targetSuggestedList.listTitle, ignoreCase = true)
+                    val matchesList = task.listName?.trim().equals(targetSuggestedList.listTitle.trim(), ignoreCase = true) ||
+                            task.createNewList?.trim().equals(targetSuggestedList.listTitle.trim(), ignoreCase = true)
                     if (matchesList && !task.isAdded) {
                         currentOrder++
                         val taskEntity = task.toTaskEntity(CommonMethods.getTodayDate(), manualOrder = currentOrder)

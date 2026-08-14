@@ -301,33 +301,14 @@ class AiChatAdapter(
                         btnModify.strokeColor = ColorStateList.valueOf(effectiveColor)
                         btnModify.iconTint = ColorStateList.valueOf(effectiveColor)
 
-                        if (!suggestedTask.createNewList.isNullOrBlank()) {
-                            btnCreateList.visibility = View.VISIBLE
-                            btnCreateList.text = "✨ Create & Add"
-                            btnCreateList.backgroundTintList = ColorStateList.valueOf(effectiveColor)
-                            btnCreateList.setTextColor(ContextCompat.getColor(itemView.context, R.color.white))
+                        btnCreateList.visibility = View.GONE
+                        btnAdd.text = "+ Add"
+                        btnAdd.isEnabled = true
+                        btnAdd.backgroundTintList = ColorStateList.valueOf(effectiveColor)
+                        btnAdd.setTextColor(ContextCompat.getColor(itemView.context, R.color.white))
 
-                            btnAdd.text = "➕ Add Only"
-                            btnAdd.isEnabled = true
-                            btnAdd.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(itemView.context, R.color.task_card_surface))
-                            btnAdd.setTextColor(effectiveColor)
-
-                            btnCreateList.setOnClickListener {
-                                onAddSuggestedTaskClicked(item.id, index, true)
-                            }
-                            btnAdd.setOnClickListener {
-                                onAddSuggestedTaskClicked(item.id, index, false)
-                            }
-                        } else {
-                            btnCreateList.visibility = View.GONE
-                            btnAdd.text = "+ Add"
-                            btnAdd.isEnabled = true
-                            btnAdd.backgroundTintList = ColorStateList.valueOf(effectiveColor)
-                            btnAdd.setTextColor(ContextCompat.getColor(itemView.context, R.color.white))
-
-                            btnAdd.setOnClickListener {
-                                onAddSuggestedTaskClicked(item.id, index, true)
-                            }
+                        btnAdd.setOnClickListener {
+                            onAddSuggestedTaskClicked(item.id, index, true)
                         }
 
                         btnModify.setOnClickListener {
