@@ -166,6 +166,8 @@ class AiChatAdapter(
                         }
                     }
 
+                    val showListDismiss = lists.size > 1
+                    btnDismissList.visibility = if (showListDismiss) View.VISIBLE else View.GONE
                     btnDismissList.setOnClickListener {
                         onDismissSuggestedListClicked(item.id, index)
                     }
@@ -331,6 +333,8 @@ class AiChatAdapter(
                         }
                     }
 
+                    val showTaskDismiss = tasks.size > 1
+                    btnDismiss.visibility = if (showTaskDismiss) View.VISIBLE else View.GONE
                     btnDismiss.setOnClickListener {
                         onDismissSuggestedTaskClicked(item.id, index)
                     }
