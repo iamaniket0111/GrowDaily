@@ -52,6 +52,11 @@ class AiChatFragment : Fragment() {
         observeAccentColor()
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.refreshSuggestedListsState()
+    }
+
     private fun setupRecyclerView() {
         chatAdapter = AiChatAdapter(
             onAddSuggestedTaskClicked = { messageId, taskIndex, createList ->
@@ -75,13 +80,10 @@ class AiChatFragment : Fragment() {
                 Toast.makeText(requireContext(), "List created in GrowDaily!", Toast.LENGTH_SHORT).show()
             },
             onModifySuggestedListClicked = { messageId, listIndex, currentListName ->
-                val listEntity = com.anitech.growdaily.data_class.ListEntity(
-                    id = java.util.UUID.randomUUID().toString(),
-                    listTitle = currentListName,
-                    sortOrder = 0
-                )
-                val action = AiChatFragmentDirections.actionAiChatFragmentToAddList(ConditionEntity = listEntity)
-                findNavController().navigate(action)
+                viewModel.getOrCreateListEntityForNavigation(currentListName) { listEntity ->
+                    val action = AiChatFragmentDirections.actionAiChatFragmentToAddList(ConditionEntity = listEntity)
+                    findNavController().navigate(action)
+                }
             },
             onDismissSuggestedListClicked = { messageId, listIndex ->
                 viewModel.removeSuggestedList(messageId, listIndex)

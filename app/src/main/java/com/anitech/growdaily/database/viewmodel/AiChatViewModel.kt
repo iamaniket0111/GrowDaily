@@ -322,4 +322,59 @@ class AiChatViewModel(
         currentList[msgIndex] = targetMsg.copy(suggestedLists = if (lists.isEmpty()) null else lists)
         _messages.value = currentList
     }
+
+    fun refreshSuggestedListsState() {
+        viewModelScope.launch {
+            val currentMessages = _messages.value.orEmpty().toMutableList()
+            if (currentMessages.isEmpty()) return@launch
+
+            val existingLists = appRepository.getAllListsSync()
+            var changed = false
+
+            for (msgIdx in currentMessages.indices) {
+                val msg = currentMessages[msgIdx]
+                val suggestedLists = msg.suggestedLists?.toMutableList() ?: continue
+
+                for (listIdx in suggestedLists.indices) {
+                    val sList = suggestedLists[listIdx]
+                    val matchingList = existingLists.firstOrNull {
+                        it.listTitle.equals(sList.listTitle, ignoreCase = true)
+                    }
+
+                    if (matchingList != null) {
+                        val taskIds = appRepository.getTaskIdsForList(matchingList.id)
+                        val realTaskCount = taskIds.size
+                        if (!sList.isCreated || sList.taskCount != realTaskCount) {
+                            suggestedLists[listIdx] = sList.copy(
+                                isCreated = true,
+                                taskCount = realTaskCount
+                            )
+                            changed = true
+                        }
+                    }
+                }
+
+                if (changed) {
+                    currentMessages[msgIdx] = msg.copy(suggestedLists = suggestedLists)
+                }
+            }
+
+            if (changed) {
+                _messages.value = currentMessages
+            }
+        }
+    }
+
+    fun getOrCreateListEntityForNavigation(listTitle: String, onReady: (com.anitech.growdaily.data_class.ListEntity) -> Unit) {
+        viewModelScope.launch {
+            val existingLists = appRepository.getAllListsSync()
+            val existingList = existingLists.firstOrNull { it.listTitle.equals(listTitle, ignoreCase = true) }
+            val targetEntity = existingList ?: com.anitech.growdaily.data_class.ListEntity(
+                id = java.util.UUID.randomUUID().toString(),
+                listTitle = listTitle.trim(),
+                sortOrder = (existingLists.maxOfOrNull { it.sortOrder } ?: -1) + 1
+            )
+            onReady(targetEntity)
+        }
+    }
 }
