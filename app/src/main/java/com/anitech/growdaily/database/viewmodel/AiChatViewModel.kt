@@ -271,6 +271,14 @@ class AiChatViewModel(
                 matchingList.id
             }
 
+            // Link draft selected task IDs if user selected tasks in AddListFragment!
+            val draftTaskIds = targetSuggestedList.selectedTaskIds
+            if (!draftTaskIds.isNullOrEmpty()) {
+                for (taskId in draftTaskIds) {
+                    appRepository.addTaskToList(listId, taskId)
+                }
+            }
+
             // Also insert and link any suggested tasks associated with this list!
             val tasks = targetMsg.suggestedTasks?.toMutableList()
             if (!tasks.isNullOrEmpty()) {
@@ -293,6 +301,31 @@ class AiChatViewModel(
             currentList[msgIndex] = targetMsg.copy(suggestedLists = lists, suggestedTasks = tasks)
             _messages.value = currentList
         }
+    }
+
+    fun updateSuggestedListDraft(
+        messageId: String,
+        listIndex: Int,
+        newTitle: String,
+        selectedTaskIds: List<String>
+    ) {
+        val currentList = _messages.value.orEmpty().toMutableList()
+        val msgIndex = currentList.indexOfFirst { it.id == messageId }
+        if (msgIndex == -1) return
+
+        val targetMsg = currentList[msgIndex]
+        val lists = targetMsg.suggestedLists?.toMutableList() ?: return
+        if (listIndex !in lists.indices) return
+
+        val oldList = lists[listIndex]
+        lists[listIndex] = oldList.copy(
+            listTitle = newTitle,
+            taskCount = selectedTaskIds.size,
+            selectedTaskIds = selectedTaskIds
+        )
+
+        currentList[msgIndex] = targetMsg.copy(suggestedLists = lists)
+        _messages.value = currentList
     }
 
     fun updateSuggestedListName(messageId: String, listIndex: Int, newListName: String) {

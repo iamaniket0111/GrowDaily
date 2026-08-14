@@ -30,6 +30,8 @@ class AiChatFragment : Fragment() {
     private lateinit var chatAdapter: AiChatAdapter
     private var previousMessageCount = 0
     private var currentAccentColor: Int = 0
+    private var activeEditingMessageId: String? = null
+    private var activeEditingListIndex: Int? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -80,8 +82,10 @@ class AiChatFragment : Fragment() {
                 Toast.makeText(requireContext(), "List created in GrowDaily!", Toast.LENGTH_SHORT).show()
             },
             onModifySuggestedListClicked = { messageId, listIndex, currentListName ->
+                activeEditingMessageId = messageId
+                activeEditingListIndex = listIndex
                 viewModel.getOrCreateListEntityForNavigation(currentListName) { listEntity ->
-                    val action = AiChatFragmentDirections.actionAiChatFragmentToAddList(ConditionEntity = listEntity)
+                    val action = AiChatFragmentDirections.actionAiChatFragmentToAddList(ConditionEntity = listEntity, isDraft = true)
                     findNavController().navigate(action)
                 }
             },
@@ -99,6 +103,20 @@ class AiChatFragment : Fragment() {
     }
 
     private fun setupListeners() = with(binding) {
+        parentFragmentManager.setFragmentResultListener("suggested_list_draft_result", viewLifecycleOwner) { _, bundle ->
+            val newTitle = bundle.getString("draft_list_title") ?: return@setFragmentResultListener
+            val selectedTaskIds = bundle.getStringArray("draft_selected_task_ids")?.toList().orEmpty()
+            val msgId = activeEditingMessageId ?: return@setFragmentResultListener
+            val listIdx = activeEditingListIndex ?: return@setFragmentResultListener
+
+            viewModel.updateSuggestedListDraft(
+                messageId = msgId,
+                listIndex = listIdx,
+                newTitle = newTitle,
+                selectedTaskIds = selectedTaskIds
+            )
+        }
+
         btnSend.setOnClickListener {
             submitMessage()
         }

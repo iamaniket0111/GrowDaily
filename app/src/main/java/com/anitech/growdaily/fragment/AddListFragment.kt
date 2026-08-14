@@ -250,6 +250,18 @@ class AddListFragment : Fragment() {
             }
 
             val finalName = rawName.trim()
+
+            if (args.isDraft) {
+                val resultBundle = androidx.core.os.bundleOf(
+                    "draft_list_title" to finalName,
+                    "draft_selected_task_ids" to tempSelectedTaskIds.toTypedArray()
+                )
+                parentFragmentManager.setFragmentResult("suggested_list_draft_result", resultBundle)
+                Toast.makeText(requireContext(), "Draft updated!", Toast.LENGTH_SHORT).show()
+                findNavController().popBackStack()
+                return@setOnClickListener
+            }
+
             val listEntity = ListEntity(
                 id = listId,
                 listTitle = finalName,

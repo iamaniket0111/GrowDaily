@@ -54,6 +54,10 @@
             app:argType="com.anitech.growdaily.data_class.ListEntity"
             app:nullable="true"
             android:defaultValue="@null" />
+        <argument
+            android:name="isDraft"
+            app:argType="boolean"
+            android:defaultValue="false" />
     </fragment>
 
     <fragment
