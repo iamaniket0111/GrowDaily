@@ -121,7 +121,7 @@ class AiChatViewModel(
         }
     }
 
-    private suspend fun linkTaskToTargetList(task: SuggestedTask, taskId: String) {
+    private suspend fun linkTaskToTargetList(task: SuggestedTask, taskId: String, allowCreateNewList: Boolean = true) {
         val existingLists = appRepository.getAllLists().value.orEmpty()
 
         val targetListId = when {
@@ -129,7 +129,7 @@ class AiChatViewModel(
             !task.listName.isNullOrBlank() -> {
                 existingLists.firstOrNull { it.listTitle.equals(task.listName, ignoreCase = true) }?.id
             }
-            !task.createNewList.isNullOrBlank() -> {
+            allowCreateNewList && !task.createNewList.isNullOrBlank() -> {
                 val matchingList = existingLists.firstOrNull { it.listTitle.equals(task.createNewList, ignoreCase = true) }
                 if (matchingList != null) {
                     matchingList.id
@@ -153,7 +153,12 @@ class AiChatViewModel(
         }
     }
 
-    fun addSuggestedTask(messageId: String, taskIndex: Int, selectedDate: String = CommonMethods.getTodayDate()) {
+    fun addSuggestedTask(
+        messageId: String,
+        taskIndex: Int,
+        createList: Boolean = true,
+        selectedDate: String = CommonMethods.getTodayDate()
+    ) {
         viewModelScope.launch {
             val currentList = _messages.value.orEmpty().toMutableList()
             val msgIndex = currentList.indexOfFirst { it.id == messageId }
@@ -170,7 +175,7 @@ class AiChatViewModel(
             val nextOrder = (appRepository.getMaxManualOrder() ?: 0) + 1
             val taskEntity = targetTask.toTaskEntity(selectedDate, manualOrder = nextOrder)
             appRepository.insertTask(taskEntity)
-            linkTaskToTargetList(targetTask, taskEntity.id)
+            linkTaskToTargetList(targetTask, taskEntity.id, allowCreateNewList = createList)
 
             // Mark as added in UI
             tasks[taskIndex] = targetTask.copy(isAdded = true)

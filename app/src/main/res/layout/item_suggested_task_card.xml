@@ -133,12 +133,23 @@
                         android:textColor="@color/task_text_secondary" />
                 </LinearLayout>
 
-                <!-- Action Buttons (+ Add & Modify) -->
+                <!-- Action Buttons (+ Add & Modify & Create List) -->
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCreateListAndAdd"
+                        style="@style/Widget.MaterialComponents.Button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:paddingHorizontal="12dp"
+                        android:text="✨ Create &amp; Add"
+                        android:textSize="12sp"
+                        android:visibility="gone"
+                        app:cornerRadius="8dp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnAddSuggestedTask"

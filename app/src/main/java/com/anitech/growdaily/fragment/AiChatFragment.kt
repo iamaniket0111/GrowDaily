@@ -53,8 +53,8 @@ class AiChatFragment : Fragment() {
 
     private fun setupRecyclerView() {
         chatAdapter = AiChatAdapter(
-            onAddSuggestedTaskClicked = { messageId, taskIndex ->
-                viewModel.addSuggestedTask(messageId, taskIndex)
+            onAddSuggestedTaskClicked = { messageId, taskIndex, createList ->
+                viewModel.addSuggestedTask(messageId, taskIndex, createList)
                 Toast.makeText(requireContext(), "Task added to GrowDaily!", Toast.LENGTH_SHORT).show()
             },
             onAddAllSuggestedTasksClicked = { messageId ->
