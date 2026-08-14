@@ -108,11 +108,21 @@ class AiChatViewModel(
             updatedList.removeLastOrNull() // remove loading placeholder
 
             val isError = aiResponseText.contains("Rate limit") || aiResponseText.contains("Invalid API Key") || aiResponseText.contains("Unable to connect")
+            
+            val adjustedLists = suggestedLists?.map { suggestedList ->
+                val matchingCount = suggestedTasks?.count { task ->
+                    task.listName.equals(suggestedList.listTitle, ignoreCase = true) ||
+                    task.createNewList.equals(suggestedList.listTitle, ignoreCase = true)
+                } ?: 0
+                val finalCount = if (matchingCount > 0) matchingCount else suggestedList.taskCount
+                suggestedList.copy(taskCount = finalCount)
+            }
+
             val aiMsg = AiChatMessage(
                 sender = ChatSender.AI,
                 text = aiResponseText,
                 suggestedTasks = suggestedTasks,
-                suggestedLists = suggestedLists,
+                suggestedLists = adjustedLists,
                 isError = isError
             )
             updatedList.add(aiMsg)
@@ -247,7 +257,7 @@ class AiChatViewModel(
             val existingLists = appRepository.getAllListsSync()
             val matchingList = existingLists.firstOrNull { it.listTitle.equals(targetSuggestedList.listTitle, ignoreCase = true) }
 
-            if (matchingList == null) {
+            val listId = if (matchingList == null) {
                 val newId = java.util.UUID.randomUUID().toString()
                 val newOrder = existingLists.size + 1
                 val newList = com.anitech.growdaily.data_class.ListEntity(
@@ -256,10 +266,31 @@ class AiChatViewModel(
                     sortOrder = newOrder
                 )
                 appRepository.insertList(newList)
+                newId
+            } else {
+                matchingList.id
+            }
+
+            // Also insert and link any suggested tasks associated with this list!
+            val tasks = targetMsg.suggestedTasks?.toMutableList()
+            if (!tasks.isNullOrEmpty()) {
+                var currentOrder = (appRepository.getMaxManualOrder() ?: 0)
+                for (i in tasks.indices) {
+                    val task = tasks[i]
+                    val matchesList = task.listName.equals(targetSuggestedList.listTitle, ignoreCase = true) ||
+                            task.createNewList.equals(targetSuggestedList.listTitle, ignoreCase = true)
+                    if (matchesList && !task.isAdded) {
+                        currentOrder++
+                        val taskEntity = task.toTaskEntity(CommonMethods.getTodayDate(), manualOrder = currentOrder)
+                        appRepository.insertTask(taskEntity)
+                        appRepository.addTaskToList(listId, taskEntity.id)
+                        tasks[i] = task.copy(isAdded = true)
+                    }
+                }
             }
 
             lists[listIndex] = targetSuggestedList.copy(isCreated = true)
-            currentList[msgIndex] = targetMsg.copy(suggestedLists = lists)
+            currentList[msgIndex] = targetMsg.copy(suggestedLists = lists, suggestedTasks = tasks)
             _messages.value = currentList
         }
     }
