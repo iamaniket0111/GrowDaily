@@ -63,11 +63,11 @@ class AiChatFragment : Fragment() {
         chatAdapter = AiChatAdapter(
             onAddSuggestedTaskClicked = { messageId, taskIndex, createList ->
                 viewModel.addSuggestedTask(messageId, taskIndex, createList)
-                Toast.makeText(requireContext(), "Task added to GrowDaily!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Task added!", Toast.LENGTH_SHORT).show()
             },
             onAddAllSuggestedTasksClicked = { messageId ->
                 viewModel.addAllSuggestedTasks(messageId)
-                Toast.makeText(requireContext(), "All tasks added to GrowDaily!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "All tasks added!", Toast.LENGTH_SHORT).show()
             },
             onModifySuggestedTaskClicked = { suggestedTask ->
                 val taskEntity = suggestedTask.toTaskEntity(com.anitech.growdaily.CommonMethods.getTodayDate())
@@ -79,7 +79,7 @@ class AiChatFragment : Fragment() {
             },
             onAddSuggestedListClicked = { messageId, listIndex ->
                 viewModel.addSuggestedList(messageId, listIndex)
-                Toast.makeText(requireContext(), "List created in GrowDaily!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "List created!", Toast.LENGTH_SHORT).show()
             },
             onModifySuggestedListClicked = { messageId, listIndex, currentListName ->
                 activeEditingMessageId = messageId
