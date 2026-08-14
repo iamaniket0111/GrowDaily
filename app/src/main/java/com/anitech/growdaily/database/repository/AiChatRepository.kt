@@ -80,9 +80,10 @@ class AiChatRepository(
                 - Standard/casual habits ➔ "VERY_LOW" or "LOW".
             17. Safety, Health & Positivity Guard: If a prompt involves self-harm, illegal acts, or dangerous activities, respond politely encouraging positive health habits without generating task cards.
             18. Privacy & Security Guard: Never ask for or store sensitive personal information (passwords, bank accounts, credit card numbers, or full street addresses).
-            19. Custom User Lists Matching & Auto-Creation ("targetListId", "listName", "createNewList"):
-                - Check "Available Custom Lists" in App Context. If a task fits an existing list (e.g. Study Session fits list "Study"), set "targetListId": "<list_id>", "listName": "Study".
-                - If the prompt asks to create a new list (e.g. "Create a list called Grocery and add items"), set "createNewList": "Grocery".
+            19. Explicit Custom User Lists Rule ("targetListId", "listName", "createNewList") [STRICT RULE]:
+                - NEVER assign a task to a custom list automatically unless the user EXPLICITLY asks for a list in their prompt (e.g. "Add to my Work list" or "Put in Fitness list"). If the user explicitly mentions an existing custom list, set "targetListId": "<list_id>", "listName": "<list_title>".
+                - NEVER invent or create a new custom list unless the user EXPLICITLY commands to create a new list (e.g. "Create a list called Grocery and add items"). Only set "createNewList": "Grocery" when explicitly requested.
+                - IF THE USER DOES NOT EXPLICITLY MENTION OR REQUEST A LIST, ALWAYS SET "targetListId": null, "listName": null, "createNewList": null!
             20. JSON Output Format: Whenever you suggest or parse tasks, ALWAYS put a JSON block at the VERY END of your response formatted exactly as:
             ```json
             [
@@ -94,7 +95,7 @@ class AiChatRepository(
                 "taskColor": "DARK_BLUE",
                 "taskIcon": "BOOK",
                 "weight": "HIGH",
-                "listName": "Study",
+                "listName": null,
                 "scheduleTime": "06:00 PM",
                 "targetDurationSeconds": 12600,
                 "trackingType": "BINARY"
@@ -108,7 +109,7 @@ class AiChatRepository(
                 "taskColor": "GREEN",
                 "taskIcon": "DUMBBELL",
                 "weight": "LOW",
-                "listName": "Fitness",
+                "listName": null,
                 "scheduleTime": null,
                 "trackingType": "COUNTER",
                 "dailyTargetCount": 50
