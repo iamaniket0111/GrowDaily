@@ -172,15 +172,9 @@ class AiChatFragment : Fragment() {
             currentAccentColor = color
             binding.btnSend.backgroundTintList = ColorStateList.valueOf(color)
 
-            val defaultStrokeColor = androidx.core.content.ContextCompat.getColor(requireContext(), com.anitech.growdaily.R.color.task_card_stroke)
-            val strokeStateList = ColorStateList(
-                arrayOf(
-                    intArrayOf(android.R.attr.state_focused),
-                    intArrayOf(-android.R.attr.state_focused)
-                ),
-                intArrayOf(color, defaultStrokeColor)
-            )
-            binding.inputLayoutPrompt.setBoxStrokeColorStateList(strokeStateList)
+            binding.inputLayoutPrompt.boxStrokeColor = color
+            binding.inputLayoutPrompt.cursorColor = ColorStateList.valueOf(color)
+            binding.inputLayoutPrompt.hintTextColor = ColorStateList.valueOf(color)
 
             // Dynamic cursor & text highlight color matching theme accent color
             val density = resources.displayMetrics.density

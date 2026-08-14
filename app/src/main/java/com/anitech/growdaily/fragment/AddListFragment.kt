@@ -260,7 +260,8 @@ class AddListFragment : Fragment() {
                 }
             )
 
-            if (isEditMode) {
+            val listExists = (viewModel.allLists.value.orEmpty()).any { it.id == listId }
+            if (listExists) {
                 viewModel.updateList(listEntity)
             } else {
                 viewModel.insertList(listEntity)
